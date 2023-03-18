@@ -1,26 +1,32 @@
 
-function importData(userConfig) {
+function importData(userConfig = {}) {
+	//use last known config if unset
+	if (JSON.stringify(userConfig) === '{}') userConfig = getConfig();
+
 	console.log('SYNC');
 	const startTime = Date.now();
 	const mappings = getMappings(userConfig);
 	const config = getMixpanelConfig(userConfig);
-	const problems = validateUserInput(config, mappings);
 	const transform = getTransformType(config);
 
 	console.log('GET');
 	const sourceData = getJSON(SpreadsheetApp.getActiveSheet());
+
 	console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
-	const targetData = sourceData.slice().map((row) => transform(row, mappings));
+	const targetData = sourceData.slice().map((row) => transform(row, mappings, config));
+
 	console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
 	const imported = flushToMixpanel(targetData, config);
 	const endTime = Date.now();
 	const runTime = Math.floor(endTime - startTime) / 1000;
+
 	console.log(`FINISHED: ${runTime} seconds`);
 	updateConfig(config, imported, runTime, targetData);
 	if (config.results.errors.length > 0) {
 		Logger.log('FAILED REQUESTS');
 		Logger.log(config.results.errors);
 	}
+	console.log(config);
 	displayImportResults(config);
 	return imported;
 
@@ -38,9 +44,7 @@ function getMappings(config) {
 		email_col,
 		avatar_col,
 		created_col,
-		profile_operation,
-		group_key,
-		lookup_table_id,
+		profile_operation
 	} = config;
 
 	if (record_type === 'event') {
@@ -71,8 +75,7 @@ function getMappings(config) {
 			email_col,
 			avatar_col,
 			created_col,
-			profile_operation,
-			group_key
+			profile_operation
 		};
 	}
 
@@ -87,6 +90,7 @@ function getMixpanelConfig(config) {
 		lookup_table_id,
 		project_id,
 		token,
+		group_key,
 		region,
 		auth_type,
 		service_acct,
@@ -110,6 +114,8 @@ function getMixpanelConfig(config) {
 		}
 	};
 
+	if (record_type === 'group') mixpanel.batchSize = 200;
+	if (record_type === 'group') mixpanel.group_key = group_key;
 	if (record_type === 'table') mixpanel.lookup_table_id = lookup_table_id;
 	if (auth_type === 'service_account') mixpanel.auth = `${service_acct}:${service_secret}`;
 	if (auth_type === 'api_secret') mixpanel.auth = `${api_secret}:`;
@@ -122,32 +128,8 @@ function getMixpanelConfig(config) {
 function getTransformType(config) {
 	if (config.record_type === 'event') return modelMpEvents;
 	if (config.record_type === 'user') return modelMpProfiles;
+	if (config.record_type === 'group') return modelMpGroups;
 	throw new Error(`${config.record_type} is not a supported record type`);
-}
-
-function validateUserInput(config, mappings) {
-	const problems = [];
-	if (config.record_type === 'event') {
-		if (!config.secret && (!config.service_acct || !config.service_pass)) problems.push('a service account or api secret is required to send events');
-		if (!config.projectId && config.service_acct && config.service_pass) problems.push('a project ID is required when using service accounts');
-		if (!mappings.distinct_id_col) problems.push('a distinct_id mapping is required for sending events');
-		if (!mappings.time_col) problems.push('a time mapping is required for sending events');
-		if (!mappings.event_name_col) problems.push('an event name mapping is required for sending events');
-	}
-
-	if (config.record_type === 'user') {
-		if (!config.token) problems.push('token is required for sending user profiles');
-		if (!mappings.distinct_id_col) problems.push('a distinct_id mapping is required for sending user profiles');
-	}
-
-	if (config.record_type === ' group') {
-		if (!config.token) problems.push('token is required for sending group profiles');
-		if (!config.groupKey) problems.push('a group key is required for sending group profiles');
-		if (!mappings.distinct_id_col) problems.push('a distinct_id / group_id mapping is required for sending group profiles');
-	}
-
-	return problems;
-
 }
 
 // SFX
@@ -169,5 +151,11 @@ function updateConfig(config, responses, runTime, targetData) {
 		if (config.record_type === 'table') {
 			config.results.success += targetData.length;
 		}
+	}
+
+	// normalize for profiles + groups
+	if (config.record_type === 'user' || config.record_type === 'group') {
+		if (config.results.success > config.results.total) config.results.success = config.results.total;
+		if (config.results.failed > config.results.total) config.results.failed = config.results.total;
 	}
 }

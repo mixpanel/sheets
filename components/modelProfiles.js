@@ -1,5 +1,5 @@
 function modelMpProfiles(row, mappings, config) {
-	const {
+	let {
 		distinct_id_col,
 		name_col,
 		email_col,
@@ -15,7 +15,7 @@ function modelMpProfiles(row, mappings, config) {
 	profileOperation = profileOperation.toLowerCase();
 
 	if (!distinct_id_col) throw new Error('distinct_id_col mapping is required!');
-	if (!token) throw new Error('distinct_id_col mapping is required!');
+	if (!token) throw new Error('token is required!');
 
 	//create a copy, so we don't alter the source
 	row = Object.assign({}, row);

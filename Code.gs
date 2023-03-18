@@ -57,21 +57,21 @@ function dataInUI() {
 function getHeaders() {
 	const sheet = SpreadsheetApp.getActiveSheet();
 	const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
-	const headers = range.getValues()[0] //.map(str => str.trim());
+	const headers = range.getValues()[0]; //.map(str => str.trim());
 	return headers;
 }
 
 
 function syncNow(config) {
-	console.log(config)
+	console.log(config);
 	const ui = SpreadsheetApp.getUi();
 	const result = ui.alert(
 		'🔄 Sync Now?',
 		'do you want to run a sync?',
 		ui.ButtonSet.YES_NO);
 
-	// Process the user's response.
 	if (result == ui.Button.YES) {
+		setConfig(config);
 		importData(config);
 	} else {
 		ui.alert('❌ Sync Canceled', 'no sync was run!', ui.ButtonSet.OK);
@@ -87,7 +87,7 @@ function displayImportResults(config) {
 		Total: ${comma(results.total)} ${config.record_type}s
 		Success: ${comma(results.success)}
 		Failed: ${comma(results.failed)}
-		Batches: ${comma(results.requests.length)}
+		Batches: ${comma(results.batches)}
 		Duration: ${comma(results.seconds)} seconds
 		
 	
