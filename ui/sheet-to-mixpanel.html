@@ -338,24 +338,29 @@
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					qs('#auth_type option[value="api_secret"]').disabled = false;
 				}
 				if (newVal === 'user') {
 					this.DOM.eventMappings.classList.add('hidden');
 					this.DOM.userMappings.classList.remove('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					qs('#auth_type option[value="api_secret"]').disabled = false;
 				}
 				if (newVal === 'group') {
 					this.DOM.eventMappings.classList.add('hidden');
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.remove('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					qs('#auth_type option[value="api_secret"]').disabled = false;
 				}
 				if (newVal === 'table') {
 					this.DOM.eventMappings.classList.add('hidden');
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.remove('hidden');
+					setValues('#auth_type', 'service_account');
+					qs('#auth_type option[value="api_secret"]').disabled = true;
 				}
 
 			});
@@ -537,6 +542,7 @@
 			if (time_col) setValues('#time_col', time_col);
 			if (insert_id_col) setValues('#insert_id_col', insert_id_col);
 			if (name_col) setValues('#name_col', name_col);
+			if (email_col) setValues('#email_col', email_col);
 			if (avatar_col) setValues('#avatar_col', avatar_col);
 			if (created_col) setValues('#created_col', created_col);
 			if (profile_operation) setValues('#profile_operation', profile_operation);

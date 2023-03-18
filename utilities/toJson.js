@@ -9,9 +9,15 @@
  * @returns Object[] - an Array of objects with the headers as keys.
 */
 function getJSON(sheet) {
-	var headersRange = sheet.getRange(1, 1, sheet.getFrozenRows(), sheet.getMaxColumns());
-	var headers = headersRange.getValues()[0];
-	var dataRange = sheet.getRange(sheet.getFrozenRows() + 1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
+	// var headersRange = sheet.getRange(1, 1, sheet.getFrozenRows(), sheet.getMaxColumns());
+	// var headers = headersRange.getValues()[0];
+	
+	// ak edit: allow non-frozen headers
+	const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+	const headers = range.getValues()[0];
+
+	// var dataRange = sheet.getRange(sheet.getFrozenRows() + 1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
+	var dataRange = sheet.getRange(2, 1, sheet.getMaxRows(), sheet.getMaxColumns());
 	return getObjects(dataRange.getValues(), normalizeHeaders(headers));
 }
 
@@ -85,6 +91,7 @@ function normalizeHeaders(headers) {
  *   "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
 */
 function normalizeHeader(header) {
+	//ak edit: don't noramlize
 	return header;
 	var key = "";
 	var upperCase = false;

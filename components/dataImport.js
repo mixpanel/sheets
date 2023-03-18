@@ -129,6 +129,7 @@ function getTransformType(config) {
 	if (config.record_type === 'event') return modelMpEvents;
 	if (config.record_type === 'user') return modelMpProfiles;
 	if (config.record_type === 'group') return modelMpGroups;
+	if (config.record_type === 'table') return modelMpTables;
 	throw new Error(`${config.record_type} is not a supported record type`);
 }
 
@@ -159,3 +160,5 @@ function updateConfig(config, responses, runTime, targetData) {
 		if (config.results.failed > config.results.total) config.results.failed = config.results.total;
 	}
 }
+
+
