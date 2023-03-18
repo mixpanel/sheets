@@ -1,0 +1,667 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Mixpanel Configuration</title>
+	<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+</head>
+<!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
+
+
+<body>
+	<div id="columns" class="hidden">
+		<?= columns.toString() ?>
+	</div>
+	<div id="config" class="hidden">
+		<?= JSON.stringify(config) ?>
+	</div>
+	<section id="type">
+		<div class="prompt">
+			<span class="title"> What type of data are you syncing<a target="_blank"
+					href="https://developer.mixpanel.com/docs/data-structure-deep-dive">?</a> </span>
+			<select id="record_type" class="data">
+				<option value="event">🚀 events</option>
+				<option value="user">👥 user profiles</option>
+				<option value="group">🏢 group profiles</option>
+				<option value="table">🔍 lookup tables</option>
+			</select>
+		</div>
+	</section>
+	<section id="mappings">
+		<div class="prompt">
+			<span class="title">
+				What are the mappings from your columns headers to Mixpanel <span id="type_label">event</span> fields<a
+					target="_blank"
+					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
+			</span>
+			<ul id="event_mapping" class="mapping">
+				<li><select id="event_name_col" class="data dropdown required">
+						<option value="">--------</option>
+					</select> → <span class="field">event name</span> </li>
+				<li><select id="distinct_id_col" class="data dropdown required">
+						<option value="">--------</option>
+					</select> → <span class="field">distinct_id</span></li>
+				<li><select id="time_col" class="data dropdown required">
+						<option value="">--------</option>
+					</select> → <span class="field">time</span></li>
+				<li><select id="insert_id_col" class="data dropdown optional">
+						<option value="">--------</option>
+					</select> → <span class="field">$insert_id</span> <span class="optional">(optional)</span></li>
+			</ul>
+			<ul id="user_mapping" class="mapping hidden">
+				<li><select id="distinct_id_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field">$distinct_id</span>
+				</li>
+				<li><select id="name_col" class="data dropdown required">
+						<option value="">--------</option>
+					</select> → <span class="field">$name</span> <span class="optional">(optional)</span></li>
+				<li><select id="email_col" class="data dropdown optional">
+						<option value="">--------</option>
+					</select> → <span class="field">$email</span> <span class="optional">(optional)</span></li>
+				<li><select id="avatar_col" class="data dropdown optional">
+						<option value="">--------</option>
+					</select> → <span class="field">$avatar</span> <span class="optional">(optional)</span></li>
+				<li><select id="created_col" class="data dropdown optional">
+						<option value="">--------</option>
+					</select> → <span class="field">$created</span> <span class="optional">(optional)</span></li>
+				<li>
+					<select id="profile_operation" class="data dropdown required">
+						<option value="$set">$set</option>
+						<option value="$set_once">$set_once</option>
+					</select> &emsp; <span class="optional">profile update type</span>
+				</li>
+			</ul>
+			<ul id="group_mapping" class="mapping hidden">
+				<li><input type="text" id="group_key" class="data field required" placeholder="company_id" size="120"> →
+					<span class="field">$group_key</span>
+				</li>
+				<li><select id="distinct_id_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field required">$group_id</span></li>
+				<li><select id="name_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field required">$name</span> <span class="optional">(optional)</span></li>
+				<li><select id="email_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field required">$email</span> <span class="optional">(optional)</span></li>
+				<li><select id="avatar_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field required">$avatar</span> <span class="optional">(optional)</span>
+				</li>
+				<li><select id="created_col" class="data dropdown">
+						<option value="">--------</option>
+					</select> → <span class="field required">$created</span> <span class="optional">(optional)</span>
+				</li>
+				<li>
+					<select id="profile_operation" class="data dropdown required">
+						<option value="$set">$set</option>
+						<option value="$set_once">$set_once</option>
+					</select> &emsp; <span class="optional">profile update type</span>
+				</li>
+			</ul>
+			<ul id="table_mapping" class="mapping hidden">
+				<li><input type="text" id="lookup_table_id" class="data field" placeholder="abc-123-xyz-456"> → <span
+						class="field">lookup table id</span>
+				</li>
+			</ul>
+		</div>
+	</section>
+	<section id="auth">
+		<div class="prompt">
+			<span class="title">What is your project's id<a target="_blank"
+					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id">?</a></span>
+			<input type="text" id="project_id" class="data" placeholder="123456789">
+		</div>
+		<div class="prompt">
+			<span class="title">What is your project's token<a target="_blank"
+					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-token">?</a></span>
+			<input type="text" id="token" class="data" placeholder="abcdefghijklmnop">
+		</div>
+		<div class="prompt">
+			<span class="title">What is your project's region<a target="_blank"
+					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#data-residency">?</a></span>
+			<select id="region" class="data">
+				<option value="US">🇺🇸 United States</option>
+				<option value="EU">🇪🇺European Union</option>
+			</select>
+		</div>
+		<div class="prompt">
+			<span class="title"> How will you authenticate<a target="_blank"
+					href="https://developer.mixpanel.com/reference/service-accounts">?</a></span>
+			<select id="auth_type" class="data">
+				<option value="service_account">🤖 service account</option>
+				<option value="api_secret">🔐 api secret</option>
+			</select>
+		</div>
+		<div class="prompt">
+			<span class="title">Provide your authentication details: </span>
+			<span id="service_acct_form">
+				<input type="text" id="service_acct" placeholder="service account user" class="data">
+				<input type="text" id="service_secret" placeholder="service account secret" class="data">
+			</span>
+			<span id="api_secret_form" class="hidden">
+				<input type="text" id="api_secret" placeholder="api secret" class="data">
+			</span>
+		</div>
+
+	</section>
+
+	<section id="controls">
+		<div>
+			<button id="sync" class="action" disabled>🏃 sync</button>
+			<button id="save">💾 save</button>
+			<button id="clear" class="create">🗑️ clear</button>
+		</div>
+	</section>
+
+	<section id="status" class="bottom">
+		<div>
+			<span class="gray"></span>
+		</div>
+	</section>
+
+	<style>
+		:root {
+			--mixpanel: #7856FF;
+			--purple: #4F44E0;
+			--red: #E34F2F;
+			--orange: #DF7800;
+			--green: #219464;
+			--lightGray: #626266;
+			--gray: #2A2A2F;
+		}
+
+		section {
+			padding-bottom: 5px;
+		}
+
+		button {
+			font-size: 17px;
+			text-transform: lowercase !important;
+		}
+
+		select {
+			font-size: 14px;
+			padding: 2px;
+			width: 180px;
+			text-indent: 5%;
+			text-align: left;
+		}
+
+		input[type="text"] {
+			width: 180px;
+		}
+
+		#group_key {
+			width: 140px;
+		}
+
+		.dropdown {
+			width: 140px
+		}
+
+		.title {
+			padding-bottom: 5px;
+			display: block;
+		}
+
+		div {
+			padding: 8px;
+		}
+
+		#type_label {
+			color: var(--red);
+			font-weight: bold;
+		}
+
+		.field {
+			font-family: monospace;
+			color: var(--mixpanel);
+			font-size: 16px;
+		}
+
+		.prompt {
+			font-size: 16px;
+			color: var(--gray);
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.optional {
+			color: var(--lightGray);
+			font-size: 12px;
+			opacity: .75;
+		}
+
+		li {
+			padding-bottom: 4px;
+		}
+
+		ul,
+		ol {
+			list-style: none;
+			margin-bottom: 0px;
+		}
+	</style>
+	<script>
+		const qs = document.querySelector.bind(document);
+		const qsa = document.querySelectorAll.bind(document);
+
+		const app = {
+			DOM: {},
+			init,
+			cacheDOM,
+			bindEvents,
+			buildDropdowns,
+			getFields,
+			checkFields,
+			isValid,
+			saveConfig,
+			parseConfig,
+			clearConfig,
+			loadConfig,
+			getConfig,
+			sync
+		};
+
+		function init() {
+			this.DOM = this.cacheDOM();
+			this.buildDropdowns(this.DOM.columns);
+			this.bindEvents();
+			this.loadConfig(this.DOM.config);
+		}
+
+		/*
+		----
+		DOM STUFF
+		----
+		*/
+
+		function cacheDOM() {
+			return {
+				typeSelector: qs('#record_type'),
+				typeLabel: qs('#type_label'),
+				eventMappings: qs('#event_mapping'),
+				userMappings: qs('#user_mapping'),
+				groupMappings: qs('#group_mapping'),
+				tableMappings: qs('#table_mapping'),
+				projectId: qs('#project_id'),
+				token: qs('#token'),
+				region: qs('#region'),
+				howAuth: qs('#auth_type'),
+				serviceAcctForm: qs('#service_acct_form'),
+				apiSecretForm: qs('#api_secret_form'),
+				serviceUser: qs('#service_acct'),
+				serviceSecret: qs('#service_secret'),
+				apiSecret: qs('#api_secret'),
+				syncButton: qs('#sync'),
+				saveButton: qs('#save'),
+				clearButton: qs('#clear'),
+				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
+				status: qs('#status span'),
+				config: this.parseConfig(qs('#config')),
+				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field'))
+			};
+		}
+
+		function buildDropdowns(columns) {
+			const selectMenus = Array.from(qsa('select.data.dropdown'));
+
+			// columns fail to render; most likely a local test
+			if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
+				columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
+			}
+
+			for (const select of selectMenus) {
+				for (const column of columns) {
+					const opt = document.createElement('option');
+					opt.value = column;
+					opt.innerHTML = column;
+					select.appendChild(opt);
+				}
+			}
+
+		}
+
+		function bindEvents() {
+			// TYPES + MAPPINGS
+			this.DOM.typeSelector.addEventListener('change', (e) => {
+				const newVal = e.currentTarget.value;
+				this.DOM.typeLabel.innerText = newVal;
+				if (newVal === 'event') {
+					this.DOM.eventMappings.classList.remove('hidden');
+					this.DOM.userMappings.classList.add('hidden');
+					this.DOM.groupMappings.classList.add('hidden');
+					this.DOM.tableMappings.classList.add('hidden');
+				}
+				if (newVal === 'user') {
+					this.DOM.eventMappings.classList.add('hidden');
+					this.DOM.userMappings.classList.remove('hidden');
+					this.DOM.groupMappings.classList.add('hidden');
+					this.DOM.tableMappings.classList.add('hidden');
+				}
+				if (newVal === 'group') {
+					this.DOM.eventMappings.classList.add('hidden');
+					this.DOM.userMappings.classList.add('hidden');
+					this.DOM.groupMappings.classList.remove('hidden');
+					this.DOM.tableMappings.classList.add('hidden');
+				}
+				if (newVal === 'table') {
+					this.DOM.eventMappings.classList.add('hidden');
+					this.DOM.userMappings.classList.add('hidden');
+					this.DOM.groupMappings.classList.add('hidden');
+					this.DOM.tableMappings.classList.remove('hidden');
+				}
+
+			});
+
+			// AUTH DETAILS
+			this.DOM.howAuth.addEventListener('change', (e) => {
+				const newVal = e.currentTarget.value;
+				if (newVal === 'service_account') {
+					this.DOM.apiSecretForm.classList.add('hidden');
+					this.DOM.serviceAcctForm.classList.remove('hidden');
+				}
+
+				if (newVal === 'api_secret') {
+					this.DOM.apiSecretForm.classList.remove('hidden');
+					this.DOM.serviceAcctForm.classList.add('hidden');
+				}
+			});
+
+			// "real-time" field validation
+			for (const key in this.DOM) {
+				if (this.DOM[key].tagName === 'SELECT') {
+					this.DOM[key].addEventListener('change', () => { this.checkFields(); });
+				}
+
+				if (this.DOM[key].tagName === 'INPUT') {
+					this.DOM[key].addEventListener('input', () => { this.checkFields(); });
+				}
+
+			}
+			for (const dataField of this.DOM.allMappingFields) {
+				if (dataField.tagName === 'SELECT') {
+					dataField.addEventListener('change', () => { this.checkFields(); });
+				}
+
+				if (dataField.tagName === 'INPUT') {
+					dataField.addEventListener('input', () => { this.checkFields(); });
+				}
+			}
+
+			// actions
+			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
+			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
+			this.DOM.clearButton.addEventListener('click', () => { this.clearConfig(); });
+
+		}
+
+		/*
+		----
+		CLIENT SIDE VALIDATION
+		----
+		*/
+
+		function getConfig() {
+			return mergeObj(Object.values(this.getFields()));
+		}
+
+		function checkFields() {
+			const userData = mergeObj(Object.values(this.getFields()));
+			const valid = this.isValid(userData);
+			this.DOM.status.innerText = "";
+			this.DOM.saveButton.disabled = false;
+			this.DOM.clearButton.disabled = false;
+			// console.log(JSON.stringify(userData, null, 2));
+
+			if (valid) {
+				this.DOM.syncButton.disabled = false;
+			}
+
+			else {
+				this.DOM.syncButton.disabled = true;
+			}
+
+		}
+
+		function isValid(config) {
+			const { record_type, project_id, token, region, auth_type, service_acct, service_secret, api_secret } = config;
+			if (!project_id) return false;
+			if (!token) return false;
+			if (auth_type === 'service_account') {
+				if (!service_acct || !service_secret) return false;
+			}
+			if (auth_type === 'api_secret') {
+				if (!api_secret) return false;
+			}
+
+			if (record_type === 'event') {
+				const { event_name_col, distinct_id_col, time_col, insert_id_col } = config;
+				if (!event_name_col) return false;
+				if (!distinct_id_col) return false;
+				if (!time_col) return false;
+			}
+
+			if (record_type === 'user') {
+				const { distinct_id_col, name_col, email_col, avatar_col, created_col } = config;
+				if (!distinct_id_col) return false;
+
+			}
+
+			if (record_type === 'group') {
+				const { distinct_id_col, name_col, email_col, avatar_col, created_col, group_key } = config;
+				if (!group_key) return false;
+				if (!distinct_id_col) return false;
+			}
+
+			if (record_type === 'table') {
+				const { lookup_table_id } = config;
+				if (!lookup_table_id) return false;
+
+			}
+
+			return true;
+		}
+
+		function getFields() {
+			// enumerate all visible fields
+			const visible = filterObj(this.DOM, (el) => {
+				// https://stackoverflow.com/a/21696585
+				return el.offsetParent && (el.classList.contains('data') || el.classList.contains('mapping'));
+			});
+
+			const fields = mapObj(visible, (node) => {
+				if (node.classList.contains('mapping')) {
+					const mappingsDOM = Array.from(node.querySelectorAll('select, input'));
+					const mappingsArr = mappingsDOM.map((mapping) => { return { [mapping.id]: mapping.value }; });
+					const mappings = mergeObj(mappingsArr);
+					return mappings;
+				}
+				else {
+					return { [node.id]: node.value };
+				}
+			});
+
+			return fields;
+		}
+
+		/*
+		----
+		LOADING DATA FROM SERVER
+		----
+		*/
+
+
+		function parseConfig(node) {
+			try {
+				return JSON.parse(node.innerText);
+			}
+			catch (e) {
+				return {};
+			}
+		}
+
+
+		function loadConfig(config) {
+			const {
+				record_type,
+				event_name_col,
+				distinct_id_col,
+				time_col,
+				insert_id_col,
+				name_col,
+				email_col,
+				avatar_col,
+				created_col,
+				profile_operation,
+				group_key,
+				lookup_table_id,
+				project_id,
+				token,
+				region,
+				auth_type,
+				service_acct,
+				service_secret,
+				api_secret
+			} = config;
+
+			if (record_type) setValues('#record_type', record_type);
+			if (event_name_col) setValues('#event_name_col', event_name_col);
+			if (distinct_id_col) setValues('#distinct_id_col', distinct_id_col);
+			if (time_col) setValues('#time_col', time_col);
+			if (insert_id_col) setValues('#insert_id_col', insert_id_col);
+			if (name_col) setValues('#name_col', name_col);
+			if (avatar_col) setValues('#avatar_col', avatar_col);
+			if (created_col) setValues('#created_col', created_col);
+			if (profile_operation) setValues('#profile_operation', profile_operation);
+			if (group_key) setValues('#group_key', group_key);
+			if (lookup_table_id) setValues('#lookup_table_id', lookup_table_id);
+			if (project_id) setValues('#project_id', project_id);
+			if (token) setValues('#token', token);
+			if (region) setValues('#region', region);
+			if (auth_type) setValues('#auth_type', auth_type);
+			if (service_acct) setValues('#service_acct', service_acct);
+			if (service_secret) setValues('#service_secret', service_secret);
+			if (api_secret) setValues('#api_secret', api_secret);
+
+		}
+
+		function setValues(cssSelector, value) {
+			Array.from(qsa(cssSelector)).forEach((node) => {
+				node.value = value;
+				if (node.tagName === 'INPUT') node.dispatchEvent(new Event('input'));
+				if (node.tagName === 'SELECT') node.dispatchEvent(new Event('change'));
+			});
+		}
+
+		/*
+		----
+		SERVER SIDE FUNCTIONS
+		----
+		*/
+
+		function saveConfig() {
+			try {
+				const userData = mergeObj(Object.values(this.getFields()));
+				// console.log(JSON.stringify(userData, null, 2));
+				google.script.run.withSuccessHandler(() => {
+					this.DOM.status.innerText = `configuration saved!`;
+					this.DOM.saveButton.disabled = true;
+				})
+					.setConfig(userData);
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+		}
+
+		function clearConfig() {
+			try {
+				google.script.run.withSuccessHandler(() => {
+					this.DOM.status.innerText = `configuration cleared!`;
+					this.DOM.clearButton.disabled = true;
+				})
+					.clearConfig();
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+		}
+
+
+		function sync() {
+			try {
+				google.script.run.withSuccessHandler(() => {
+					this.DOM.status.innerText = `syncing data!`;
+					this.DOM.syncButton.disabled = true;
+				})
+					.syncNow(this.getConfig());
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+		}
+
+
+
+		/*
+		----
+		UTILITIES
+		----
+		*/
+
+
+		function filterObj(hash, test_function, keysOrValues = "value") {
+			let key, i;
+			const iterator = Object.keys(hash);
+			const filtered = {};
+
+			for (i = 0; i < iterator.length; i++) {
+				key = iterator[i];
+				if (keysOrValues === 'value') {
+					if (test_function(hash[key])) {
+						filtered[key] = hash[key];
+					}
+				}
+				if (keysOrValues === 'key') {
+					if (test_function(key.toString())) {
+						filtered[key] = hash[key];
+					}
+				}
+			}
+			return filtered;
+		};
+
+
+		function mapObj(object, mapFn) {
+			return Object.keys(object).reduce(function (result, key) {
+				result[key] = mapFn(object[key]);
+				return result;
+			}, {});
+		}
+
+		function mergeObj(arr) {
+			return arr.reduce(function (acc, current) {
+				for (var key in current) {
+					if (current.hasOwnProperty(key)) {
+						acc[key] = current[key];
+					}
+				}
+				return acc;
+			}, {});
+		}
+
+		app.init(); //😎 BOOM!
+	</script>
+</body>
+
+</html>
