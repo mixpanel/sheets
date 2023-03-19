@@ -1,7 +1,6 @@
 testData/*
 .git
 .clasprc.json
-node_modules/**/.*
-node_modules/**/.*/**
 scratch.txt
 README.md
+**/node_modules/**
