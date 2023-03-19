@@ -1,0 +1,549 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Mixpanel Configuration</title>
+	<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+</head>
+<!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
+
+
+<body>
+	<div id="config" class="hidden">
+		<?= JSON.stringify(config) ?>
+	</div>
+	<section id="auth">
+		<div class="prompt">
+			<span class="title">🤖 Provide your authentication details: </span>
+			<span id="service_acct_form">
+				<input type="text" id="service_acct" placeholder="service account user" class="data">
+				<input type="text" id="service_secret" placeholder="service account secret" class="data">
+			</span>
+		</div>
+	</section>
+
+	<section id="link">
+		<div class="prompt">
+			<span class="title">🔗 Provide the URL of the report you want to sync:</span>
+			<input type="text" class="data" id="mixpanel_report_url"
+				placeholder="https://mixpanel.com/project/{{pid}}/view/{{wid}}/app/{{report}}/#view/{{bookmark}}/{{title}}">
+		</div>
+	</section>
+
+	<section id="parsing">
+		<div class="prompt">
+			<span class="title">🛠️ Report Params</span>
+			<textarea id="display_url_params" cols="50" rows="8" disabled></textarea>
+		</div>
+	</section>
+
+	<section id="where">
+		<div class="prompt">
+			<span class="title">📍 Choose where to display the data:</span>
+			<select id="sheet_location" class="data">
+				<option value="current">🙋 current sheet</option>
+				<option value="new">🌱 new sheet</option>
+			</select>
+		</div>
+	</section>
+
+	<section id="controls">
+		<div>
+			<button id="sync" class="action" disabled>🏃 sync</button>
+			<button id="test" disabled>🧪 test</button>
+			<button id="save">💾 save</button>
+			<button id="clear" class="create">🗑️ clear</button>
+		</div>
+	</section>
+
+	<section id="status" class="bottom">
+		<div>
+			<span class="gray"></span>
+		</div>
+	</section>
+
+	<style>
+		:root {
+			--mixpanel: #7856FF;
+			--purple: #4F44E0;
+			--red: #E34F2F;
+			--orange: #DF7800;
+			--green: #219464;
+			--lightGray: #626266;
+			--gray: #2A2A2F;
+			--white: #F6F6F6;
+		}
+
+		section {
+			padding-bottom: 5px;
+		}
+
+		button {
+			font-size: 17px;
+			text-transform: lowercase !important;
+		}
+
+		select {
+			font-size: 14px;
+			padding: 2px;
+			width: 180px;
+			text-indent: 5%;
+			text-align: left;
+		}
+
+		input[type="text"] {
+			width: 180px;
+		}
+
+		#display_url_params {
+			background-color: var(--white);
+			font-family: monospace;
+		}
+
+		#mixpanel_report_url {
+			width: 550px
+		}
+
+
+		.dropdown {
+			width: 140px
+		}
+
+		.title {
+			padding-bottom: 5px;
+			display: block;
+		}
+
+		div {
+			padding: 8px;
+		}
+
+		#type_label {
+			color: var(--red);
+			font-weight: bold;
+		}
+
+		.field {
+			font-family: monospace;
+			color: var(--mixpanel);
+			font-size: 16px;
+		}
+
+		.prompt {
+			font-size: 16px;
+			color: var(--gray);
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.optional {
+			color: var(--lightGray);
+			font-size: 12px;
+			opacity: .75;
+		}
+
+		li {
+			padding-bottom: 4px;
+		}
+
+		ul,
+		ol {
+			list-style: none;
+			margin-bottom: 0px;
+		}
+	</style>
+	<script>
+		const qs = document.querySelector.bind(document);
+		const qsa = document.querySelectorAll.bind(document);
+
+		const app = {
+			DOM: {},
+			init,
+			cacheDOM,
+			bindEvents,
+			buildDropdowns,
+			getFields,
+			checkFields,
+			isValid,
+			saveConfig,
+			parseConfig,
+			clearConfig,
+			loadConfig,
+			getConfig,
+			sync,
+			parseURL,
+			displayURL
+		};
+
+		function init() {
+			this.DOM = this.cacheDOM();
+			this.buildDropdowns(this.DOM.sheets);
+			this.bindEvents();
+			this.loadConfig(this.DOM.config);
+		}
+
+		/*
+		----
+		DOM STUFF
+		----
+		*/
+
+		function cacheDOM() {
+			return {
+				sheetLocation: qs('#sheet_location'),
+				mixpanelURL: qs('#mixpanel_report_url'),
+				displayURL: qs('#display_url_params'),
+				serviceUser: qs('#service_acct'),
+				serviceSecret: qs('#service_secret'),
+				syncButton: qs('#sync'),
+				saveButton: qs('#save'),
+				clearButton: qs('#clear'),
+				testButton: qs('#test'),
+				status: qs('#status span'),
+				config: this.parseConfig(qs('#config')),
+			};
+		}
+
+		function buildDropdowns(sheets) {
+			// todo
+			// const selectMenus = Array.from(qsa('select.data.dropdown'));
+
+			// // columns fail to render; most likely a local test
+			// if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
+			// 	columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
+			// }
+
+			// for (const select of selectMenus) {
+			// 	for (const column of columns) {
+			// 		const opt = document.createElement('option');
+			// 		opt.value = column;
+			// 		opt.innerHTML = column;
+			// 		select.appendChild(opt);
+			// 	}
+			// }
+
+		}
+
+		function bindEvents() {
+			// URL parsing
+			this.DOM.mixpanelURL.addEventListener('input', () => {
+				const urlData = this.parseURL(this.DOM.mixpanelURL.value);
+				this.displayURL(urlData);
+			});
+
+			// "real-time" field validation
+			for (const key in this.DOM) {
+				if (this.DOM[key].tagName === 'SELECT') {
+					this.DOM[key].addEventListener('change', () => { this.checkFields(); });
+				}
+
+				if (this.DOM[key].tagName === 'INPUT') {
+					this.DOM[key].addEventListener('input', () => { this.checkFields(); });
+				}
+
+			}
+
+			// actions
+			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
+			this.DOM.testButton.addEventListener('click', () => { this.testConfig(); });
+			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
+			this.DOM.clearButton.addEventListener('click', () => { this.clearConfig(); });
+
+		}
+
+		function displayURL(data) {
+			const sadEmoji = ['😢', '😭', '😿', '😞', '😩', '🙁', '😟', '😦', '😨', '😰'];
+			const e = sample.bind(sadEmoji);
+			this.DOM.displayURL.value = `Project Id: ${data.project_id || e()}\nWorkspace Id: ${data.workspace_id || e()}\nRegion: ${data.region || e()}\nReport Id: ${data.report_id || e()}`;
+		}
+
+		/*
+		----
+		CLIENT SIDE VALIDATION
+		----
+		*/
+
+		function getConfig() {
+			return mergeObj(Object.values(this.getFields()));
+		}
+
+		function checkFields() {
+			const userData = mergeObj(Object.values(this.getFields()));
+			const valid = this.isValid(userData);
+			this.DOM.status.innerText = "";
+			this.DOM.saveButton.disabled = false;
+			this.DOM.clearButton.disabled = false;
+			console.log(JSON.stringify(userData, null, 2));
+
+			if (valid) {
+				this.DOM.syncButton.disabled = false;
+				this.DOM.testButton.disabled = false;
+			}
+
+			else {
+				this.DOM.syncButton.disabled = true;
+				this.DOM.testButton.disabled = true;
+			}
+
+		}
+
+
+		function getFields() {
+			// enumerate all visible fields
+			const visible = filterObj(this.DOM, (el) => {
+				// https://stackoverflow.com/a/21696585
+				return el.offsetParent && (el.classList.contains('data'));
+			});
+
+			const fields = mapObj(visible, (node) => {
+				return { [node.id]: node.value };
+			});
+
+			fields.params = this.parseURL(this.DOM.mixpanelURL.value);
+
+			return fields;
+		}
+
+		/*
+		----
+		LOADING DATA FROM SERVER
+		----
+		*/
+
+
+		function parseConfig(node) {
+			try {
+				return JSON.parse(node.innerText);
+			}
+			catch (e) {
+				return {};
+			}
+		}
+
+		// todo: refactor this nonsense
+		function loadConfig(config, force = false) {
+			const {
+				service_acct,
+				service_secret,
+				mixpanel_report_url,
+				sheet_location,
+			} = config;
+
+			if (service_acct || force) setValues('#service_acct', service_acct);
+			if (service_secret || force) setValues('#service_secret', service_secret);
+			if (mixpanel_report_url || force) setValues('#mixpanel_report_url', mixpanel_report_url);
+			if (sheet_location || force) setValues('#sheet_location', sheet_location);
+
+		}
+
+		function setValues(cssSelector, value) {
+			Array.from(qsa(cssSelector)).forEach((node) => {
+				node.value = value;
+				if (node.tagName === 'INPUT') node.dispatchEvent(new Event('input'));
+				if (node.tagName === 'SELECT') node.dispatchEvent(new Event('change'));
+			});
+		}
+
+		/*
+		----
+		RUN SERVER SIDE FUNCTIONS
+		----
+		*/
+
+		function saveConfig() {
+			try {
+				const userData = mergeObj(Object.values(this.getFields()));
+				// console.log(JSON.stringify(userData, null, 2));
+				google.script.run.withSuccessHandler(() => {
+					this.DOM.status.innerText = `configuration saved!`;
+					this.DOM.saveButton.disabled = true;
+				})
+					.setConfig(userData);
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+		}
+
+		function clearConfig() {
+			const defaultConfig = {
+				service_acct: "",
+				service_secret: "",
+				mixpanel_report_url: "",
+				sheet_location: "current",
+			};
+
+			try {
+				google.script.run.withSuccessHandler(() => {
+					this.DOM.status.innerText = `configuration cleared!`;
+					this.DOM.clearButton.disabled = true;
+					this.loadConfig(defaultConfig, true);
+				})
+					.clearConfig();
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+
+
+		}
+
+
+		function sync() {
+			// todo
+			// try {
+			// 	google.script.run.withSuccessHandler(() => {
+			// 		this.DOM.status.innerText = `syncing data!`;
+			// 		this.DOM.syncButton.disabled = true;
+			// 	})
+			// 		.syncNow(this.getConfig());
+			// }
+
+			// catch (e) {
+			// 	this.DOM.status.innerText = `ERROR: ${e.message}`;
+			// }
+		}
+
+		function testConfig() {
+			//todo
+		}
+
+		/*
+		----
+		VALIDATION
+		----
+		*/
+
+		function isValid(config) {
+			const {
+				service_acct,
+				service_secret,
+				mixpanel_report_url,
+				sheet_location,
+				project_id,
+				workspace_id,
+				region,
+				report_id
+			} = config;
+
+			if (!service_acct) return false;
+			if (!service_secret) return false;
+			if (!mixpanel_report_url) return false;
+			if (!sheet_location) return false;
+			if (!project_id) return false;
+			if (!workspace_id) return false;
+			if (!region) return false;
+			if (!report_id) return false;
+
+			return true;
+		}
+
+		// example URLs:
+		// direct: `https://mixpanel.com/project/2944947/view/3467739/app/funnels/#view/37941987/i-am-the-heart-the-knocks`
+		// from board: `https://mixpanel.com/project/2944947/view/3467739/app/boards#id=4669131&editor-card-id=%22report-37941987%22`
+
+		function parseURL(inputUrl) {
+			let project_id, workspace_id, report_id, region;
+			try {
+				const normalize = decodeURI(inputUrl);
+				if (normalize.includes('eu.mixpanel.com')) {
+					region = 'EU';
+				}
+				else {
+					region = 'US';
+				}
+				const [url, hash] = normalize.split(/#(.*)/s);
+				const splitURL = url.split('/');
+				project_id = splitURL[4];
+				workspace_id = splitURL[6];
+
+				// boards URLs are weird
+				if (hash.includes(`"report-`)) {
+					report_id = hash.split('"').filter(t => t.includes('report-'))[0].replace('report-', '');
+				}
+
+				else {
+					report_id = hash.split('/')[1];
+				}
+			}
+
+			catch (e) {
+				project_id = null;
+				workspace_id = null;
+				region = null,
+					report_id = null;
+			}
+
+
+
+			return {
+				project_id,
+				workspace_id,
+				report_id,
+				region
+			};
+		}
+
+
+		/*
+		----
+		UTILITIES
+		----
+		*/
+
+
+		function filterObj(hash, test_function, keysOrValues = "value") {
+			let key, i;
+			const iterator = Object.keys(hash);
+			const filtered = {};
+
+			for (i = 0; i < iterator.length; i++) {
+				key = iterator[i];
+				if (keysOrValues === 'value') {
+					if (test_function(hash[key])) {
+						filtered[key] = hash[key];
+					}
+				}
+				if (keysOrValues === 'key') {
+					if (test_function(key.toString())) {
+						filtered[key] = hash[key];
+					}
+				}
+			}
+			return filtered;
+		};
+
+
+		function mapObj(object, mapFn) {
+			return Object.keys(object).reduce(function (result, key) {
+				result[key] = mapFn(object[key]);
+				return result;
+			}, {});
+		}
+
+		function mergeObj(arr) {
+			return arr.reduce(function (acc, current) {
+				for (var key in current) {
+					if (current.hasOwnProperty(key)) {
+						acc[key] = current[key];
+					}
+				}
+				return acc;
+			}, {});
+		}
+
+		function sample() {
+			return this[Math.floor(Math.random() * this.length)];
+		}
+
+		app.init(); //😎 BOOM!
+	</script>
+</body>
+
+</html>

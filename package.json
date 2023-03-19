@@ -1,13 +1,13 @@
 {
   "name": "sheets-mixpanel",
   "version": "1.0.0",
-  "description": "integrate google sheet swith mixpanel",
+  "description": "integrate google sheets with mixpanel",
   "main": "Code.gs",
   "scripts": {
     "push": "clasp push --force",
     "watch": "clasp push --watch --force",
     "open": "clasp open",
-	"serve-data-in": "serve ./ui"
+	"serve": "serve ./ui"
   },
   "author": "AK",
   "license": "ISC",

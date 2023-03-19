@@ -28,6 +28,7 @@ TODOs
 // todo: hourly syncs
 // todo: display responses somewhere
 // todo: loading bars
+// todo: exports
 
 
 
@@ -124,7 +125,13 @@ DISPLAY EXPORT BINDINGS
 
 
 function dataOutUI() {
-
+	let htmlOutput = HtmlService.createTemplateFromFile('ui/mixpanel-to-sheet.html');
+	htmlOutput.config = getConfig();
+	htmlOutput = htmlOutput
+		.evaluate()
+		.setWidth(700)
+		.setHeight(500);
+	SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Mixpanel → Sheet');
 }
 
 

@@ -4,3 +4,4 @@ testData/*
 node_modules/**/.*
 node_modules/**/.*/**
 scratch.txt
+README.md
