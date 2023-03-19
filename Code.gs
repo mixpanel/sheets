@@ -96,7 +96,7 @@ function syncNow(config) {
 
 function displayImportResults(config) {
 	const { results } = config;
-	const ui = SpreadsheetApp.getUi();
+	const ui = SpreadsheetApp.getUi();	
 	const prettyResults = `
 	Details:
 	-------
@@ -157,3 +157,17 @@ function clearConfig() {
 	scriptProperties.deleteAllProperties();
 	return scriptProperties.getProperties();
 }
+
+
+/*
+----
+USER INFO
+----
+*/
+
+
+function getUser() {
+	const user = Session.getActiveUser().getEmail();
+	return user;
+}
+

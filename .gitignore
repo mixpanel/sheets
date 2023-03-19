@@ -3,3 +3,5 @@
 node_modules/*
 .DS_store
 scratch.txt
+creds.json
+.gas-repl.history

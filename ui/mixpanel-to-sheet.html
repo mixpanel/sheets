@@ -30,12 +30,20 @@
 			<input type="text" class="data" id="mixpanel_report_url"
 				placeholder="https://mixpanel.com/project/{{pid}}/view/{{wid}}/app/{{report}}/#view/{{bookmark}}/{{title}}">
 		</div>
+		<span>(note: to sync cohorts, paste a link from your project's cohort list)</span>
 	</section>
 
 	<section id="parsing">
 		<div class="prompt">
 			<span class="title">🛠️ Report Params</span>
-			<textarea id="display_url_params" cols="50" rows="8" disabled></textarea>
+			<textarea id="display_url_params" cols="50" rows="6" disabled></textarea>
+		</div>
+	</section>
+
+	<section id="cohort" class="hidden">
+		<div class="prompt">
+			<span class="title">👥 provide your cohort's id:</span>
+			<input type="text" class="data" id="cohort_id" placeholder="2333059">
 		</div>
 	</section>
 
@@ -162,6 +170,7 @@
 
 		const app = {
 			DOM: {},
+			cohorts: false,
 			init,
 			cacheDOM,
 			bindEvents,
@@ -204,6 +213,8 @@
 				clearButton: qs('#clear'),
 				testButton: qs('#test'),
 				status: qs('#status span'),
+				cohortId: qs('#cohort_id'),
+				cohortContainer: qs('#cohort'),
 				config: this.parseConfig(qs('#config')),
 			};
 		}
@@ -279,6 +290,16 @@
 			this.DOM.clearButton.disabled = false;
 			console.log(JSON.stringify(userData, null, 2));
 
+			if (this.cohorts) {
+				this.DOM.cohortContainer.classList.remove('hidden');
+			}
+
+			else {
+				this.DOM.cohortContainer.classList.add('hidden');
+			}
+
+
+
 			if (valid) {
 				this.DOM.syncButton.disabled = false;
 				this.DOM.testButton.disabled = false;
@@ -304,6 +325,7 @@
 			});
 
 			fields.params = this.parseURL(this.DOM.mixpanelURL.value);
+			fields.cohorts = { cohorts: this.cohorts };
 
 			return fields;
 		}
@@ -429,7 +451,9 @@
 				project_id,
 				workspace_id,
 				region,
-				report_id
+				report_id,
+				cohorts,
+				cohort_id
 			} = config;
 
 			if (!service_acct) return false;
@@ -439,7 +463,8 @@
 			if (!project_id) return false;
 			if (!workspace_id) return false;
 			if (!region) return false;
-			if (!report_id) return false;
+			if (!report_id && !cohorts) return false;
+			if (cohorts && !cohort_id) return false;
 
 			return true;
 		}
@@ -470,6 +495,15 @@
 
 				else {
 					report_id = hash.split('/')[1];
+				}
+
+				//cohorts are treated separately too
+				if (hash.includes('cohorts')) {
+					this.cohorts = true;
+				}
+
+				else {
+					this.cohorts = false;
 				}
 			}
 

@@ -143,10 +143,12 @@ function updateConfig(config, responses, runTime, targetData) {
 		if (config.record_type === 'event') {
 			config.results.success += res.num_records_imported || 0;
 			config.results.failed += res?.failed_records?.length || 0;
+			if (res?.code !== 200) config.results.errors.push(res);
 		}
 		if (config.record_type === 'user' || config.record_type === 'group') {
 			if (!res.error || res.status) config.results.success += config.batchSize;
 			if (res.error || !res.status) config.results.failed += config.batchSize;
+			if (res.error) config.results.errors.push(res);
 		}
 
 		if (config.record_type === 'table') {

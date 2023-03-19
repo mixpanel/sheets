@@ -4,3 +4,4 @@ testData/*
 scratch.txt
 README.md
 **/node_modules/**
+creds.json
