@@ -3,3 +3,4 @@ testData/*
 .clasprc.json
 node_modules/**/.*
 node_modules/**/.*/**
+scratch.txt

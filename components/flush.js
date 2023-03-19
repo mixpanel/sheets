@@ -8,7 +8,6 @@ function flushToMixpanel(data, config) {
 	if (config.record_type === 'group') URL = `https://${subdomain}.mixpanel.com/groups?verbose=1`;
 	if (config.record_type === 'table') URL = `https://${subdomain}.mixpanel.com/lookup-tables/${config.lookup_table_id}?project_id=${config.project_id}`;
 
-	//todo url types
 	const options = {
 		'method': 'POST',
 		'contentType': 'application/json',
@@ -20,6 +19,7 @@ function flushToMixpanel(data, config) {
 	};
 	if (config.record_type === 'table') {
 		options.method = 'PUT';
+		options.contentType = `text/csv`
 		options.payload = JSONtoCSV(data);
 		const res = UrlFetchApp.fetch(URL, options);
 		return [JSON.parse(res.getContentText())];

@@ -435,44 +435,6 @@
 
 		}
 
-		function isValid(config) {
-			const { record_type, project_id, token, region, auth_type, service_acct, service_secret, api_secret } = config;
-			if (!project_id) return false;
-			if (!token) return false;
-			if (auth_type === 'service_account') {
-				if (!service_acct || !service_secret) return false;
-			}
-			if (auth_type === 'api_secret') {
-				if (!api_secret) return false;
-			}
-
-			if (record_type === 'event') {
-				const { event_name_col, distinct_id_col, time_col, insert_id_col } = config;
-				if (!event_name_col) return false;
-				if (!distinct_id_col) return false;
-				if (!time_col) return false;
-			}
-
-			if (record_type === 'user') {
-				const { distinct_id_col, name_col, email_col, avatar_col, created_col } = config;
-				if (!distinct_id_col) return false;
-
-			}
-
-			if (record_type === 'group') {
-				const { distinct_id_col, name_col, email_col, avatar_col, created_col, group_key } = config;
-				if (!group_key) return false;
-				if (!distinct_id_col) return false;
-			}
-
-			if (record_type === 'table') {
-				const { lookup_table_id } = config;
-				if (!lookup_table_id) return false;
-
-			}
-
-			return true;
-		}
 
 		function getFields() {
 			// enumerate all visible fields
@@ -512,8 +474,8 @@
 			}
 		}
 
-
-		function loadConfig(config) {
+		// todo: refactor this nonsense
+		function loadConfig(config, force = false) {
 			const {
 				record_type,
 				event_name_col,
@@ -536,25 +498,25 @@
 				api_secret
 			} = config;
 
-			if (record_type) setValues('#record_type', record_type);
-			if (event_name_col) setValues('#event_name_col', event_name_col);
-			if (distinct_id_col) setValues('#distinct_id_col', distinct_id_col);
-			if (time_col) setValues('#time_col', time_col);
-			if (insert_id_col) setValues('#insert_id_col', insert_id_col);
-			if (name_col) setValues('#name_col', name_col);
-			if (email_col) setValues('#email_col', email_col);
-			if (avatar_col) setValues('#avatar_col', avatar_col);
-			if (created_col) setValues('#created_col', created_col);
-			if (profile_operation) setValues('#profile_operation', profile_operation);
-			if (group_key) setValues('#group_key', group_key);
-			if (lookup_table_id) setValues('#lookup_table_id', lookup_table_id);
-			if (project_id) setValues('#project_id', project_id);
-			if (token) setValues('#token', token);
-			if (region) setValues('#region', region);
-			if (auth_type) setValues('#auth_type', auth_type);
-			if (service_acct) setValues('#service_acct', service_acct);
-			if (service_secret) setValues('#service_secret', service_secret);
-			if (api_secret) setValues('#api_secret', api_secret);
+			if (record_type || force) setValues('#record_type', record_type);
+			if (event_name_col || force) setValues('#event_name_col', event_name_col);
+			if (distinct_id_col || force) setValues('#distinct_id_col', distinct_id_col);
+			if (time_col || force) setValues('#time_col', time_col);
+			if (insert_id_col || force) setValues('#insert_id_col', insert_id_col);
+			if (name_col || force) setValues('#name_col', name_col);
+			if (email_col || force) setValues('#email_col', email_col);
+			if (avatar_col || force) setValues('#avatar_col', avatar_col);
+			if (created_col || force) setValues('#created_col', created_col);
+			if (profile_operation || force) setValues('#profile_operation', profile_operation);
+			if (group_key || force) setValues('#group_key', group_key);
+			if (lookup_table_id || force) setValues('#lookup_table_id', lookup_table_id);
+			if (project_id || force) setValues('#project_id', project_id);
+			if (token || force) setValues('#token', token);
+			if (region || force) setValues('#region', region);
+			if (auth_type || force) setValues('#auth_type', auth_type);
+			if (service_acct || force) setValues('#service_acct', service_acct);
+			if (service_secret || force) setValues('#service_secret', service_secret);
+			if (api_secret || force) setValues('#api_secret', api_secret);
 
 		}
 
@@ -568,7 +530,7 @@
 
 		/*
 		----
-		SERVER SIDE FUNCTIONS
+		RUN SERVER SIDE FUNCTIONS
 		----
 		*/
 
@@ -589,10 +551,33 @@
 		}
 
 		function clearConfig() {
+			const defaultConfig = {
+				record_type: "event",
+				event_name_col: "",
+				distinct_id_col: "",
+				time_col: "",
+				insert_id_col: "",
+				name_col: "",
+				email_col: "",
+				avatar_col: "",
+				created_col: "",
+				profile_operation: "",
+				group_key: "",
+				lookup_table_id: "",
+				project_id: "",
+				token: "",
+				region: "US",
+				auth_type: "service_account",
+				service_acct: "",
+				service_secret: "",
+				api_secret: ""
+			};
+
 			try {
 				google.script.run.withSuccessHandler(() => {
 					this.DOM.status.innerText = `configuration cleared!`;
 					this.DOM.clearButton.disabled = true;
+					this.loadConfig(defaultConfig, true);
 				})
 					.clearConfig();
 			}
@@ -600,6 +585,8 @@
 			catch (e) {
 				this.DOM.status.innerText = `ERROR: ${e.message}`;
 			}
+
+
 		}
 
 
@@ -617,6 +604,50 @@
 			}
 		}
 
+		/*
+		----
+		VALIDATION
+		----
+		*/
+
+		function isValid(config) {
+			const { record_type, project_id, token, region, auth_type, service_acct, service_secret, api_secret } = config;
+			if (!project_id) return false;
+			if (!token) return false;
+			if (auth_type === 'service_account') {
+				if (!service_acct || !service_secret) return false;
+			}
+			if (auth_type === 'api_secret') {
+				if (!api_secret) return false;
+			}
+
+			if (record_type === 'event') {
+				const { event_name_col, distinct_id_col, time_col, insert_id_col } = config;
+				if (!event_name_col) return false;
+				if (!distinct_id_col) return false;
+				if (!time_col) return false;
+			}
+
+			if (record_type === 'user') {
+				const { distinct_id_col, name_col, email_col, avatar_col, created_col } = config;
+				if (!distinct_id_col) return false;
+
+			}
+
+			if (record_type === 'group') {
+				const { distinct_id_col, name_col, email_col, avatar_col, created_col, group_key } = config;
+				if (!group_key) return false;
+				if (!distinct_id_col) return false;
+			}
+
+			if (record_type === 'table') {
+				const { lookup_table_id } = config;
+				if (!lookup_table_id) return false;
+
+			}
+
+			return true;
+		}
 
 
 		/*

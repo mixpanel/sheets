@@ -2,6 +2,7 @@
  * @OnlyCurrentDoc
  */
 
+
 /*
 ----
 DOCS
@@ -15,6 +16,20 @@ DOCS
 // ? STORAGE https://developers.google.com/apps-script/guides/properties
 // ? PUBLISH https://developers.google.com/apps-script/add-ons/how-tos/publish-add-on-overview
 // ? REPL https://github.com/zerobase/gas-repl
+
+
+
+/*
+----
+TODOs
+----
+*/
+
+// todo: hourly syncs
+// todo: display responses somewhere
+// todo: loading bars
+
+
 
 /*
 ----

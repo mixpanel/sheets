@@ -150,7 +150,9 @@ function updateConfig(config, responses, runTime, targetData) {
 		}
 
 		if (config.record_type === 'table') {
-			config.results.success += targetData.length;
+			config.results.total = 1;
+			if (res.status === 'OK' || res.code === 200) config.results.success = 1;
+			if (res.error) config.results.failed = 1;
 		}
 	}
 
