@@ -27,8 +27,7 @@ function importData(userConfig = {}) {
 		Logger.log(config.results.errors);
 	}
 	console.log(config);
-	displayImportResults(config);
-	return imported;
+	return [imported, config];
 
 }
 

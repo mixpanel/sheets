@@ -4,12 +4,12 @@
   "description": "integrate google sheets with mixpanel",
   "main": "Code.gs",
   "scripts": {
-    "push": "clasp push --force",
-    "watch": "clasp push --watch --force",
-    "open": "clasp open",
-    "serve": "node ./node_modules/serve/build/main.js ./ui",
-    "debug": "clasp run",
-    "login": "clasp login --creds creds.json"
+    "login": "clasp login --creds creds.json",
+	"open": "clasp open",
+	"push": "clasp push --force",
+    "watch": "clasp push --watch --force",    
+    "serve": "./node_modules/serve/build/main.js ./ui",
+    "debug": "clasp run"    
   },
   "author": "AK",
   "license": "ISC",

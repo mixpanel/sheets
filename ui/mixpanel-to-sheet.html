@@ -9,10 +9,14 @@
 </head>
 <!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
 
+<!-- HTML -->
 
 <body>
 	<div id="config" class="hidden">
 		<?= JSON.stringify(config) ?>
+	</div>
+	<div id="sheet_info" class="hidden">
+		<?= JSON.stringify(sheet) ?>
 	</div>
 	<section id="auth">
 		<div class="prompt">
@@ -69,11 +73,22 @@
 
 	<section id="status" class="bottom">
 		<div>
+			<div class="mp-spinner hidden" id="loader">
+				<svg-icon icon="spinner"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22"
+						height="22">
+						<path fill="currentColor"
+							d="M43.935 25.145c0-10.318-8.364-18.683-18.683-18.683-10.318 0-18.683 8.365-18.683 18.683h4.068c0-8.071 6.543-14.615 14.615-14.615s14.615 6.543 14.615 14.615h4.068z">
+						</path>
+					</svg>
+				</svg-icon>
+			</div>
 			<span class="gray"></span>
 		</div>
 	</section>
 
 	<style>
+		/* CSS */
+
 		:root {
 			--mixpanel: #7856FF;
 			--purple: #4F44E0;
@@ -118,6 +133,14 @@
 
 		.dropdown {
 			width: 140px
+		}
+
+		#status {
+			position: relative;
+		}
+
+		#status span {
+			vertical-align: super;
 		}
 
 		.title {
@@ -168,8 +191,56 @@
 			list-style: none;
 			margin-bottom: 0px;
 		}
+
+		/* SPINNER */
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		.mp-spinner {
+			height: 20px;
+			width: 20px;
+			animation: 0.7s linear 0s infinite normal none running spin;
+			transform: translateZ(0px);
+
+		}
+
+		.mp-spinner svg-icon {
+			display: inline-block;
+			height: 100%;
+			min-height: 100%;
+			min-width: 100%;
+			position: relative;
+			width: 100%;
+		}
+
+		.mp-spinner svg-icon svg {
+			color: var(--mixpanel);
+		}
+
+		.mp-spinner svg-icon svg {
+			display: block;
+			height: 100%;
+			left: 0px;
+			min-height: 100%;
+			min-width: 100%;
+			position: absolute;
+			top: 0px;
+			width: 100%;
+		}
 	</style>
 	<script>
+		/*
+		----
+		JAVASCRIPT
+		----
+		*/
 		const qs = document.querySelector.bind(document);
 		const qsa = document.querySelectorAll.bind(document);
 
@@ -190,7 +261,8 @@
 			getConfig,
 			sync,
 			parseURL,
-			displayURL
+			displayURL,
+			loader
 		};
 
 		function init() {
@@ -219,7 +291,11 @@
 				testButton: qs('#test'),
 				status: qs('#status span'),
 				cohortId: qs('#cohort_id'),
+				loader: qs('#loader'),
 				cohortContainer: qs('#cohort'),
+
+				// server-side
+				sheet: this.parseConfig(qs('#sheet_info')),
 				config: this.parseConfig(qs('#config')),
 			};
 		}
@@ -284,7 +360,10 @@
 		*/
 
 		function getConfig() {
-			return mergeObj(Object.values(this.getFields()));
+			const userData = mergeObj(Object.values(this.getFields()));
+			userData.sheet_name = this.DOM.sheet?.sheetName;
+			userData.sheet_id = this.DOM.sheet?.id;
+			return userData;
 		}
 
 		function checkFields() {
@@ -333,6 +412,17 @@
 			fields.cohorts = { cohorts: this.cohorts };
 
 			return fields;
+		}
+
+		function loader(directive) {
+			if (directive === 'show') {
+				this.DOM.loader.style.display = 'inline-block';
+				this.DOM.loader.classList.remove('hidden');
+			}
+			if (directive === 'hide') {
+				this.DOM.loader.style.display = '';
+				this.DOM.loader.classList.add('hidden');
+			}
 		}
 
 		/*
@@ -535,7 +625,9 @@
 		UTILITIES
 		----
 		*/
-
+		function comma(num) {
+			return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		};
 
 		function filterObj(hash, test_function, keysOrValues = "value") {
 			let key, i;

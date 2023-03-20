@@ -9,6 +9,7 @@
 </head>
 <!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
 
+<!-- HTML -->
 
 <body>
 	<div id="columns" class="hidden">
@@ -164,11 +165,22 @@
 
 	<section id="status" class="bottom">
 		<div>
+			<div class="mp-spinner hidden" id="loader">
+				<svg-icon icon="spinner"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22"
+						height="22">
+						<path fill="currentColor"
+							d="M43.935 25.145c0-10.318-8.364-18.683-18.683-18.683-10.318 0-18.683 8.365-18.683 18.683h4.068c0-8.071 6.543-14.615 14.615-14.615s14.615 6.543 14.615 14.615h4.068z">
+						</path>
+					</svg>
+				</svg-icon>
+			</div>
 			<span class="gray"></span>
 		</div>
 	</section>
 
 	<style>
+		/* CSS */
+
 		:root {
 			--mixpanel: #7856FF;
 			--purple: #4F44E0;
@@ -206,6 +218,14 @@
 
 		.dropdown {
 			width: 140px
+		}
+
+		#status {
+			position: relative;
+		}
+
+		#status span {
+			vertical-align: super;
 		}
 
 		.title {
@@ -256,8 +276,56 @@
 			list-style: none;
 			margin-bottom: 0px;
 		}
+
+		/* SPINNER */
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		.mp-spinner {
+			height: 20px;
+			width: 20px;
+			animation: 0.7s linear 0s infinite normal none running spin;
+			transform: translateZ(0px);
+
+		}
+
+		.mp-spinner svg-icon {
+			display: inline-block;
+			height: 100%;
+			min-height: 100%;
+			min-width: 100%;
+			position: relative;
+			width: 100%;
+		}
+
+		.mp-spinner svg-icon svg {
+			color: var(--mixpanel);
+		}
+
+		.mp-spinner svg-icon svg {
+			display: block;
+			height: 100%;
+			left: 0px;
+			min-height: 100%;
+			min-width: 100%;
+			position: absolute;
+			top: 0px;
+			width: 100%;
+		}
 	</style>
 	<script>
+		/*
+		----
+		JAVASCRIPT
+		----
+		*/
 		const qs = document.querySelector.bind(document);
 		const qsa = document.querySelectorAll.bind(document);
 
@@ -276,7 +344,8 @@
 			loadConfig,
 			getConfig,
 			sync,
-			test
+			test,
+			loader
 		};
 
 		function init() {
@@ -313,6 +382,7 @@
 				saveButton: qs('#save'),
 				clearButton: qs('#clear'),
 				testButton: qs('#test'),
+				loader: qs('#loader'),
 				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
 				status: qs('#status span'),
 
@@ -430,9 +500,9 @@
 
 		function getConfig() {
 			const userData = mergeObj(Object.values(this.getFields()));
-			userData.sheet_name =  this.DOM.sheet?.sheetName;
-			userData.sheet_id = this.DOM.sheet?.id
-			return userData
+			userData.sheet_name = this.DOM.sheet?.sheetName;
+			userData.sheet_id = this.DOM.sheet?.id;
+			return userData;
 		}
 
 		function checkFields() {
@@ -555,10 +625,13 @@
 		*/
 
 		function saveConfig() {
+			this.loader('show');
+			this.DOM.status.innerText = `saving...`;
 			try {
 				const userData = mergeObj(Object.values(this.getFields()));
 				// console.log(JSON.stringify(userData, null, 2));
 				google.script.run.withSuccessHandler(() => {
+					this.loader('hide');
 					this.DOM.status.innerText = `configuration saved!`;
 					this.DOM.saveButton.disabled = true;
 				})
@@ -571,6 +644,8 @@
 		}
 
 		function clearConfig() {
+			this.loader('show');
+			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
 				record_type: "event",
 				event_name_col: "",
@@ -595,9 +670,11 @@
 
 			try {
 				google.script.run.withSuccessHandler(() => {
+					this.loader('hide');
 					this.DOM.status.innerText = `configuration cleared!`;
 					this.DOM.clearButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
+
 				})
 					.clearConfig();
 			}
@@ -611,10 +688,14 @@
 
 
 		function sync() {
+			this.loader('show');
+			this.DOM.syncButton.disabled = true;
+			this.DOM.status.innerText = `syncing data!`;
 			try {
 				google.script.run.withSuccessHandler(() => {
-					this.DOM.status.innerText = `syncing data!`;
-					this.DOM.syncButton.disabled = true;
+					this.loader('hide');
+					this.DOM.status.innerText = `sync done!`;
+					this.DOM.syncButton.disabled = false;
 				})
 					.syncNow(this.getConfig());
 			}
@@ -625,12 +706,20 @@
 		}
 
 		function test() {
+			this.loader('show');
 			this.DOM.status.innerText = `syncing data!`;
-			this.DOM.syncButton.disabled = true;
+			this.DOM.testButton.disabled = true;
 			try {
-				google.script.run.withSuccessHandler((config) => {
-					this.DOM.status.innerText = `test complete!`;
-					this.DOM.syncButton.disabled = false;
+				google.script.run.withSuccessHandler(([responses, config]) => {
+					this.loader('hide');
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = config.results;
+					this.DOM.status.innerText = `test complete!\n${comma(total)} ${config.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
+					if (failed > 0) {
+						let failureToShow = responses[0];
+						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
+						this.DOM.status.innerText += `\n\nfirst error:\n${JSON.stringify(failToShow, null, 2)}`;
+					}
+					this.DOM.testButton.disabled = false;
 				})
 					.importData(this.getConfig());
 			}
@@ -686,13 +775,26 @@
 			return true;
 		}
 
+		function loader(directive) {
+			if (directive === 'show') {
+				this.DOM.loader.style.display = 'inline-block';
+				this.DOM.loader.classList.remove('hidden');
+			}
+			if (directive === 'hide') {
+				this.DOM.loader.style.display = '';
+				this.DOM.loader.classList.add('hidden');
+			}
+		}
+
 
 		/*
 		----
 		UTILITIES
 		----
 		*/
-
+		function comma(num) {
+			return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		};
 
 		function filterObj(hash, test_function, keysOrValues = "value") {
 			let key, i;

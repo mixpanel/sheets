@@ -15,7 +15,7 @@ DOCS
 // ? COMMUNICATION https://developers.google.com/apps-script/guides/html/communication
 // ? STORAGE https://developers.google.com/apps-script/guides/properties
 // ? PUBLISH https://developers.google.com/apps-script/add-ons/how-tos/publish-add-on-overview
-// ? REPL https://github.com/zerobase/gas-repl
+// ? also pub: https://link.medium.com/qT0PlG3wiyb
 
 
 
@@ -27,15 +27,15 @@ TODOs
 
 // todo: hourly syncs
 // todo: display responses somewhere
-// todo: loading bars
 // todo: exports
-// todo: tracking
 
 /*
 ----
 DEV
 ----
 */
+
+const track = tracker();
 
 function repl() {
 	return {
@@ -60,10 +60,12 @@ function onOpen(e) {
 		// script does not have permissions
 		menu.addItem('Sheet → Mixpanel', 'dataInUI');
 		menu.addItem('Mixpanel → Sheet', 'dataOutUI');
+		// track('sheet open', {auth: false})
 	} else {
 		// script has permissions
 		menu.addItem('Sheet → Mixpanel', 'dataInUI');
 		menu.addItem('Mixpanel → Sheet', 'dataOutUI');
+		// track('sheet open', {auth: true})
 	}
 	menu.addToUi();
 }
@@ -75,14 +77,21 @@ IMPORT BINDINGS
 */
 
 function dataInUI() {
+	track('sheet to mixpanel');
 	let htmlOutput = HtmlService.createTemplateFromFile('ui/sheet-to-mixpanel.html');
+
+	// vars
 	htmlOutput.columns = getHeaders();
 	htmlOutput.config = getConfig();
 	htmlOutput.sheet = getSheetInfos();
+
+	// apply template
 	htmlOutput = htmlOutput
 		.evaluate()
 		.setWidth(700)
 		.setHeight(750);
+
+	// render
 	SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Sheet → Mixpanel');
 }
 
@@ -103,6 +112,8 @@ function getSheetInfos() {
 
 function syncNow(config) {
 	console.log(config);
+	// todo scheduler,,,
+
 	const ui = SpreadsheetApp.getUi();
 	const result = ui.alert(
 		'🔄 Sync Now?',
@@ -111,9 +122,13 @@ function syncNow(config) {
 
 	if (result == ui.Button.YES) {
 		setConfig(config);
-		importData(config);
+		const [responses, summary] = importData(config);
+		displayImportResults(summary);
+		//todo display results in sheet
+		return summary;
 	} else {
-		ui.alert('❌ Sync Canceled', 'no sync was run!', ui.ButtonSet.OK);
+		ui.alert('⏩ Sync Skipped', 'no sync was run! next sync will run within an hour; to delete a sync use the "clear" button in the UI', ui.ButtonSet.OK);
+		return config;
 	}
 }
 
@@ -148,12 +163,20 @@ DISPLAY EXPORT BINDINGS
 
 
 function dataOutUI() {
+	track('mixpanel to sheet');
 	let htmlOutput = HtmlService.createTemplateFromFile('ui/mixpanel-to-sheet.html');
+
+	// vars
 	htmlOutput.config = getConfig();
+	htmlOutput.sheet = getSheetInfos();
+
+	// apply template
 	htmlOutput = htmlOutput
 		.evaluate()
 		.setWidth(700)
 		.setHeight(500);
+
+	//render
 	SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Mixpanel → Sheet');
 }
 
