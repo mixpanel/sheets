@@ -1,7 +1,9 @@
 
 function importData(userConfig = {}) {
+	const runId = Math.random();
 	//use last known config if unset
 	if (JSON.stringify(userConfig) === '{}') userConfig = getConfig();
+	const { record_type } = userConfig;
 
 	console.log('SYNC');
 	const startTime = Date.now();
@@ -9,16 +11,19 @@ function importData(userConfig = {}) {
 	const config = getMixpanelConfig(userConfig);
 	const transform = getTransformType(config);
 
-	console.log('GET');
+	console.log('GET');	
 	const sourceData = getJSON(SpreadsheetApp.getActiveSheet());
+	track('GET', { runId, record_type});
 
 	console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
 	const targetData = sourceData.slice().map((row) => transform(row, mappings, config));
+	track('TRANSFORM', { runId, record_type});
 
 	console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
 	const imported = flushToMixpanel(targetData, config);
 	const endTime = Date.now();
 	const runTime = Math.floor(endTime - startTime) / 1000;
+	track('FLUSH', { runId, record_type});
 
 	console.log(`FINISHED: ${runTime} seconds`);
 	updateConfig(config, imported, runTime, targetData);

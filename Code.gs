@@ -16,6 +16,10 @@ DOCS
 // ? STORAGE https://developers.google.com/apps-script/guides/properties
 // ? PUBLISH https://developers.google.com/apps-script/add-ons/how-tos/publish-add-on-overview
 // ? also pub: https://link.medium.com/qT0PlG3wiyb
+// ? scheduling: https://developers.google.com/apps-script/add-ons/concepts/editor-triggers
+// ? also scheduler: https://developers.google.com/apps-script/reference/script/clock-trigger-builder
+// ? low level scheduler: https://developers.google.com/apps-script/reference/script/trigger
+// ? delete triggers: https://stackoverflow.com/a/47217237
 
 
 
@@ -27,7 +31,7 @@ TODOs
 
 // todo: hourly syncs
 // todo: display responses somewhere
-// todo: exports
+// todo: docs
 
 /*
 ----
@@ -35,7 +39,15 @@ DEV
 ----
 */
 
-const track = tracker();
+let track;
+try {
+	track = track();
+}
+
+catch (e) {
+	track = () => { }; //noop
+}
+
 
 function repl() {
 	return {
@@ -112,8 +124,9 @@ function getSheetInfos() {
 
 function syncNow(config) {
 	console.log(config);
+	const syncId = Math.random();
 	// todo scheduler,,,
-
+	track('sync start', { syncId });
 	const ui = SpreadsheetApp.getUi();
 	const result = ui.alert(
 		'🔄 Sync Now?',
@@ -121,12 +134,14 @@ function syncNow(config) {
 		ui.ButtonSet.YES_NO);
 
 	if (result == ui.Button.YES) {
+		track('sync complete', { syncId });
 		setConfig(config);
 		const [responses, summary] = importData(config);
 		displayImportResults(summary);
 		//todo display results in sheet
 		return summary;
 	} else {
+		track('sync canceled', { syncId });
 		ui.alert('⏩ Sync Skipped', 'no sync was run! next sync will run within an hour; to delete a sync use the "clear" button in the UI', ui.ButtonSet.OK);
 		return config;
 	}
@@ -193,12 +208,14 @@ function getConfig() {
 }
 
 function setConfig(config) {
+	track('save', { record_type: config.record_type });
 	const scriptProperties = PropertiesService.getScriptProperties();
 	scriptProperties.setProperties(config);
 	return scriptProperties.getProperties();
 }
 
-function clearConfig() {
+function clearConfig(config) {
+	track('clear', { record_type: config.record_type });
 	const scriptProperties = PropertiesService.getScriptProperties();
 	scriptProperties.deleteAllProperties();
 	return scriptProperties.getProperties();
