@@ -30,7 +30,7 @@
 			<input type="text" class="data" id="mixpanel_report_url"
 				placeholder="https://mixpanel.com/project/{{pid}}/view/{{wid}}/app/{{report}}/#view/{{bookmark}}/{{title}}">
 		</div>
-		<span>(note: to sync cohorts, paste a link from your project's cohort list)</span>
+		<span class="note">(note: to sync <b>cohorts</b>, paste a link from your project's cohort list)</span>
 	</section>
 
 	<section id="parsing">
@@ -59,11 +59,12 @@
 
 	<section id="controls">
 		<div>
-			<button id="sync" class="action" disabled>🏃 sync</button>
+			<button id="sync" class="action" disabled>🔄 sync</button>
 			<button id="test" disabled>🧪 test</button>
 			<button id="save">💾 save</button>
 			<button id="clear" class="create">🗑️ clear</button>
 		</div>
+		<span class="optional note"><b>syncs</b> run <b>every hour</b>; <b>tests</b> run <b>only once</b></span>
 	</section>
 
 	<section id="status" class="bottom">
@@ -126,6 +127,10 @@
 
 		div {
 			padding: 8px;
+		}
+
+		span.note {
+			padding-left: 8px;
 		}
 
 		#type_label {

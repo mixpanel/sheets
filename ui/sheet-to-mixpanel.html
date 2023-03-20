@@ -17,9 +17,12 @@
 	<div id="config" class="hidden">
 		<?= JSON.stringify(config) ?>
 	</div>
+	<div id="sheet_info" class="hidden">
+		<?= JSON.stringify(sheet) ?>
+	</div>
 	<section id="type">
 		<div class="prompt">
-			<span class="title"> What type of data are you syncing<a target="_blank"
+			<span class="title"> What type of data are you importing<a target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive">?</a> </span>
 			<select id="record_type" class="data">
 				<option value="event">🚀 events</option>
@@ -151,10 +154,12 @@
 
 	<section id="controls">
 		<div>
-			<button id="sync" class="action" disabled>🏃 sync</button>
+			<button id="sync" class="action" disabled>🔄 sync</button>
+			<button id="test" disabled>🧪 test</button>
 			<button id="save">💾 save</button>
 			<button id="clear" class="create">🗑️ clear</button>
 		</div>
+		<span class="optional note"><b>syncs</b> run <b>every hour</b>; <b>tests</b> run <b>only once</b></span>
 	</section>
 
 	<section id="status" class="bottom">
@@ -212,6 +217,10 @@
 			padding: 8px;
 		}
 
+		span.note {
+			padding-left: 8px;
+		}
+
 		#type_label {
 			color: var(--red);
 			font-weight: bold;
@@ -266,7 +275,8 @@
 			clearConfig,
 			loadConfig,
 			getConfig,
-			sync
+			sync,
+			test
 		};
 
 		function init() {
@@ -302,10 +312,14 @@
 				syncButton: qs('#sync'),
 				saveButton: qs('#save'),
 				clearButton: qs('#clear'),
-				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
+				testButton: qs('#test'),
+				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
 				status: qs('#status span'),
+
+				//injected by server
+				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
 				config: this.parseConfig(qs('#config')),
-				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field'))
+				sheet: this.parseConfig(qs('#sheet_info'))
 			};
 		}
 
@@ -401,8 +415,9 @@
 			}
 
 			// actions
-			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
 			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
+			this.DOM.testButton.addEventListener('click', () => { this.test(); });
+			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
 			this.DOM.clearButton.addEventListener('click', () => { this.clearConfig(); });
 
 		}
@@ -414,7 +429,10 @@
 		*/
 
 		function getConfig() {
-			return mergeObj(Object.values(this.getFields()));
+			const userData = mergeObj(Object.values(this.getFields()));
+			userData.sheet_name =  this.DOM.sheet?.sheetName;
+			userData.sheet_id = this.DOM.sheet?.id
+			return userData
 		}
 
 		function checkFields() {
@@ -427,10 +445,12 @@
 
 			if (valid) {
 				this.DOM.syncButton.disabled = false;
+				this.DOM.testButton.disabled = false;
 			}
 
 			else {
 				this.DOM.syncButton.disabled = true;
+				this.DOM.testButton.disabled = true;
 			}
 
 		}
@@ -603,6 +623,23 @@
 				this.DOM.status.innerText = `ERROR: ${e.message}`;
 			}
 		}
+
+		function test() {
+			this.DOM.status.innerText = `syncing data!`;
+			this.DOM.syncButton.disabled = true;
+			try {
+				google.script.run.withSuccessHandler((config) => {
+					this.DOM.status.innerText = `test complete!`;
+					this.DOM.syncButton.disabled = false;
+				})
+					.importData(this.getConfig());
+			}
+
+			catch (e) {
+				this.DOM.status.innerText = `ERROR: ${e.message}`;
+			}
+		}
+
 
 		/*
 		----

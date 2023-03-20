@@ -29,8 +29,23 @@ TODOs
 // todo: display responses somewhere
 // todo: loading bars
 // todo: exports
+// todo: tracking
 
+/*
+----
+DEV
+----
+*/
 
+function repl() {
+	return {
+		all: SpreadsheetApp.getActive().getSheets().map(sheet => { return { sheetName: sheet.getName(), id: sheet.getSheetId() }; }),
+		current: {
+			sheetName: SpreadsheetApp.getActiveSheet().getName(),
+			id: SpreadsheetApp.getActiveSheet().getSheetId()
+		}
+	};
+}
 
 /*
 ----
@@ -63,6 +78,7 @@ function dataInUI() {
 	let htmlOutput = HtmlService.createTemplateFromFile('ui/sheet-to-mixpanel.html');
 	htmlOutput.columns = getHeaders();
 	htmlOutput.config = getConfig();
+	htmlOutput.sheet = getSheetInfos();
 	htmlOutput = htmlOutput
 		.evaluate()
 		.setWidth(700)
@@ -77,13 +93,20 @@ function getHeaders() {
 	return headers;
 }
 
+function getSheetInfos() {
+	return {
+		sheetName: SpreadsheetApp.getActiveSheet().getName(),
+		id: SpreadsheetApp.getActiveSheet().getSheetId()
+	};
+}
+
 
 function syncNow(config) {
 	console.log(config);
 	const ui = SpreadsheetApp.getUi();
 	const result = ui.alert(
 		'🔄 Sync Now?',
-		'do you want to run a sync?',
+		'your job is now scheduled to run hourly; do you want to run a sync now?',
 		ui.ButtonSet.YES_NO);
 
 	if (result == ui.Button.YES) {
@@ -96,7 +119,7 @@ function syncNow(config) {
 
 function displayImportResults(config) {
 	const { results } = config;
-	const ui = SpreadsheetApp.getUi();	
+	const ui = SpreadsheetApp.getUi();
 	const prettyResults = `
 	Details:
 	-------
