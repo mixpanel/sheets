@@ -1,23 +1,30 @@
-//ripped from: https://gist.github.com/jalcantarab/0eb43b13c97e4f784bd0be327f6ced52
-
 /* cSpell:disable */
 
-/* 
+/*
+----
+GET JSON DATA FROM SHEET
+https://gist.github.com/jalcantarab/0eb43b13c97e4f784bd0be327f6ced52 (forked)
+----
+*/
+
+
+
+/** 
  * getRowsData(Sheet) iterates row by row in the sheer and returns an array of objects.
  * Each object contains all the data for a given row, indexed by its normalized column name.
  * @params sheet - SpreadsheetApp>Sheet Class, the sheet object that contains the data to be processed.
  * @returns Object[] - an Array of objects with the headers as keys.
 */
-function getJSON(sheet) {
-	// var headersRange = sheet.getRange(1, 1, sheet.getFrozenRows(), sheet.getMaxColumns());
-	// var headers = headersRange.getValues()[0];
-	
-	// ak edit: allow non-frozen headers
+function getJSON(sheet) {		
+	// AK edit: we don't care if headers are frozen or not...
 	const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
 	const headers = range.getValues()[0];
-
-	// var dataRange = sheet.getRange(sheet.getFrozenRows() + 1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
 	var dataRange = sheet.getRange(2, 1, sheet.getMaxRows(), sheet.getMaxColumns());
+	
+	// var headersRange = sheet.getRange(1, 1, sheet.getFrozenRows(), sheet.getMaxColumns());
+	// var headers = headersRange.getValues()[0];
+	// var dataRange = sheet.getRange(sheet.getFrozenRows() + 1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
+	
 	return getObjects(dataRange.getValues(), normalizeHeaders(headers));
 }
 
@@ -91,8 +98,9 @@ function normalizeHeaders(headers) {
  *   "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
 */
 function normalizeHeader(header) {
-	//ak edit: don't noramlize
+	//AK edit: don't noramlize headers; just return them
 	return header;
+
 	var key = "";
 	var upperCase = false;
 	for (var i = 0; i < header.length; ++i) {

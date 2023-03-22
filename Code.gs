@@ -2,13 +2,31 @@
  * @OnlyCurrentDoc
  */
 
+/*
+-----------------------------
+|	SHEETS MIXPANEL			|
+|	a google sheets add-on	|
+|	by AK 					|
+|	ak@mixpanel.com			|
+-----------------------------
+*/
+
+// "globally" safe to call anywhere
+const track = tracker();
+// let track;
+// try {
+// 	track = tracker();
+// }
+
+// catch (e) {
+// 	track = () => { }; //noop
+// }
 
 /*
 ----
-DOCS
+REF DOCS
 ----
 */
-
 
 // ? MODEL https://developers.google.com/apps-script/reference/spreadsheet 
 // ? UI https://developers.google.com/apps-script/guides/menus
@@ -20,7 +38,7 @@ DOCS
 // ? also scheduler: https://developers.google.com/apps-script/reference/script/clock-trigger-builder
 // ? low level scheduler: https://developers.google.com/apps-script/reference/script/trigger
 // ? delete triggers: https://stackoverflow.com/a/47217237
-
+// ? tests: https://github.com/WildH0g/UnitTestingApp 
 
 
 /*
@@ -29,100 +47,95 @@ TODOs
 ----
 */
 
-// todo: hourly syncs
 // todo: display responses somewhere
+// todo: hourly syncs
 // todo: docs
+// todo: tests?!?
+
 
 /*
 ----
-DEV
+MENUS
 ----
 */
 
-let track;
-try {
-	track = track();
-}
-
-catch (e) {
-	track = () => { }; //noop
-}
-
-
-function repl() {
-	return {
-		all: SpreadsheetApp.getActive().getSheets().map(sheet => { return { sheetName: sheet.getName(), id: sheet.getSheetId() }; }),
-		current: {
-			sheetName: SpreadsheetApp.getActiveSheet().getName(),
-			id: SpreadsheetApp.getActiveSheet().getSheetId()
-		}
-	};
-}
-
-/*
-----
-UI Stuff
-----
-*/
-
-function onOpen(e) {
+/**
+ * called when the sheet is opened by any user; populates the menu
+ * @param  {GoogleAppsScript.Events.SheetsOnOpen} sheetOpenEv event fo sheet is open
+ * @returns {void}
+ */
+function onOpen(sheetOpenEv) {
 	const ui = SpreadsheetApp.getUi();
 	const menu = ui.createAddonMenu();
-	if (e && e.authMode == ScriptApp.AuthMode.NONE) {
-		// script does not have permissions
+	if (sheetOpenEv && sheetOpenEv.authMode == ScriptApp.AuthMode.NONE) {
+		// app does not have permissions to do things
+		// this occurs when a user is viewing the document and has not authorized the extension
+		// ? https://developers.google.com/apps-script/add-ons/concepts/editor-auth-lifecycle		
 		menu.addItem('Sheet → Mixpanel', 'dataInUI');
 		menu.addItem('Mixpanel → Sheet', 'dataOutUI');
-		// track('sheet open', {auth: false})
-	} else {
+	}
+	else {
 		// script has permissions
-		menu.addItem('Sheet → Mixpanel', 'dataInUI');
-		menu.addItem('Mixpanel → Sheet', 'dataOutUI');
-		// track('sheet open', {auth: true})
+		menu.addItem('Sheet → Mixpanel', 'SheetToMixpanel');
+		menu.addItem('Mixpanel → Sheet', 'MixpanelToSheet');
 	}
 	menu.addToUi();
 }
 
 /*
-----
-IMPORT BINDINGS
-----
+----------------
+Sheet → Mixpanel
+----------------
 */
 
-function dataInUI() {
-	track('sheet to mixpanel');
-	let htmlOutput = HtmlService.createTemplateFromFile('ui/sheet-to-mixpanel.html');
+/**
+ * called when the user clicks Sheet → Mixpanel
+ * @returns {void}
+ */
+function SheetToMixpanel() {
+	const htmlTemplate = HtmlService.createTemplateFromFile('ui/sheet-to-mixpanel.html');
 
-	// vars
-	htmlOutput.columns = getHeaders();
-	htmlOutput.config = getConfig();
-	htmlOutput.sheet = getSheetInfos();
+	// server-side values
+	htmlTemplate.columns = getHeaders();
+	htmlTemplate.config = getConfig();
+	htmlTemplate.sheet = getSheetInfos();
+	htmlTemplate.syncs = getTriggers();
 
 	// apply template
-	htmlOutput = htmlOutput
+	const htmlOutput = htmlTemplate
 		.evaluate()
 		.setWidth(700)
 		.setHeight(750);
 
 	// render
 	SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Sheet → Mixpanel');
+	track('open', { view: 'sheet → mixpanel' });
 }
 
-function getHeaders() {
-	const sheet = SpreadsheetApp.getActiveSheet();
-	const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
-	const headers = range.getValues()[0]; //.map(str => str.trim());
-	return headers;
+/**
+ * called when a user clicks the 'test' button in the Sheet → Mixpanel UI
+ * @param  {SheetMpConfig} config
+ * @returns {[ImportResponse[], Summary]}
+ */
+function testSyncSheetsToMp(config) {
+	const testId = Math.random();
+	const props = { testId, record_type: config.record_type, token: config.token };
+
+	track('test: start', props);
+	const [responses, summary] = importData(config);
+	const { total, success, failed, seconds } = summary.results;
+	track('test: end', { total, success, failed, seconds, ...props });
+
+
+	return [responses, summary];
 }
 
-function getSheetInfos() {
-	return {
-		sheetName: SpreadsheetApp.getActiveSheet().getName(),
-		id: SpreadsheetApp.getActiveSheet().getSheetId()
-	};
-}
-
-
-function syncNow(config) {
+/**
+ * called when a user clicks the 'sync' button in the Sheet → Mixpanel UI
+ * @param  {SheetMpConfig} config
+ * @returns  {[ImportResponse[], Summary] | SheetMpConfig}
+ */
+function syncSheetsToMp(config) {
 	console.log(config);
 	const syncId = Math.random();
 	// todo scheduler,,,
@@ -147,6 +160,11 @@ function syncNow(config) {
 	}
 }
 
+/**
+ * show a pop-up to the user
+ * @param  {Summary} config
+ * @returns {void}
+ */
 function displayImportResults(config) {
 	const { results } = config;
 	const ui = SpreadsheetApp.getUi();
@@ -165,72 +183,37 @@ function displayImportResults(config) {
 	const display = ui.alert('✅ Sync Complete', prettyResults, ui.ButtonSet.OK);
 }
 
-function comma(num) {
-	return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
 
 
 /*
-----
-DISPLAY EXPORT BINDINGS
-----
+----------------
+Mixpanel → Sheet
+----------------
 */
 
 
-function dataOutUI() {
+/**
+ * called when the user clicks  Mixpanel → Sheet
+ * @returns {void}
+ */
+function MixpanelToSheet() {
 	track('mixpanel to sheet');
-	let htmlOutput = HtmlService.createTemplateFromFile('ui/mixpanel-to-sheet.html');
+	const htmlTemplate = HtmlService.createTemplateFromFile('ui/mixpanel-to-sheet.html');
 
-	// vars
-	htmlOutput.config = getConfig();
-	htmlOutput.sheet = getSheetInfos();
+	// server-side values
+	htmlTemplate.config = getConfig();
+	htmlTemplate.sheet = getSheetInfos();
 
 	// apply template
-	htmlOutput = htmlOutput
+	const htmlOutput = htmlTemplate
 		.evaluate()
 		.setWidth(700)
 		.setHeight(500);
 
 	//render
 	SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Mixpanel → Sheet');
+	track('open', { view: 'mixpanel → sheet' });
 }
 
 
-/*
-----
-STORAGE
-----
-*/
-
-function getConfig() {
-	const scriptProperties = PropertiesService.getScriptProperties().getProperties();
-	return scriptProperties;
-}
-
-function setConfig(config) {
-	track('save', { record_type: config.record_type });
-	const scriptProperties = PropertiesService.getScriptProperties();
-	scriptProperties.setProperties(config);
-	return scriptProperties.getProperties();
-}
-
-function clearConfig(config) {
-	track('clear', { record_type: config.record_type });
-	const scriptProperties = PropertiesService.getScriptProperties();
-	scriptProperties.deleteAllProperties();
-	return scriptProperties.getProperties();
-}
-
-
-/*
-----
-USER INFO
-----
-*/
-
-
-function getUser() {
-	const user = Session.getActiveUser().getEmail();
-	return user;
-}
 

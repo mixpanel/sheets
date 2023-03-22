@@ -1,4 +1,18 @@
+/*
+----
+SEND TO MIXPANEL
+----
+*/
+
+
+/**
+ * flushes data to mixpanel
+ * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} data
+ * @param  {SheetMpConfig} config
+ */
 function flushToMixpanel(data, config) {
+	//todo batch by size
+	// ? https://developer.mixpanel.com/reference/import-events#high-level-requirements
 	const batches = sliceIntoChunks(data, config.batchSize);
 	let subdomain = `api`;
 	if (config.region === 'EU') subdomain = `api-eu`;
@@ -19,7 +33,7 @@ function flushToMixpanel(data, config) {
 	};
 	if (config.record_type === 'table') {
 		options.method = 'PUT';
-		options.contentType = `text/csv`
+		options.contentType = `text/csv`;
 		options.payload = JSONtoCSV(data);
 		const res = UrlFetchApp.fetch(URL, options);
 		return [JSON.parse(res.getContentText())];
@@ -35,21 +49,7 @@ function flushToMixpanel(data, config) {
 }
 
 
-//todo batch also by size
-function sliceIntoChunks(arr, chunkSize) {
-	const res = [];
-	for (let i = 0; i < arr.length; i += chunkSize) {
-		const chunk = arr.slice(i, i + chunkSize);
-		res.push(chunk);
-	}
-	return res;
-}
 
 
-function JSONtoCSV(arr) {
-	const array = [Object.keys(arr[0])].concat(arr);
 
-	return array.map(it => {
-		return Object.values(it).toString();
-	}).join('\n');
-}
+

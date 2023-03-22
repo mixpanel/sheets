@@ -51,12 +51,13 @@
 		</div>
 	</section>
 
-	<section id="where">
+	<!-- DEPRECATED; hidden for now... -->
+	<section id="where" class="hidden">
 		<div class="prompt">
 			<span class="title">📍 Choose where to display the data:</span>
 			<select id="sheet_location" class="data">
-				<option value="current">🙋 current sheet</option>
 				<option value="new">🌱 new sheet</option>
+				<option value="current">🙋 current sheet</option>
 			</select>
 		</div>
 	</section>
@@ -363,11 +364,13 @@
 			const userData = mergeObj(Object.values(this.getFields()));
 			userData.sheet_name = this.DOM.sheet?.sheetName;
 			userData.sheet_id = this.DOM.sheet?.id;
+			userData.configType = 'mixpanel-to-sheet';
 			return userData;
 		}
 
 		function checkFields() {
 			const userData = mergeObj(Object.values(this.getFields()));
+			userData.configType = 'mixpanel-to-sheet';
 			const valid = this.isValid(userData);
 			this.DOM.status.innerText = "";
 			this.DOM.saveButton.disabled = false;
@@ -410,6 +413,7 @@
 
 			fields.params = this.parseURL(this.DOM.mixpanelURL.value);
 			fields.cohorts = { cohorts: this.cohorts };
+		
 
 			return fields;
 		}
@@ -448,12 +452,14 @@
 				service_secret,
 				mixpanel_report_url,
 				sheet_location,
+				cohort_id
 			} = config;
 
 			if (service_acct || force) setValues('#service_acct', service_acct);
 			if (service_secret || force) setValues('#service_secret', service_secret);
 			if (mixpanel_report_url || force) setValues('#mixpanel_report_url', mixpanel_report_url);
 			if (sheet_location || force) setValues('#sheet_location', sheet_location);
+			if (cohort_id || force) setValues('#cohort_id', cohort_id);
 
 		}
 

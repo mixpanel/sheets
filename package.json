@@ -5,11 +5,11 @@
   "main": "Code.gs",
   "scripts": {
     "login": "clasp login --creds creds.json",
-	"open": "clasp open",
-	"push": "clasp push --force",
-    "watch": "clasp push --watch --force",    
+    "open": "clasp open",
+    "push": "clasp push --force",
+    "watch": "clasp push --watch --force",
     "serve": "./node_modules/serve/build/main.js ./ui",
-    "debug": "clasp run"    
+    "debug": "clasp run"
   },
   "author": "AK",
   "license": "ISC",

@@ -1,6 +1,14 @@
+/*
+----
+DATA OUT OF MP
+----
+*/
 
-
-
+/**
+ * export data; if not called with a config, uses last known
+ * @param  {MpSheetConfig} [userConfig={}]
+ * @returns {string} a csv file
+ */
 function exportData(userConfig = {}) {
 	const startTime = Date.now();
 	const runId = Math.random();
@@ -35,8 +43,12 @@ function exportData(userConfig = {}) {
 
 }
 
-
-function getParams(config, type) {
+/**
+ * use the params parsed from a URL to get the report's metadata
+ * @param  {MpSheetConfig} config
+ * @returns {{report_type: string, report_payload: Object}}
+ */
+function getParams(config) {
 	const { project_id, workspace_id, region, report_id, auth } = config;
 	let subdomain = ``;
 	if (region === 'EU') subdomain = `eu.`;
@@ -61,6 +73,12 @@ function getParams(config, type) {
 
 }
 
+/**
+ * turn report metadata into a CSV of it's results
+ * @param  {string} report_type
+ * @param  {Object} params
+ * @param  {MpSheetConfig} config
+ */
 function getReportCSV(report_type, params, config) {
 	const { project_id, workspace_id, region, auth } = config;
 	let subdomain = ``;
@@ -96,6 +114,11 @@ function getReportCSV(report_type, params, config) {
 
 }
 
+/**
+ * turn a cohort id into a flattened list of profile objects
+ * @param  {MpSheetConfig} config
+ * @returns {mpUser[] | mpGroup[]}
+ */
 function getCohort(config) {
 	const { project_id, workspace_id, region, auth, cohort_id } = config;
 	let subdomain = ``;
@@ -130,7 +153,6 @@ function getCohort(config) {
 
 
 	// subsequent batches
-	// todo not working
 	while (gotProfiles >= page_size) {
 		page++;
 		payload.page = page;
@@ -149,7 +171,11 @@ function getCohort(config) {
 
 }
 
-
+/**
+ * un-nest properties from profile so they go nicely to CSV
+ * @param  {mpUser | mpGroup} profile
+ * @returns {Object<string, PropValues>}
+ */
 function unNest(profile) {
 	return { distinct_id: profile.$distinct_id, ...profile.$properties };
 }

@@ -1,7 +1,12 @@
+/*
+----
+USAGE TRACKER
+----
+*/
+
 /**
  * track stuff to mixpanel
  * - ex: `var t = track(); t('foo', {bar: "baz"})`
- * @memberof logging
  * @param  {string} [app='akTools'] - value of `$source` prop
  * @param  {string} [token="99a1209a992b3f9fba55a293e211186a"] - mixpanel token
  * @param  {string} [distinct_id=os.userInfo().username] - distinct_id
@@ -38,7 +43,7 @@ function tracker(token = "703d5a3c06f359bdd838cb4cbc8abe7a", distinct_id) {
 				properties: {
 					token: token,
 					distinct_id: distinct_id,
-					$source: 'googleapps script',
+					$source: 'google apps script',
 					ip: "0",
 					...props
 				}
@@ -78,8 +83,6 @@ function tracker(token = "703d5a3c06f359bdd838cb4cbc8abe7a", distinct_id) {
 
 		return responses;
 
-
-
-
 	};
 };
+

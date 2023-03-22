@@ -1,4 +1,5 @@
 testData/*
+tmp/*
 .git
 .clasprc.json
 scratch.txt

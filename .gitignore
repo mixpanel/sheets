@@ -5,3 +5,5 @@ node_modules/*
 scratch.txt
 creds.json
 .gas-repl.history
+/tmp/*
+!tmp/.gitkeep
