@@ -28,3 +28,21 @@ function sliceIntoChunks(arr, chunkSize) {
 	}
 	return res;
 }
+
+function formatDate(date = new Date()) {
+	var hours = date.getHours();
+	var minutes = date.getMinutes();
+	var ampm = hours >= 12 ? 'pm' : 'am';
+	hours = hours % 12;
+	hours = hours ? hours : 12; // the hour '0' should be '12'
+	minutes = minutes < 10 ? '0' + minutes : minutes;
+	var strTime = date.toLocaleDateString() + ' @ ' + hours + ':' + minutes + ampm;
+	return strTime;
+}
+
+function serial(data) {
+	return JSON.stringify(data)
+}
+
+
+if (typeof module !== 'undefined') module.exports = { comma, JSONtoCSV, sliceIntoChunks, formatDate, serial };

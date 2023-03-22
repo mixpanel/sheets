@@ -41,6 +41,9 @@ REF DOCS
 // ? tests: https://github.com/WildH0g/UnitTestingApp 
 
 
+//? bundling npm modules: https://12ft.io/proxy?q=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fthe-ultimate-guide-to-npm-modules-in-google-apps-script-a84545c3f57c
+//? 
+
 /*
 ----
 TODOs

@@ -5,8 +5,29 @@
 			"type": "npm",
 			"script": "debug",
 			"problemMatcher": [],
-			"label": "repl clasp",
-			"detail": "clasp run"
+			"label": "REPL",
+			"detail": "runs one-off functions in GAS"
+		},
+		{
+			"type": "npm",
+			"script": "test-local-watch",
+			"problemMatcher": [],
+			"label": "LOCAL TEST",
+			"detail": "runs local tests"
+		},
+		{
+			"type": "npm",
+			"script": "test-server",
+			"problemMatcher": [],
+			"label": "SERVER TEST",
+			"detail": "runs server-side tests"
+		},
+		{
+			"type": "npm",
+			"script": "test-server-logs",
+			"problemMatcher": [],
+			"label": "OPEN LOGGER",
+			"detail": "show GCP console"
 		}
 	]
 }

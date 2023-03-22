@@ -1,0 +1,16 @@
+{
+	"configurations": [
+		{
+			"command": "npm run test-local-watch",
+			"name": "local tests",
+			"request": "launch",
+			"type": "node-terminal"
+		},
+		{
+			"command": "npm run test-server",
+			"name": "server tests",
+			"request": "launch",
+			"type": "node-terminal"
+		}		
+	]
+}
