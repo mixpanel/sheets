@@ -11,15 +11,16 @@
     "serve": "./node_modules/serve/build/main.js ./ui",
     "debug": "clasp run repl",
     "test-local": "node ./tests/unit.test.js",
-	"test-watch": "nodemon ./tests/unit.test.js",
-	"test-server": "clasp run runTests",
-	"test-server-logs": "open -a 'Google Chrome.app' https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7"
+    "test-watch": "nodemon ./tests/unit.test.js",
+    "test-server": "clasp run runTests",
+    "test-server-logs": "open -a 'Google Chrome.app' https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7"
   },
   "author": "AK",
   "license": "ISC",
   "devDependencies": {
     "@google/clasp": "^2.4.2",
     "@types/google-apps-script": "^1.0.58",
+    "dotenv": "^16.0.3",
     "nodemon": "^2.0.21",
     "serve": "^14.2.0"
   }

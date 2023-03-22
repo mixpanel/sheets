@@ -7,3 +7,4 @@ creds.json
 .gas-repl.history
 /tmp/*
 !tmp/.gitkeep
+.env

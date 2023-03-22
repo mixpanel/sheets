@@ -10,7 +10,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "test-local-watch",
+			"script": "test-watch",
 			"problemMatcher": [],
 			"label": "LOCAL TEST",
 			"detail": "runs local tests"

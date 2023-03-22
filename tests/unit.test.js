@@ -1,15 +1,34 @@
 /*
 ----
 TEST RUNNER
-docs: https://github.com/WildH0g/UnitTestingApp#readme
+? https://github.com/WildH0g/UnitTestingApp#readme
 ----
 */
 
 if (typeof require !== 'undefined') {
+	//running locally; can require modules
 	const UnitTestingApp = require('./UnitTestingApp.js');
 	global.UnitTestingApp = UnitTestingApp;
 	const Misc = require('../utilities/misc.js');
 	global.Misc = Misc;
+
+	//IMPORTANT: where secrets go
+	//see .env-sample for an example configuration
+	require('dotenv').config();
+	/** @type {Config} */
+	const creds = {
+		project_id: process.env.MP_PROJECT_ID,
+		workspace_id: process.env.MP_WORKSPACE_ID,
+		service_acct: process.env.MP_SERVICE_ACCT,
+		service_secret: process.env.MP_SERVICE_SECRET,
+		api_secret: process.env.MP_API_SECRET,
+		token: process.env.MP_TOKEN,
+		lookup_table_id: process.env.MP_LOOKUP_ID,
+		cohort_id: process.env.MP_COHORT_ID,
+		report_id: process.env.MP_REPORT_ID,
+		region: "US"
+	};
+	global.creds = creds;
 }
 
 
@@ -60,7 +79,6 @@ function runTests() {
 		return Misc.serial([{ foo: "bar", baz: "qux" }]) === expected;
 	}, 'can serialize objects?');
 
-
 	console.log('\n\n');
 	test.runInGas(true);
 
@@ -87,7 +105,8 @@ function runTests() {
 
 	test.assert(() => {
 		const expected = [{ error: null, status: 1 }, { error: null, status: 1 }];
-		const results = track('server-side test');
+		const trackLocal = tracker(undefined, 'ROBOT@aktunes.com');
+		const results = trackLocal('server-side test');
 		return serial(results) === serial(expected);
 	}, 'can properly track data?');
 
@@ -97,7 +116,20 @@ function runTests() {
 		return expected === results;
 	}, 'can properly construct MD5 signatures?');
 
-	return `\nAppsScript:https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions\n\nGCP: https://cloudlogging.app.goo.gl/8Tkd7KQrnoLo9YCD8\n`;
+
+	// TRYING SOME E2E tests too...
+	// these will not work as CREDS is not available server-side
+	// test.assert(() => {
+
+		// const sourceData = [['event_name', 'timestamp', 'uuid', 'misc'], ['foo', new Date('March 4, 2023 13:00:00 -0500'), 'bar', 'hey'], ['baz', new Date('March 4, 2023 14:00:00 -0500');, 'qux', 'you']];
+	// 	/** @type {EventMappings} */
+	// 	const mappings = { event_name_col: "action", distinct_id_col: "uuid", insert_id_col: "", time_col: "timestamp" };
+	// 	const imported = importData({ ...creds, ...mappings, record_type: "event" });
+	// 	console.log(imported)
+	// 	return true;
+	// }, 'can send events to /import? (no insert id)');
+
+	return `\nAppsScript: https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions\n\nGCP: https://cloudlogging.app.goo.gl/8Tkd7KQrnoLo9YCD8\n`;
 }
 
 /**

@@ -1,7 +1,7 @@
 {
 	"configurations": [
 		{
-			"command": "npm run test-local-watch",
+			"command": "npm run test-watch",
 			"name": "local tests",
 			"request": "launch",
 			"type": "node-terminal"
