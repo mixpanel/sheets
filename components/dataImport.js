@@ -25,11 +25,10 @@ function importData(userConfig = {}, sheet) {
 
 	// console.log('GET');
 	const sourceData = getJSON(sheet);
-
+	
 
 	// console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
 	const targetData = sourceData.slice().map((row) => transform(row, mappings, config));
-
 
 	// console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
 	const imported = flushToMixpanel(targetData, config);

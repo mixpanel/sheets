@@ -42,6 +42,8 @@ function modelMpUsers(row, mappings, config) {
 		[profileOperation]: {}
 	};
 
+	delete row[distinct_id_col];
+
 	// mixpanel reserved keys
 	if (name_col) {
 		mpProfile[profileOperation].$name = row[name_col];
@@ -95,10 +97,10 @@ function modelMpUsers(row, mappings, config) {
 	try {
 		for (const key in row) {
 			if (row[key]?.toISOString) {
-				mpProfile.properties[key] = row[key].toISOString();
+				mpProfile[profileOperation][key] = row[key].toISOString();
 			}
 			else {
-				mpProfile.properties[key] = row[key];
+				mpProfile[profileOperation][key] = row[key];
 			}
 		}
 	}

@@ -44,6 +44,8 @@ function modelMpGroups(row, mappings, config) {
 		[profileOperation]: {}
 	};
 
+	delete row[distinct_id_col];
+
 	// mixpanel reserved keys
 	if (name_col) {
 		mpGroup[profileOperation].$name = row[name_col];
@@ -97,10 +99,10 @@ function modelMpGroups(row, mappings, config) {
 	try {
 		for (const key in row) {
 			if (row[key]?.toISOString) {
-				mpGroup.properties[key] = row[key].toISOString();
+				mpGroup[profileOperation][key] = row[key].toISOString();
 			}
 			else {
-				mpGroup.properties[key] = row[key];
+				mpGroup[profileOperation][key] = row[key];
 			}
 		}
 	}

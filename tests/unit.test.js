@@ -79,6 +79,12 @@ function runTests() {
 		return Misc.serial([{ foo: "bar", baz: "qux" }]) === expected;
 	}, 'can serialize objects?');
 
+	test.assert(() => {
+		const ObjOne = { foo: "bar", baz: { qux: "mux" } };
+		const ObjTwo = { baz: { qux: "mux" }, foo: "bar" };
+		return Misc.isDeepEqual(ObjOne, ObjTwo);
+	}, 'can test for deep equality?');
+
 	console.log('\n\n');
 	test.runInGas(true);
 
@@ -111,29 +117,68 @@ function runTests() {
 		return expected === results;
 	}, 'can construct MD5 signatures?');
 
+	/*
+	----
+	these tests depend on sheets to be named
+	'events', 'users', 'groups', 'tables'
+	see ./testData if you need to rebuild test data
+	----
+	*/
 
 	test.assert(() => {
-		const expected = 10395;
-		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, { name: 'events', id: 2064569556 });
-		return imported.results.success === expected;
+		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('events'));
+		const expected = {
+			batches: 6,
+			total: 10395,
+			success: 10395,
+			failed: 0,
+			errors: []
+		};
+		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+		delete imported.results.seconds;
+		return isDeepEqual(expected, imported.results);
 	}, 'can test sync events?');
 
 	test.assert(() => {
-		const expected = 6999;
-		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, { name: 'users', id: 114220481 });
-		return imported.results.success === expected;
+		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('users'));
+		const expected = {
+			batches: 4,
+			total: 6999,
+			success: 6999,
+			failed: 0,
+			errors: []
+		};
+		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
+		delete imported.results.seconds;
+		return isDeepEqual(expected, imported.results);
 	}, 'can test sync users?');
 
 	test.assert(() => {
-		const expected = 1427;
-		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, { name: 'groups', id: 2092562870 });
-		return imported.results.success === expected;
+		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('groups'));
+		const expected = {
+			batches: 8,
+			total: 1427,
+			success: 1427,
+			failed: 0,
+			errors: []
+		};
+		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
+		delete imported.results.seconds;
+		return isDeepEqual(expected, imported.results);
 	}, 'can test sync groups?');
 
 	test.assert(() => {
-		const expected = 1;
-		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, { name: 'tables', id: 819636403 });
-		return imported.results.success === expected;
+		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables'));
+		const expected = {
+			batches: 1,
+			total: 1,
+			success: 1,
+			failed: 0,
+			errors: []
+		};
+		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
+		delete imported.results.seconds;
+		return isDeepEqual(expected, imported.results);
 	}, 'can test sync tables?');
 
 	test.assert(() => {
@@ -141,17 +186,62 @@ function runTests() {
 			report_type: 'insights',
 			report_name: 'an insights report',
 			report_desc: 'an insights report',
-			report_id: 'an insights report',
+			report_id: 38075731,
 			project_id: 2943452,
 			dashboard_id: 4690699,
 			workspace_id: 3466588,
-			report_creator_name: 'AK ',
-			report_creator_email: undefined
+			report_creator: 'AK '			
 		};
 
-		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS);
-		return serial(expected) === serial(results.metadata);
+		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
+		return isDeepEqual(expected, results.metadata);
 	}, 'can test sync insights report?');
+
+	test.assert(() => {
+		const expected = {
+			workspace_id: 3466588,
+			project_id: 2943452,
+			report_id: 38075728,
+			report_desc: 'a funnel report',
+			report_type: 'funnels',
+			report_name: 'a funnel report',
+			report_creator: 'AK ',
+			dashboard_id: 4690699
+		};
+
+		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
+		return isDeepEqual(expected, results.metadata);
+	}, 'can test sync funnels report?');
+
+
+	test.assert(() => {
+		const expected = {
+			workspace_id: 3466588,
+			project_id: 2943452,
+			report_id: 38075736,
+			report_desc: 'a retention report',
+			report_type: 'retention',
+			report_name: 'a retention report',
+			report_creator: 'AK ',
+			dashboard_id: 4690699
+		};
+
+		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
+		return isDeepEqual(expected, results.metadata);
+	}, 'can test sync retention report?');
+
+	test.assert(() => {
+		const expected = {
+			cohort_desc: 'lucky number is bigger than 70',
+			project_id: 2943452,
+			cohort_name: 'cool peeps',
+			cohort_id: 2789763,
+			cohort_count: 1617
+		};
+
+		const results = testSyncMpToSheets(TEST_CONFIG_COHORTS);
+		return isDeepEqual(expected, results.metadata);
+	}, 'can test sync cohort?');
 
 
 	//no way to see server-side output in console :( 

@@ -508,13 +508,13 @@
 			const userData = mergeObj(Object.values(this.getFields()));
 			userData.sheet_name = this.DOM.sheet?.sheetName;
 			userData.sheet_id = this.DOM.sheet?.id;
-			userData.configType = 'sheet-to-mixpanel';
+			userData.config_type = 'sheet-to-mixpanel';
 			return userData;
 		}
 
 		function checkFields() {
 			const userData = mergeObj(Object.values(this.getFields()));
-			userData.configType = 'sheet-to-mixpanel';
+			userData.config_type = 'sheet-to-mixpanel';
 			const valid = this.isValid(userData);
 			this.DOM.status.innerText = "";
 			this.DOM.saveButton.disabled = false;

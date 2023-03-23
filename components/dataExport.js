@@ -8,7 +8,7 @@ DATA OUT OF MP
  * export data; if not called with a config, uses last known
  * 
  * @param  {MpSheetConfig} [userConfig={}]
- * @returns {[string, ReportMeta]} string + metadata `[csv, {}]`
+ * @returns {[string, ReportMeta | CohortMeta]} string + metadata `[csv, {}]`
  */
 function exportData(userConfig = {}) {
 	const startTime = Date.now();
@@ -16,13 +16,13 @@ function exportData(userConfig = {}) {
 	//use last known config if unset
 	if (JSON.stringify(userConfig) === '{}') userConfig = getConfig();
 	userConfig.auth = Utilities.base64Encode(`${userConfig.service_acct}:${userConfig.service_secret}`);
-	const type = userConfig.cohorts ? `cohort` : `report`;
+	const type = userConfig.entity_type;
 
 	if (type === 'report') {
 		// console.log(`GET`);
 		const report = getParams(userConfig, type);
 		const { meta, payload } = report;
-	
+
 
 		// console.log(`QUERY ${type} data`);
 		const csv = getReportCSV(meta.report_type, payload, userConfig);
@@ -31,10 +31,10 @@ function exportData(userConfig = {}) {
 	}
 
 	if (type === 'cohort') {
-		console.log(`POST ${type}`);
+		const meta = getCohortMeta(userConfig);
 		const profiles = getCohort(userConfig);
 		const csv = JSONtoCSV(profiles);
-		return csv;
+		return [csv, meta];
 	}
 
 	throw new Error(`${type} is unsupported`);
@@ -68,12 +68,11 @@ function getParams(config) {
 			report_type: data?.results?.type || data?.results?.original_type,
 			report_name: data?.results?.name,
 			report_desc: data?.results?.description,
-			report_id: data?.results?.description,
+			report_id: data?.results?.id,
 			project_id: data?.results?.project_id,
 			dashboard_id: data?.results?.dashboard_id,
 			workspace_id: data?.results?.workspace_id,
-			report_creator_name: data?.results?.creator_name,
-			report_creator_email: data?.results?.email,
+			report_creator: data?.results?.creator_name ||  data?.results?.email ||  data?.results?.creator_id || 'unknown',			
 		},
 		payload: data?.results?.params
 	};
@@ -148,7 +147,7 @@ function getCohort(config) {
 		method: 'POST',
 		headers: {
 			Authorization: `Basic ${auth}`,
-			contentType: ` application/x-www-form-urlencoded`
+			'Content-Type': `application/x-www-form-urlencoded`
 		},
 		muteHttpExceptions: true,
 		payload: JSON.stringify(payload)
@@ -181,6 +180,38 @@ function getCohort(config) {
 	return profiles.flat();
 
 
+}
+
+/**
+ * get's meta information about a cohort
+ * @param  {MpSheetConfig} config
+ * @returns {CohortInfo}
+ */
+function getCohortMeta(config) {
+	const { project_id, workspace_id, region, auth, cohort_id } = config;
+	let subdomain = ``;
+	if (region === 'EU') subdomain = `eu.`;
+
+	let URL = `https://${subdomain}mixpanel.com/api/2.0/cohorts/list?workspace_id=${workspace_id}&project_id=${project_id}`;
+
+	const options = {
+		method: 'POST',
+		headers: {
+			Authorization: `Basic ${auth}`,
+			Accept: `application/json`
+		},
+		muteHttpExceptions: true
+	};
+
+	const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());
+	const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id) || {};
+	return {
+		cohort_id: cohortInfos.id,
+		cohort_name: cohortInfos.name,
+		cohort_desc: cohortInfos.description,
+		cohort_count: cohortInfos.count,
+		project_id: cohortInfos.project_id
+	};
 }
 
 /**

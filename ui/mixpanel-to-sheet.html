@@ -364,20 +364,20 @@
 			const userData = mergeObj(Object.values(this.getFields()));
 			userData.sheet_name = this.DOM.sheet?.sheetName;
 			userData.sheet_id = this.DOM.sheet?.id;
-			userData.configType = 'mixpanel-to-sheet';
+			userData.config_type = 'mixpanel-to-sheet';
 			return userData;
 		}
 
 		function checkFields() {
 			const userData = mergeObj(Object.values(this.getFields()));
-			userData.configType = 'mixpanel-to-sheet';
+			userData.config_type = 'mixpanel-to-sheet';
 			const valid = this.isValid(userData);
 			this.DOM.status.innerText = "";
 			this.DOM.saveButton.disabled = false;
 			this.DOM.clearButton.disabled = false;
 			console.log(JSON.stringify(userData, null, 2));
 
-			if (this.cohorts) {
+			if (this.entity_type === 'cohort') {
 				this.DOM.cohortContainer.classList.remove('hidden');
 			}
 
@@ -412,7 +412,6 @@
 			});
 
 			fields.params = this.parseURL(this.DOM.mixpanelURL.value);
-			fields.cohorts = { cohorts: this.cohorts };
 		
 
 			return fields;
@@ -598,13 +597,13 @@
 					report_id = hash.split('/')[1];
 				}
 
-				//cohorts are treated separately too
+				//cohorts are treated separately
 				if (hash.includes('cohorts')) {
-					this.cohorts = true;
+					this.entity_type = 'cohort';
 				}
 
 				else {
-					this.cohorts = false;
+					this.entity_type = 'report';
 				}
 			}
 

@@ -17,7 +17,7 @@ TYPES
 
 /**
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
- * @property {'sheet-to-mixpanel'} configType an identifier for where the config came from
+ * @property {'sheet-to-mixpanel'} config_type an identifier for where the config came from
  * @property {'event' | 'user' | 'group' | 'table'} record_type the record type being imported
  * @property {string} project_id the project identifier
  * @property {string} token the project token
@@ -67,8 +67,8 @@ TYPES
 
 /**
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
- * @property {'sheet-to-mixpanel'} configType an identifier for where the config came from
- * @property {'current' | 'new'} sheet_location DEPRECATED; where to put the data
+ * @property {'sheet-to-mixpanel'} config_type an identifier for where the config came from
+ * @property {'current' | 'new'} [sheet_location] DEPRECATED; where to put the data
  * @property {string} project_id the project identifier
  * @property {string} service_acct service acct name
  * @property {string} service_secret service acct pass
@@ -76,7 +76,7 @@ TYPES
  * @property {'US' | 'EU'} region US or EU residence
  * @property {string} [cohort_id] id of the cohort
  * @property {string} [report_id] id of the report
- * @property {boolean} cohorts is this a cohort or not..
+ * @property {'cohort' | 'report'} entity_type is this a cohort or a report...
  * 
  */
 
@@ -126,14 +126,22 @@ TYPES
  * @typedef {Object} ReportMeta metadata about a report 
  * @property {number} workspace_id
  * @property {number} project_id
- * @property {string} report_id
+ * @property {number} report_id
  * @property {string} report_desc
  * @property {string} report_type
  * @property {string} report_name
- * @property {string} report_creator_name
+ * @property {string | number} report_creator
  * @property {number} dashboard_id
- */ 
- 
+ */
+
+/**
+ * @typedef {Object} CohortMeta metadata about a cohort
+ * @property {string} cohort_desc
+ * @property {number} project_id
+ * @property {string} cohort_name
+ * @property {number} cohort_id
+ * @property {number} cohort_count
+ */
 
 
 /*
@@ -208,3 +216,4 @@ MIXPANEL TYPINGS
  * @property {string} $group_id - the uuid of the group; like `$distinct_id` for user profiles
  * @property {string} $token - the mixpanel project identifier
  */
+

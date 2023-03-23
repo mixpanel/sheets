@@ -16,8 +16,12 @@ function repl() {
 	// 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('groups')),
 	// 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables')),
 	// ]
+	// return SpreadsheetApp.getActive().getSheetByName('users')
 
-	return testSyncSheetsToMp(TEST_CONFIG_TABLES, { name: 'tables', id: 819636403 })
+	const result = testSyncSheetsToMp(TEST_CONFIG_TABLES, getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables')));
+	return result;
+
+	// return testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION)
 
 
 	// repl code here

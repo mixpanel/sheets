@@ -60,8 +60,8 @@ function onOpen(sheetOpenEv) {
 	}
 	else {
 		// script has permissions
-		menu.addItem('Sheet → Mixpanel', 'SheetToMixpanel');
-		menu.addItem('Mixpanel → Sheet', 'MixpanelToSheet');
+		menu.addItem('Sheet → Mixpanel', 'SheetToMixpanelView');
+		menu.addItem('Mixpanel → Sheet', 'MixpanelToSheetView');
 	}
 	menu.addToUi();
 }
@@ -77,7 +77,7 @@ Sheet → Mixpanel
  * 
  * @returns {void}
  */
-function SheetToMixpanel() {
+function SheetToMixpanelView() {
 	const htmlTemplate = HtmlService.createTemplateFromFile('ui/sheet-to-mixpanel.html');
 
 	// server-side values
@@ -101,7 +101,7 @@ function SheetToMixpanel() {
  * called when a user clicks the 'test' button in the Sheet → Mixpanel UI
  * 
  * @param  {SheetMpConfig} config if not supplied, last known will be used
- * @param {SheetInfo} sheetInfo
+ * @param {SheetInfo} sheetInfo the source sheet which contains the data
  * @returns {[ImportResponse[], Summary]}
  */
 function testSyncSheetsToMp(config = {}, sheetInfo) {
@@ -147,31 +147,6 @@ function syncSheetsToMp(config) {
 	}
 }
 
-/**
- * show a pop-up to the user
- * 
- * @param  {Summary} config
- * @returns {void}
- */
-function displayImportResults(config) {
-	const { results } = config;
-	const ui = SpreadsheetApp.getUi();
-	const prettyResults = `
-	Details:
-	-------
-		Total: ${comma(results.total)} ${config.record_type}s
-		Success: ${comma(results.success)}
-		Failed: ${comma(results.failed)}
-		Batches: ${comma(results.batches)}
-		Duration: ${comma(results.seconds)} seconds
-		
-	
-	${results.errors.length > 0 ? 'see log for errors' : ''}
-	`;
-	const display = ui.alert('✅ Sync Complete', prettyResults, ui.ButtonSet.OK);
-}
-
-
 
 /*
 ----------------
@@ -185,7 +160,7 @@ Mixpanel → Sheet
  * 
  * @returns {void}
  */
-function MixpanelToSheet() {
+function MixpanelToSheetView() {
 	const htmlTemplate = HtmlService.createTemplateFromFile('ui/mixpanel-to-sheet.html');
 
 	// server-side values
@@ -214,8 +189,22 @@ function testSyncMpToSheets(config = {}) {
 
 	t('test start');
 	const [csvData, metadata] = exportData(config);
+	let sheetName;	
 
-	const destSheet = createSheet(metadata.report_name || 'mixpanel export');
+	if (config.entity_type === 'cohort') {
+		sheetName = `cohort: ${metadata.cohort_name}`;
+	}
+
+	else if (config.entity_type === 'report') {
+		sheetName = `report: ${metadata.report_name}`;
+	}
+
+	//this should never be the case
+	else {
+		sheetName = `mixpanel export`;
+	}
+
+	const destSheet = createSheet(sheetName);
 	const updatedSheet = updateSheet(csvData, destSheet);
 
 	t('test end');

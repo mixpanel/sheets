@@ -86,6 +86,7 @@ function createSheet(title = 'mixpanel sync log') {
 		return newSheet;
 	}
 
+	//sheet probably exists
 	catch (e) {
 		const existingSheet = ss.getSheetByName(title);
 		return existingSheet;

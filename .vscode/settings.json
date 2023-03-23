@@ -1,12 +1,13 @@
 {
   "cSpell.words": [
-    "abcdefghijklmnop",
-    "brux",
-    "clasprc",
-    "MISCELANOUS",
-    "STACKDRIVER",
-    "trux"
-  ],
+	"abcdefghijklmnop",
+	"ampm",
+	"brux",
+	"clasprc",
+	"MISCELANOUS",
+	"STACKDRIVER",
+	"trux"
+],
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
