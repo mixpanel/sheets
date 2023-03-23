@@ -8,3 +8,4 @@ creds.json
 /tmp/*
 !tmp/.gitkeep
 .env
+env.js

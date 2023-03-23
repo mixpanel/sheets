@@ -5,48 +5,54 @@ DATA INTO MP
 */
 
 /**
- * import data; if not called with a config, uses last known
+ * import data from sheet; if not called with a config, uses last known
+ * 
  * @param  {SheetMpConfig} [userConfig={}]
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @returns {[ImportResponse[], Summary]}
  */
-function importData(userConfig = {}) {
+function importData(userConfig = {}, sheet) {
 	const runId = Math.random();
 	//use last known config if unset
 	if (JSON.stringify(userConfig) === '{}') userConfig = getConfig();
 	const { record_type } = userConfig;
 
-	console.log('SYNC');
+	// console.log('SYNC');
 	const startTime = Date.now();
 	const mappings = getMappings(userConfig);
 	const config = getMixpanelConfig(userConfig);
 	const transform = getTransformType(config);
 
-	console.log('GET');
-	const sourceData = getJSON(SpreadsheetApp.getActiveSheet());
-	track('GET', { runId, record_type });
+	// console.log('GET');
+	const sourceData = getJSON(sheet);
 
-	console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
+
+	// console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
 	const targetData = sourceData.slice().map((row) => transform(row, mappings, config));
-	track('TRANSFORM', { runId, record_type });
 
-	console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
+
+	// console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
 	const imported = flushToMixpanel(targetData, config);
 	const endTime = Date.now();
 	const runTime = Math.floor(endTime - startTime) / 1000;
-	track('FLUSH', { runId, record_type });
+	// track('FLUSH', { runId, record_type });
 
-	console.log(`FINISHED: ${runTime} seconds`);
+	// console.log(`FINISHED: ${runTime} seconds`);
 	updateConfig(config, imported, runTime, targetData);
+
 	if (config.results.errors.length > 0) {
 		Logger.log('FAILED REQUESTS');
 		Logger.log(config.results.errors);
 	}
-	console.log(config);
+
+
 	return [imported, config];
 
 }
 
 /**
  * clean version of mappings; don't trust the front-end
+ * 
  * @param  {SheetMpConfig} config
  * @returns {EventMappings | UserMappings | GroupMappings | TableMappings}
  */
@@ -103,6 +109,7 @@ function getMappings(config) {
 
 /**
  * clean version of params + creds; don't trust the front-end
+ * 
  * @param  {SheetMpConfig} config
  * @returns {SheetMpConfig & Summary}
  */
@@ -130,7 +137,7 @@ function getMixpanelConfig(config) {
 			success: 0,
 			total: 0,
 			failed: 0,
-			requests: 0,
+			batches: 0,
 			seconds: 0,
 			errors: []
 		}
@@ -148,12 +155,13 @@ function getMixpanelConfig(config) {
 
 /**
  * find the right "transformer" to model the data
+ * 
  * @param  {SheetsMpConfig} config
  * @returns {callback}
  */
 function getTransformType(config) {
 	if (config.record_type === 'event') return modelMpEvents;
-	if (config.record_type === 'user') return modelMpProfiles;
+	if (config.record_type === 'user') return modelMpUsers;
 	if (config.record_type === 'group') return modelMpGroups;
 	if (config.record_type === 'table') return modelMpTables;
 	throw new Error(`${config.record_type} is not a supported record type`);

@@ -1,3 +1,17 @@
+/*
+----
+MIXPANEL EVENTS
+https://developer.mixpanel.com/reference/import-events
+----
+*/
+
+/**
+ * model a mixpanel event from flat JSON
+ * 
+ * @param  {Object} row
+ * @param  {EventMappings} mappings
+ * @returns {mpEvent}
+ */
 function modelMpEvents(row, mappings) {
 	const {
 		distinct_id_col,
@@ -17,7 +31,7 @@ function modelMpEvents(row, mappings) {
 		event: row[event_name_col],
 		properties: {
 			distinct_id: row[distinct_id_col],
-			time: row[time_col].getTime(),
+			time: row[time_col]?.getTime(),
 			$source: 'sheets-mixpanel'
 		},
 	};

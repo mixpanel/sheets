@@ -1,3 +1,17 @@
+/*
+----
+MIXPANEL GROUPS
+https://developer.mixpanel.com/reference/group-set-property
+----
+*/
+
+/**
+ * model a mixpanel group profile operation from flat JSON
+ * 
+ * @param  {Object} row
+ * @param  {GroupMappings} mappings
+ * @param  {SheetMpConfig} config
+ */
 function modelMpGroups(row, mappings, config) {
 	let {
 		distinct_id_col,

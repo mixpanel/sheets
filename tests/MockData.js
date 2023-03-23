@@ -9,6 +9,7 @@ TEST MOCKER
 
 /**
  * Stores mock data that's not available locally to enable offline testing. 
+ * 
  */
 let MockData = (function() {
   const _registry = new WeakMap();

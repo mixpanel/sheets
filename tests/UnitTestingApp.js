@@ -9,6 +9,7 @@ TEST HARNESS
 
 /**
  * Class for running unit tests
+ * 
  */
 
 let UnitTestingApp = (function () {

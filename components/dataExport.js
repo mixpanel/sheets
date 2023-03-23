@@ -6,8 +6,9 @@ DATA OUT OF MP
 
 /**
  * export data; if not called with a config, uses last known
+ * 
  * @param  {MpSheetConfig} [userConfig={}]
- * @returns {string} a csv file
+ * @returns {[string, ReportMeta]} string + metadata `[csv, {}]`
  */
 function exportData(userConfig = {}) {
 	const startTime = Date.now();
@@ -18,18 +19,15 @@ function exportData(userConfig = {}) {
 	const type = userConfig.cohorts ? `cohort` : `report`;
 
 	if (type === 'report') {
-		console.log(`GET ${type} params`);
-		track(`GET ${type}`, { runId });
-
+		// console.log(`GET`);
 		const report = getParams(userConfig, type);
-		const { report_type, report_payload } = report;
+		const { meta, payload } = report;
+	
 
-		console.log(`QUERY ${type} data`);
-		track(`QUERY ${type}`, { runId });
-		const csv = getReportCSV(report_type, report_payload, userConfig);
+		// console.log(`QUERY ${type} data`);
+		const csv = getReportCSV(meta.report_type, payload, userConfig);
 
-		track(`CSV ${type} done`, { runId });
-		return csv;
+		return [csv, meta];
 	}
 
 	if (type === 'cohort') {
@@ -45,8 +43,9 @@ function exportData(userConfig = {}) {
 
 /**
  * use the params parsed from a URL to get the report's metadata
+ * 
  * @param  {MpSheetConfig} config
- * @returns {{report_type: string, report_payload: Object}}
+ * @returns {ReportParams}
  */
 function getParams(config) {
 	const { project_id, workspace_id, region, report_id, auth } = config;
@@ -64,19 +63,31 @@ function getParams(config) {
 
 	const res = UrlFetchApp.fetch(URL, options).getContentText();
 	const data = JSON.parse(res);
-
-	return {
-		report_type: data?.results?.original_type,
-		report_payload: data?.results?.params
+	const result = {
+		meta: {
+			report_type: data?.results?.type || data?.results?.original_type,
+			report_name: data?.results?.name,
+			report_desc: data?.results?.description,
+			report_id: data?.results?.description,
+			project_id: data?.results?.project_id,
+			dashboard_id: data?.results?.dashboard_id,
+			workspace_id: data?.results?.workspace_id,
+			report_creator_name: data?.results?.creator_name,
+			report_creator_email: data?.results?.email,
+		},
+		payload: data?.results?.params
 	};
+
+	return result;
 
 
 }
 
 /**
  * turn report metadata into a CSV of it's results
- * @param  {string} report_type
- * @param  {Object} params
+ * 
+ * @param  {'insights', 'funnels', 'retention'} report_type
+ * @param  {Object} params a whole bookmark's payload
  * @param  {MpSheetConfig} config
  */
 function getReportCSV(report_type, params, config) {
@@ -116,6 +127,7 @@ function getReportCSV(report_type, params, config) {
 
 /**
  * turn a cohort id into a flattened list of profile objects
+ * 
  * @param  {MpSheetConfig} config
  * @returns {mpUser[] | mpGroup[]}
  */
@@ -173,6 +185,7 @@ function getCohort(config) {
 
 /**
  * un-nest properties from profile so they go nicely to CSV
+ * 
  * @param  {mpUser | mpGroup} profile
  * @returns {Object<string, PropValues>}
  */

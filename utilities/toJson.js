@@ -12,6 +12,7 @@ https://gist.github.com/jalcantarab/0eb43b13c97e4f784bd0be327f6ced52 (forked)
 /** 
  * getRowsData(Sheet) iterates row by row in the sheer and returns an array of objects.
  * Each object contains all the data for a given row, indexed by its normalized column name.
+ * 
  * @params sheet - SpreadsheetApp>Sheet Class, the sheet object that contains the data to be processed.
  * @returns Object[] - an Array of objects with the headers as keys.
 */
@@ -28,9 +29,10 @@ function getJSON(sheet) {
 	return getObjects(dataRange.getValues(), normalizeHeaders(headers));
 }
 
-/* 
+/** 
  * getObjects(String[], String[]), For every row in the data, generates an object.  
  * Names of object fields are defined in keys.
+ * 
  * @params data - JavaScript 2d array.
  * @params keys - Array of Strings that define the property names for the objects to create.
  * @returns Object[] - JSON, an Array of objects.
@@ -55,9 +57,10 @@ function getObjects(data, keys) {
 	return objects;
 }
 
-/* 
+/** 
  * getColumnsData(Sheet Object, RangeElement[], int) iterates column by column in the input range and returns an array of objects.
  * Each object contains all the data for a given column, indexed by its normalized row name.
+ * 
  * @params sheet - the sheet object that contains the data to be processed
  * @params range - the exact range of cells where the data is stored
  * @params (optional)rowHeadersColumnIndex - specifies the column number where the row names are stored.
@@ -70,8 +73,9 @@ function getColumnsData(sheet, range, rowHeadersColumnIndex) {
 	return getObjects(arrayTranspose(range.getValues()), headers);
 }
 
-/* 
+/** 
  * normalizeHeaders(String[]) Returns an Array of normalized Strings.
+ * 
  * @params headers - Array of raw headers
  * @returns String[] - Array of normalized headers.
 */
@@ -86,12 +90,14 @@ function normalizeHeaders(headers) {
 	return keys;
 }
 
-/* 
+/**
  * normalizeHeaders(String[]) Normalizes a string by removing all alphanumeric characters 
  * Uses camelCase to separate words. The output will always start with a lower case letter.
  * This function is designed to produce JavaScript object property names.
+ * 
  * @params headers - Array of raw headers
  * @returns String[] - Array of normalized headers.
+ * 
  * Examples:
  *   "First Name" -> "firstName"
  *   "Market Cap (millions) -> "marketCapMillions
@@ -125,8 +131,9 @@ function normalizeHeader(header) {
 	return key;
 }
 
-/* 
+/** 
  * isCellEmpty(String) Returns true if the cell where cellData was read from is empty.
+ * 
  * @params cellData - an SpreadsheetApp Cell Object. 
  * @returns boolean - false if the string is empty. 
 */
@@ -134,8 +141,9 @@ function isCellEmpty(cellData) {
 	return typeof (cellData) == "string" && cellData == "";
 }
 
-/* 
+/**
  * isAlnum(char) Returns true if the character char is alphabetical, false otherwise.
+ * 
  * @params char - a single character.
  * @returns boolean.
 */
@@ -145,8 +153,9 @@ function isAlnum(char) {
 		isDigit(char);
 }
 
-/* 
+/**
  * isDigit(char) Returns true if the character char is a digit, false otherwise.
+ * 
  * @params char - a single character.
  * @returns boolean.
 */
@@ -154,8 +163,9 @@ function isDigit(char) {
 	return char >= '0' && char <= '9';
 }
 
-/* 
+/** 
  * isDigit(String[]) returns the transposed table of given 2d Array.
+ * 
  * @params data - JavaScript 2d array.
  * @returns String[] - transposed 2d array.
  * Example: 

@@ -7,6 +7,7 @@ STORAGE
 
 /**
  * gets current stored configuration
+ * 
  * @returns {Config}
  */
 function getConfig() {
@@ -16,6 +17,7 @@ function getConfig() {
 
 /**
  * sets a new stored configuration
+ * 
  * @param  {Config} config
  * @returns {Config}
  */
@@ -28,6 +30,7 @@ function setConfig(config) {
 
 /**
  * clears all stored data & scheduled triggers
+ * 
  * @param  {Config} config
  * @returns {void}
  */

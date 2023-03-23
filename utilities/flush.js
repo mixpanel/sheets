@@ -7,6 +7,7 @@ SEND TO MIXPANEL
 
 /**
  * flushes data to mixpanel
+ * 
  * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} data
  * @param  {SheetMpConfig} config
  * @param  {1 | 0} strict use or don't use strict mode

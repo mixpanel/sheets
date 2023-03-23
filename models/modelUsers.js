@@ -1,4 +1,18 @@
-function modelMpProfiles(row, mappings, config) {
+/*
+----
+MIXPANEL USER PROFILES
+https://developer.mixpanel.com/reference/profile-set
+----
+*/
+
+/**
+ * model a mixpanel user profile operation from flat JSON
+ * 
+ * @param  {Object} row
+ * @param  {UserMappings} mappings
+ * @param  {SheetMpConfig} config
+ */
+function modelMpUsers(row, mappings, config) {
 	let {
 		distinct_id_col,
 		name_col,

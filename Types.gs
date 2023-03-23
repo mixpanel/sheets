@@ -19,49 +19,49 @@ TYPES
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
  * @property {'sheet-to-mixpanel'} configType an identifier for where the config came from
  * @property {'event' | 'user' | 'group' | 'table'} record_type the record type being imported
- * @property {'string'} project_id the project identifier
- * @property {'string'} token the project token
+ * @property {string} project_id the project identifier
+ * @property {string} token the project token
  * @property {'US' | 'EU'} region US or EU residence
  * @property {'service_account' | 'api_secret'} auth_type how we will authenticate
- * @property {'string'} [service_acct] service acct name
- * @property {'string'} [service_secret] service acct pass
- * @property {'string'} [api_secret] api secret
+ * @property {string} [service_acct] service acct name
+ * @property {string} [service_secret] service acct pass
+ * @property {string} [api_secret] api secret
  *
  */
 
 /**
  * @typedef {Object} EventMappings mappings columns to fields for event imports
- * @property {'string'} event_name_col the sheet's source column name to be mapped to event name
- * @property {'string'} distinct_id_col the sheet's source column name to be mapped to distinct_id
- * @property {'string'} time_col the sheet's source column name to be mapped to event time
- * @property {'string'} [insert_id_col] the sheet's source column name to be mapped to $insert_id
+ * @property {string} event_name_col the sheet's source column name to be mapped to event name
+ * @property {string} distinct_id_col the sheet's source column name to be mapped to distinct_id
+ * @property {string} time_col the sheet's source column name to be mapped to event time
+ * @property {string} [insert_id_col] the sheet's source column name to be mapped to $insert_id
  */
 
 /**
  * @typedef {Object} UserMappings mappings columns to fields for user imports
- * @property {'string'} distinct_id_col the sheet's source column name to be mapped to $distinct_id
+ * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
  * @property {'$set' | '$set_once'} profile_operation the type of operation to preform when updating the profile
- * @property {'string'} [name_col] the sheet's source column name to be mapped to $name
- * @property {'string'} [email_col] the sheet's source column name to be mapped to $email
- * @property {'string'} [avatar_col] the sheet's source column name to be mapped to $avatar
- * @property {'string'} [created_col] the sheet's source column name to be mapped to $created
+ * @property {string} [name_col] the sheet's source column name to be mapped to $name
+ * @property {string} [email_col] the sheet's source column name to be mapped to $email
+ * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
+ * @property {string} [created_col] the sheet's source column name to be mapped to $created
  */
 
 
 /**
  * @typedef {Object} GroupMappings mappings columns to fields for group imports
- * @property {'string'} distinct_id_col the sheet's source column name to be mapped to $distinct_id
- * @property {'string'} group_key the group identifier key
+ * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
+ * @property {string} group_key the group identifier key
  * @property {'$set' | '$set_once'} profile_operation the type of operation to preform when updating the profile
- * @property {'string'} [name_col] the sheet's source column name to be mapped to $name
- * @property {'string'} [email_col] the sheet's source column name to be mapped to $email
- * @property {'string'} [avatar_col] the sheet's source column name to be mapped to $avatar
- * @property {'string'} [created_col] the sheet's source column name to be mapped to $created
+ * @property {string} [name_col] the sheet's source column name to be mapped to $name
+ * @property {string} [email_col] the sheet's source column name to be mapped to $email
+ * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
+ * @property {string} [created_col] the sheet's source column name to be mapped to $created
  */
 
 /**
  * @typedef {Object} TableMappings mappings columns to fields for lookup tables
- * @property {'string'} lookup_table_id the id of the lookup table in mixpanel
+ * @property {string} lookup_table_id the id of the lookup table in mixpanel
  */
 
 
@@ -69,13 +69,13 @@ TYPES
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
  * @property {'sheet-to-mixpanel'} configType an identifier for where the config came from
  * @property {'current' | 'new'} sheet_location DEPRECATED; where to put the data
- * @property {'string'} project_id the project identifier
- * @property {'string'} service_acct service acct name
- * @property {'string'} service_secret service acct pass
- * @property {'string'} workspace_id service acct pass
+ * @property {string} project_id the project identifier
+ * @property {string} service_acct service acct name
+ * @property {string} service_secret service acct pass
+ * @property {string} workspace_id service acct pass
  * @property {'US' | 'EU'} region US or EU residence
- * @property {'string'} [cohort_id] id of the cohort
- * @property {'string'} [report_id] id of the report
+ * @property {string} [cohort_id] id of the cohort
+ * @property {string} [report_id] id of the report
  * @property {boolean} cohorts is this a cohort or not..
  * 
  */
@@ -84,8 +84,8 @@ TYPES
 
 /**
  * @typedef {Object} SheetInfo basic infos about the current sheet
- * @property {'string'} sheet_name the human readable name of the sheet
- * @property {'string'} sheet_id the uid of the sheet
+ * @property {string} name the human readable name of the sheet
+ * @property {number} id the id of the sheet
  */
 
 /**
@@ -95,32 +95,45 @@ TYPES
 
 /**
  * @typedef {Object} Results summary of results of an import
- * @property {'number'} total # of records attempted
- * @property {'number'} success
- * @property {'number'} failed
- * @property {'number'} seconds
+ * @property {number} total # of records attempted
+ * @property {number} success
+ * @property {number} failed
+ * @property {number} seconds
+ * @property {number} batches
  * @property {Object[]} errors any failed requests
  */
 
 /**
- * @typedef {Object} Response a mixpanel API response
- * @property {'string'} status
- * @property {'number'} num_records_imported
- * @property {'number'} code
+ * @typedef {Object} ImportResponse a mixpanel API response
+ * @property {string} status
+ * @property {number} num_records_imported
+ * @property {number} code
  */
 
-/*
 
-results: {
-			success: 0,
-			total: 0,
-			failed: 0,
-			requests: 0,
-			seconds: 0,
-			errors: []
-		}
-*/
+/**
+ * @typedef {Object} ReportParams
+ * @property {ReportMeta} meta
+ * @property {ReportPayload} payload
+ */
 
+
+/**
+ * @typedef {Object} ReportPayload report parameters 
+ */
+
+/**
+ * @typedef {Object} ReportMeta metadata about a report 
+ * @property {number} workspace_id
+ * @property {number} project_id
+ * @property {string} report_id
+ * @property {string} report_desc
+ * @property {string} report_type
+ * @property {string} report_name
+ * @property {string} report_creator_name
+ * @property {number} dashboard_id
+ */ 
+ 
 
 
 /*
