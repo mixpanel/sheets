@@ -28,6 +28,8 @@ TODOs
 ----
 */
 
+// todo: error handling
+// todo: credential validation
 // todo: display responses somewhere
 // todo: hourly syncs
 // todo: docs
@@ -104,7 +106,7 @@ function SheetToMixpanelView() {
  * @param {SheetInfo} sheetInfo the source sheet which contains the data
  * @returns {[ImportResponse[], Summary]}
  */
-function testSyncSheetsToMp(config = {}, sheetInfo) {
+function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveSheet()) {
 	const testId = Math.random();
 	const t = tracker({ testId, record_type: config.record_type, project_id: config.project_id, view: 'sheet → mixpanel' });
 	const sheet = getSheetById(sheetInfo.id);
@@ -114,7 +116,7 @@ function testSyncSheetsToMp(config = {}, sheetInfo) {
 	const { total, success, failed, seconds } = summary.results;
 	t('test end', { total, success, failed, seconds });
 
-	return [responses, summary];
+	return [responses, summary,`https://mixpanel.com/project/${config.project_id}`];
 }
 
 /**
@@ -211,7 +213,8 @@ function testSyncMpToSheets(config = {}) {
 
 	return {
 		updatedSheet,
-		metadata
+		metadata,
+		link : `https://mixpanel.com/project/${config.project_id}`
 	};
 }
 

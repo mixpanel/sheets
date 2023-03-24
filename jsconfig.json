@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		"module": "None",
+		"checkJs": false,
+		"typeRoots" : ["./node_modules/@types", "./types"]
+	},
+	"exclude": ["node_modules"]
+}

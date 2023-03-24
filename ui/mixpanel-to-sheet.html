@@ -563,15 +563,14 @@
 			if (!project_id) return false;
 			if (!workspace_id) return false;
 			if (!region) return false;
-			if (!report_id && !cohorts) return false;
-			if (cohorts && !cohort_id) return false;
+			if (!report_id && !cohort_id) return false;
 
 			return true;
 		}
 
 		// example URLs:
-		// direct: `https://mixpanel.com/project/2944947/view/3467739/app/funnels/#view/37941987/i-am-the-heart-the-knocks`
-		// from board: `https://mixpanel.com/project/2944947/view/3467739/app/boards#id=4669131&editor-card-id=%22report-37941987%22`
+		// direct: https://mixpanel.com/project/2943452/view/3466588/app/retention/#report/38075736/a-retention-report/
+		// from board: https://mixpanel.com/project/2943452/view/3466588/app/boards#id=4690699&editor-card-id=%22report-38075736%22
 
 		function parseURL(inputUrl) {
 			let project_id, workspace_id, report_id, region;

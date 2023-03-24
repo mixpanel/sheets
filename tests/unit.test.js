@@ -67,7 +67,7 @@ function runTests() {
 	test.assert(() => {
 		const expected = `foo,baz\nbar,qux`;
 		return Misc.JSONtoCSV([{ foo: "bar", baz: "qux" }]) === expected;
-	}, 'can turn JSON[] into CSV string');
+	}, 'can turn JSON[] into CSV string?');
 
 	test.assert(() => {
 		const expected = `3/3/1901 @ 4:20am`;
@@ -122,6 +122,8 @@ function runTests() {
 	these tests depend on sheets to be named
 	'events', 'users', 'groups', 'tables'
 	see ./testData if you need to rebuild test data
+
+	they also depend on a 'env.js' which is not committed to the repo
 	----
 	*/
 

@@ -26,6 +26,7 @@
 		<?= JSON.stringify(syncs) ?>
 	</div>
 
+	<!-- ACTUAL UI -->
 	<section id="type">
 		<div class="prompt">
 			<span class="title"> What type of data are you importing<a target="_blank"
@@ -38,6 +39,7 @@
 			</select>
 		</div>
 	</section>
+
 	<section id="mappings">
 		<div class="prompt">
 			<span class="title">
@@ -118,6 +120,7 @@
 			</ul>
 		</div>
 	</section>
+
 	<section id="auth">
 		<div class="prompt">
 			<span class="title">What is your project's id<a target="_blank"
@@ -165,7 +168,8 @@
 			<button id="save">💾 save</button>
 			<button id="clear" class="create">🗑️ clear</button>
 		</div>
-		<span class="optional note"><b>syncs</b> run <b>every hour</b>; <b>tests</b> run <b>only once</b></span>
+		<span class="optional note"><b>syncs</b> run <b>every hour</b>; <b>tests</b> run <b>only once</b></span><br />
+		<span id="sheet_footer"></span>
 	</section>
 
 	<section id="status" class="bottom">
@@ -179,7 +183,10 @@
 					</svg>
 				</svg-icon>
 			</div>
-			<span class="gray"></span>
+			<span class="gray" id="status_text"></span>
+		</div>
+		<div>
+			<span><a id="project_link" target="_blank" href=""></a></span>
 		</div>
 	</section>
 
@@ -221,6 +228,7 @@
 			width: 140px;
 		}
 
+
 		.dropdown {
 			width: 140px
 		}
@@ -238,12 +246,20 @@
 			display: block;
 		}
 
+
+		#sheet_footer {
+			color: var(--red);
+			opacity: 0.4;
+			font-size: 10.5px;
+			padding-left: 6px;
+		}
+
 		div {
-			padding: 8px;
+			padding: 6px;
 		}
 
 		span.note {
-			padding-left: 8px;
+			padding-left: 6px;
 		}
 
 		#type_label {
@@ -254,11 +270,11 @@
 		.field {
 			font-family: monospace;
 			color: var(--mixpanel);
-			font-size: 16px;
+			font-size: 15px;
 		}
 
 		.prompt {
-			font-size: 16px;
+			font-size: 15px;
 			color: var(--gray);
 		}
 
@@ -269,7 +285,7 @@
 		.optional {
 			color: var(--lightGray);
 			font-size: 12px;
-			opacity: .75;
+			opacity: .5;
 		}
 
 		li {
@@ -338,7 +354,7 @@
 			DOM: {},
 			init,
 			cacheDOM,
-			bindEvents,
+			bindEventsAndViews,
 			buildDropdowns,
 			getFields,
 			checkFields,
@@ -350,13 +366,14 @@
 			getConfig,
 			sync,
 			test,
-			loader
+			loader,
+			getCurrentSheet
 		};
 
 		function init() {
 			this.DOM = this.cacheDOM();
 			this.buildDropdowns(this.DOM.columns);
-			this.bindEvents();
+			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
 		}
 
@@ -389,7 +406,9 @@
 				testButton: qs('#test'),
 				loader: qs('#loader'),
 				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
-				status: qs('#status span'),
+				status: qs('#status_text'),
+				sheetFooter: qs('#sheet_footer'),
+				projectLink: qs('#project_link'),
 
 				//injected by server
 				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
@@ -418,7 +437,14 @@
 
 		}
 
-		function bindEvents() {
+		function bindEventsAndViews() {
+			// DYNAMIC VALUES
+			if (this.DOM.sheet.name) {
+				this.DOM.sheetFooter.innerHTML = `current tab: <b>${this.DOM.sheet.name}</b>`;
+
+			}
+
+
 			// TYPES + MAPPINGS
 			this.DOM.typeSelector.addEventListener('change', (e) => {
 				const newVal = e.currentTarget.value;
@@ -500,9 +526,13 @@
 
 		/*
 		----
-		CLIENT SIDE VALIDATION
+		GETTERS
 		----
 		*/
+
+		function getCurrentSheet() {
+			return this.DOM.sheet;
+		}
 
 		function getConfig() {
 			const userData = mergeObj(Object.values(this.getFields()));
@@ -553,17 +583,8 @@
 				}
 			});
 
-			
-
 			return fields;
 		}
-
-		/*
-		----
-		LOADING DATA FROM SERVER
-		----
-		*/
-
 
 		function parseConfig(node) {
 			try {
@@ -573,6 +594,14 @@
 				return {};
 			}
 		}
+
+
+		/*
+		----
+		SETTERS
+		----
+		*/
+
 
 		// todo: refactor this nonsense
 		function loadConfig(config, force = false) {
@@ -681,7 +710,7 @@
 			try {
 				google.script.run.withSuccessHandler(() => {
 					this.loader('hide');
-					this.DOM.status.innerText = `configuration cleared!`;
+					this.DOM.status.innerText = `configuration cleared! all syncs deleted!`;
 					this.DOM.clearButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
 
@@ -707,7 +736,7 @@
 					this.DOM.status.innerText = `sync done!`;
 					this.DOM.syncButton.disabled = false;
 				})
-					.syncNow(this.getConfig());
+					.syncSheetsToMp(this.getConfig(), this.getCurrentSheet());
 			}
 
 			catch (e) {
@@ -720,18 +749,20 @@
 			this.DOM.status.innerText = `syncing data!`;
 			this.DOM.testButton.disabled = true;
 			try {
-				google.script.run.withSuccessHandler(([responses, config]) => {
+				google.script.run.withSuccessHandler(([responses, summary, link]) => {
 					this.loader('hide');
-					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = config.results;
-					this.DOM.status.innerText = `test complete!\n${comma(total)} ${config.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
+					this.DOM.status.innerText = `test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
+					this.DOM.projectLink.innerText = link;
+					this.DOM.projectLink.href = link;
 					if (failed > 0) {
-						let failureToShow = responses[0];
+						const failureToShow = responses[0];
 						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
-						this.DOM.status.innerText += `\n\nfirst error:\n${JSON.stringify(failToShow, null, 2)}`;
+						this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
 					}
 					this.DOM.testButton.disabled = false;
 				})
-					.testSyncSheetsToMp(this.getConfig());
+					.testSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
 			}
 
 			catch (e) {
@@ -802,6 +833,7 @@
 		UTILITIES
 		----
 		*/
+
 		function comma(num) {
 			return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 		};
