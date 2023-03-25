@@ -20,7 +20,7 @@ function getSheetHeaders() {
 }
 
 /**
- * get basic sheet info or current sheet's info
+ * get an existing sheet info or current sheet's info
  * 
  * @param {GoogleAppsScript.Spreadsheet.Sheet} [sheet]
  * @returns {SheetInfo}
@@ -73,7 +73,7 @@ function updateSheet(csvString, sheet, append = false) {
 // CREATORS
 
 /**
- * creates a new 'tab' in the sheet and sets it active; if tab exists, it returns it
+ * creates a new 'tab' in the sheet and returns it; if tab exists, it returns it
  * 
  * @param  {'string'} [title='mixpanel sync log'] title for sheet
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}

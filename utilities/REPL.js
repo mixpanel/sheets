@@ -9,7 +9,7 @@ a very simple debugger to be passed to clasp run
 
 function repl() {
 	//code here! 
-
+	return ScriptApp.getScriptId()
 	// return [
 	// 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('events')),
 	// 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('users')),
@@ -18,8 +18,15 @@ function repl() {
 	// ]
 	// return SpreadsheetApp.getActive().getSheetByName('users')
 
-	const result = testSyncSheetsToMp(TEST_CONFIG_TABLES, getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables')));
-	return result;
+	// return validateCreds(BAD_PROJECT_API_SECRET);
+	// validateCreds(BAD_SERVICE_ACCOUNT),
+	// validateCreds(BAD_PROJECT_SERVICE_ACCOUNT),
+	// validateCreds(GOOD_API_SECRET),
+	// validateCreds(BAD_API_SECRET),
+	// validateCreds(BAD_PROJECT_API_SECRET)
+
+	// const result = testSyncSheetsToMp(TEST_CONFIG_TABLES, getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables')));
+	// return result;
 
 	// return testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION)
 

@@ -41,93 +41,128 @@ function runTests() {
 	test.enable();
 	test.clearConsole();
 
-	test.runInGas(false);
-	test.printHeader('LOCAL TESTS');
 	/*
 	----
 	LOCAL TESTS
+	tests are run locally
 	----
 	*/
 
-	//misc.js
-	test.assert(() => {
-		return true;
-	}, 'do tests work?');
+	test.runInGas(false);
+	test.printHeader('LOCAL TESTS');
 
-	test.assert(() => {
+	//misc.js
+	test.assert('do tests work?', () => { return true; });
+
+	test.assert('formats numbers?', () => {
 		const expected = '1,000,000';
 		return Misc.comma(1000000) === expected;
-	}, 'can numbers be formatted?');
+	},);
 
-	test.assert(() => {
+	test.assert('correctly batches?', () => {
 		const expected = 2;
 		return Misc.sliceIntoChunks([{}, {}, {}, {}], 2).length === expected;
-	}, 'does batching work?');
+	},);
 
-	test.assert(() => {
+	test.assert('turns JSON[] into CSV string?', () => {
 		const expected = `foo,baz\nbar,qux`;
 		return Misc.JSONtoCSV([{ foo: "bar", baz: "qux" }]) === expected;
-	}, 'can turn JSON[] into CSV string?');
+	},);
 
-	test.assert(() => {
+	test.assert('forms pretty dates?', () => {
 		const expected = `3/3/1901 @ 4:20am`;
 		return Misc.formatDate(new Date(1, 2, 3, 4, 20)) === expected;
-	}, 'forms pretty dates?');
+	},);
 
-	test.assert(() => {
+	test.assert('serializes objects?', () => {
 		const expected = `[{"foo":"bar","baz":"qux"}]`;
 		return Misc.serial([{ foo: "bar", baz: "qux" }]) === expected;
-	}, 'can serialize objects?');
+	},);
 
-	test.assert(() => {
+	test.assert('tests for deep equality?', () => {
 		const ObjOne = { foo: "bar", baz: { qux: "mux" } };
 		const ObjTwo = { baz: { qux: "mux" }, foo: "bar" };
 		return Misc.isDeepEqual(ObjOne, ObjTwo);
-	}, 'can test for deep equality?');
+	},);
 
 	console.log('\n\n');
-	test.runInGas(true);
 
 	/*
 	----
 	ONLINE TESTS
-	 ... attempting E2E ... it's dicey
-	----
-	*/
-
-	if (test.isInGas) test.printHeader(`SERVER SIDE TESTS\n${formatDate()}`, false);
-
-	test.assert(() => {
-		const correctHeaders = ['uuid', 'timestamp', 'action', 'favorite color', 'lucky number', 'insert'];
-		const gotHeaders = getSheetHeaders();
-		return serial(correctHeaders) === serial(gotHeaders);
-	}, 'can retrieve headers from spreadsheet?');
-
-
-	test.assert(() => {
-		const expected = [{ error: null, status: 1 }, { error: null, status: 1 }];
-		const trackLocal = tracker(undefined, 'ROBOT@aktunes.com');
-		const results = trackLocal('server-side test');
-		return serial(results) === serial(expected);
-	}, 'can track data?');
-
-	test.assert(() => {
-		const expected = `2c18fe59700b6df244c24bae1bdfe403`;
-		const results = MD5('yes, it is me, i am the one who knocks');
-		return expected === results;
-	}, 'can construct MD5 signatures?');
-
-	/*
-	----
-	these tests depend on sheets to be named
+	tests are run on google's servers
+	
+	these tests depend on underlying sheets to be named
 	'events', 'users', 'groups', 'tables'
 	see ./testData if you need to rebuild test data
+	or just copy: https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A/edit?usp=sharing
 
 	they also depend on a 'env.js' which is not committed to the repo
 	----
 	*/
 
-	test.assert(() => {
+	test.runInGas(true);
+	if (test.isInGas) test.printHeader(`SERVER SIDE TESTS START\n${formatDate()}`, false);
+
+	//sheets
+	test.assert('retrieves headers from sheet?', () => {
+		const correctHeaders = ['uuid', 'timestamp', 'action', 'favorite color', 'lucky number', 'insert'];
+		const gotHeaders = getSheetHeaders();
+		return serial(correctHeaders) === serial(gotHeaders);
+	});
+
+	//misc
+	test.assert('tracks data?', () => {
+		const expected = [{ error: null, status: 1 }, { error: null, status: 1 }];
+		const trackLocal = tracker(undefined, 'ROBOT@aktunes.com');
+		const results = trackLocal('server-side test');
+		return serial(results) === serial(expected);
+	});
+
+	test.assert('constructs MD5 signatures?', () => {
+		const expected = `2c18fe59700b6df244c24bae1bdfe403`;
+		const results = MD5('yes, it is me, i am the one who knocks');
+		return expected === results;
+	});
+
+	//flush
+	//todo
+
+	//storage
+	//todo
+
+	//timers
+	//todo
+
+	//credentials
+	test.assert('validates good service account?', () => {
+		const expected = GOOD_SERVICE_ACCOUNT.answer;
+		return validateCreds(GOOD_SERVICE_ACCOUNT) === expected;
+	});
+
+	test.assert('validates good api secret?', () => {
+		const expected = GOOD_API_SECRET.answer;
+		return validateCreds(GOOD_API_SECRET) === expected;
+	});
+
+	test.catchErr('throws bad service account?', 'Not a valid service account username', () => {
+		validateCreds(BAD_SERVICE_ACCOUNT);
+	});
+
+	test.catchErr('throws bad project?', 'not a project member', () => {
+		validateCreds(BAD_PROJECT_SERVICE_ACCOUNT);
+	});
+
+	test.catchErr('throws bad api secret?', 'Unauthorized, invalid project secret. See docs for more information: https://developer.mixpanel.com/reference/authentication#project-secret', () => {
+		validateCreds(BAD_API_SECRET);
+	});
+
+	test.catchErr('throws bad api project?', `Mismatch between project secret's project ID and URL project ID`, () => {
+		validateCreds(BAD_PROJECT_API_SECRET);
+	});
+
+	// syncs: Sheet → Mixpanel
+	test.assert('syncs events?', () => {
 		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('events'));
 		const expected = {
 			batches: 6,
@@ -139,9 +174,9 @@ function runTests() {
 		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
 		delete imported.results.seconds;
 		return isDeepEqual(expected, imported.results);
-	}, 'can test sync events?');
+	});
 
-	test.assert(() => {
+	test.assert('syncs users?', () => {
 		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('users'));
 		const expected = {
 			batches: 4,
@@ -153,9 +188,9 @@ function runTests() {
 		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
 		delete imported.results.seconds;
 		return isDeepEqual(expected, imported.results);
-	}, 'can test sync users?');
+	});
 
-	test.assert(() => {
+	test.assert('syncs groups?', () => {
 		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('groups'));
 		const expected = {
 			batches: 8,
@@ -167,9 +202,9 @@ function runTests() {
 		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
 		delete imported.results.seconds;
 		return isDeepEqual(expected, imported.results);
-	}, 'can test sync groups?');
+	});
 
-	test.assert(() => {
+	test.assert('syncs tables?', () => {
 		const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName('tables'));
 		const expected = {
 			batches: 1,
@@ -181,9 +216,10 @@ function runTests() {
 		const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
 		delete imported.results.seconds;
 		return isDeepEqual(expected, imported.results);
-	}, 'can test sync tables?');
+	});
 
-	test.assert(() => {
+	//syncs: Mixpanel → Sheet
+	test.assert('syncs insights reports?', () => {
 		const expected = {
 			report_type: 'insights',
 			report_name: 'an insights report',
@@ -192,14 +228,14 @@ function runTests() {
 			project_id: 2943452,
 			dashboard_id: 4690699,
 			workspace_id: 3466588,
-			report_creator: 'AK '			
+			report_creator: 'AK '
 		};
 
 		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
 		return isDeepEqual(expected, results.metadata);
-	}, 'can test sync insights report?');
+	});
 
-	test.assert(() => {
+	test.assert('syncs funnels reports?', () => {
 		const expected = {
 			workspace_id: 3466588,
 			project_id: 2943452,
@@ -213,10 +249,10 @@ function runTests() {
 
 		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
 		return isDeepEqual(expected, results.metadata);
-	}, 'can test sync funnels report?');
+	});
 
 
-	test.assert(() => {
+	test.assert('syncs retention reports?', () => {
 		const expected = {
 			workspace_id: 3466588,
 			project_id: 2943452,
@@ -230,9 +266,9 @@ function runTests() {
 
 		const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
 		return isDeepEqual(expected, results.metadata);
-	}, 'can test sync retention report?');
+	});
 
-	test.assert(() => {
+	test.assert('syncs cohorts?', () => {
 		const expected = {
 			cohort_desc: 'lucky number is bigger than 70',
 			project_id: 2943452,
@@ -243,8 +279,9 @@ function runTests() {
 
 		const results = testSyncMpToSheets(TEST_CONFIG_COHORTS);
 		return isDeepEqual(expected, results.metadata);
-	}, 'can test sync cohort?');
+	});
 
+	if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
 
 	//no way to see server-side output in console :( 
 	return `\nAppsScript: https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions\n\nGCP: https://cloudlogging.app.goo.gl/8Tkd7KQrnoLo9YCD8\n`;

@@ -58,11 +58,11 @@ let UnitTestingApp = (function () {
 
 		/**
 		 * Tests whether conditions pass or not
-		 * @param {Boolean | Function} condition - The condition to check
 		 * @param {String} message - the message to display in the console
+		 * @param {Boolean | Function} condition - The condition to check
 		 * @return {void}
 		 */
-		assert(condition, message) {
+		assert(message, condition) {
 			if (!_enabled.get(this)) return;
 			if (this.isInGas !== this.runningInGas) return;
 			try {
@@ -76,12 +76,14 @@ let UnitTestingApp = (function () {
 
 		/**
 		 * Tests functions that throw error messages
-		 * @param {Function} callback - the function that you expect to return the error message
-		 * @param {String} errorMessage - the error message you are expecting
 		 * @param {String} message - the message to display in the console
+		 * @param {String} errorMessage - the error message you are expecting
+		 * @param {Function} callback - the function that you expect to return the error message
+		 
+
 		 * @return {void}
 		 */
-		catchErr(callback, errorMessage, message) {
+		catchErr(message, errorMessage, callback) {
 			if (!_enabled.get(this)) return;
 			if (this.isInGas !== this.runningInGas) return;
 			let error;
@@ -92,23 +94,24 @@ let UnitTestingApp = (function () {
 				error = err;
 				isCaught = new RegExp(errorMessage).test(err);
 			} finally {
-				this.assert(isCaught, message);
+				this.assert(message, isCaught);
 			}
 		}
 
 		/**
 		 * Tests whether an the argument is a 2d array
+		 * @param {String} message - the message to display in the console
 		 * @param {*[][]} array - any 2d-array
 		 * @returns {Boolean}
 		 */
-		is2dArray(array, message) {
+		is2dArray(message, array) {
 			if (!_enabled.get(this)) return;
 			if (this.isInGas !== this.runningInGas) return;
 			try {
 				if (typeof array === 'function') array = array();
-				this.assert(Array.isArray(array) && Array.isArray(array[0]), message);
+				this.assert(message, Array.isArray(array) && Array.isArray(array[0]));
 			} catch (err) {
-				this.assert(false, `${message}: ${err}`);
+				this.assert(`${message}: ${err}`, false);
 			}
 		}
 

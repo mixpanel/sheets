@@ -1,7 +1,7 @@
 /*
 ----
 MISCELANOUS TOOLS TO MAKE LIFE EASIER
-	(by now you have discovered that everything is one big global 龴ↀ◡ↀ龴
+	...by now you have discovered that everything is one big global 龴ↀ◡ↀ龴
 ----
 */
 
