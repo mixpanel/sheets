@@ -612,7 +612,6 @@
 				this.DOM.syncButton.disabled = true;
 				this.DOM.testButton.disabled = true;
 			}
-
 		}
 
 
@@ -815,32 +814,28 @@
 			this.loader('show');
 			this.DOM.status.innerText = `syncing data!`;
 			this.DOM.testButton.disabled = true;
-			try {
-				google.script.run
-					.withSuccessHandler(([responses, summary, link]) => {
-						this.loader('hide');
-						const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
-						this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
-						this.DOM.projectLink.innerText = link;
-						this.DOM.projectLink.href = link;
-						if (failed > 0) {
-							const failureToShow = responses[0];
-							if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
-							this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
-						}
-						this.DOM.testButton.disabled = false;
-					})
-					.withFailureHandler((e) => {
-						this.loader('hide');
-						this.DOM.status.innerText = `✖️ TEST FAILED ... got error:\n${e.message}`;
-						this.DOM.projectLink.innerText = ``;
-					})
-					.testSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
-			}
 
-			catch (e) {
-				this.DOM.status.innerText = `ERROR: ${e.message}`;
-			}
+			google.script.run
+				.withSuccessHandler(([responses, summary, link]) => {
+					this.loader('hide');
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
+					this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
+					this.DOM.projectLink.innerText = link;
+					this.DOM.projectLink.href = link;
+					if (failed > 0) {
+						const failureToShow = responses[0];
+						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
+						this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
+					}
+					this.DOM.testButton.disabled = false;
+				})
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ TEST FAILED ... got error:\n${e.message}`;
+					this.DOM.projectLink.innerText = ``;
+				})
+				.testSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
+
 		}
 
 

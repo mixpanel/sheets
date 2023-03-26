@@ -18,6 +18,9 @@
 	<div id="sheet_info" class="hidden">
 		<?= JSON.stringify(sheet) ?>
 	</div>
+	<div id="sync_info" class="hidden">
+		<?= JSON.stringify(syncs) ?>
+	</div>
 	<section id="auth">
 		<div class="prompt">
 			<span class="title">🤖 Provide your authentication details: </span>
@@ -166,7 +169,6 @@
 			width: 550px
 		}
 
-
 		.dropdown {
 			width: 140px
 		}
@@ -184,14 +186,12 @@
 			display: block;
 		}
 
-
 		.mp-icon {
 			display: inline-block;
 			height: 20px;
 			width: 20px;
 			vertical-align: text-top;
 		}
-
 
 		div {
 			padding: 8px;
@@ -294,7 +294,7 @@
 			cohorts: false,
 			init,
 			cacheDOM,
-			bindEvents,
+			bindEventsAndViews,
 			buildDropdowns,
 			getFields,
 			checkFields,
@@ -313,7 +313,7 @@
 		function init() {
 			this.DOM = this.cacheDOM();
 			this.buildDropdowns(this.DOM.sheets);
-			this.bindEvents();
+			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
 		}
 
@@ -341,6 +341,7 @@
 				// server-side
 				sheet: this.parseConfig(qs('#sheet_info')),
 				config: this.parseConfig(qs('#config')),
+				syncInfo: this.parseConfig(qs("#sync_info"))
 			};
 		}
 
@@ -364,7 +365,7 @@
 
 		}
 
-		function bindEvents() {
+		function bindEventsAndViews() {
 			// URL parsing
 			this.DOM.mixpanelURL.addEventListener('input', () => {
 				const urlData = this.parseURL(this.DOM.mixpanelURL.value);
@@ -399,7 +400,7 @@
 
 		/*
 		----
-		CLIENT SIDE VALIDATION
+		GETTERS
 		----
 		*/
 
@@ -471,14 +472,7 @@
 			}
 		}
 
-		/*
-		----
-		LOADING DATA FROM SERVER
-		----
-		*/
-
-
-		function parseConfig(node) {
+			function parseConfig(node) {
 			try {
 				return JSON.parse(node.innerText);
 			}
@@ -487,13 +481,21 @@
 			}
 		}
 
+
+		/*
+		----
+		LOADING DATA FROM SERVER
+		----
+		*/
+
+
+	
 		// todo: refactor this nonsense
 		function loadConfig(config, force = false) {
 			const {
 				service_acct,
 				service_secret,
 				mixpanel_report_url,
-
 				cohort_id
 			} = config;
 
@@ -519,22 +521,28 @@
 		*/
 
 		function saveConfig() {
-			try {
-				const userData = mergeObj(Object.values(this.getFields()));
-				// console.log(JSON.stringify(userData, null, 2));
-				google.script.run.withSuccessHandler(() => {
-					this.DOM.status.innerText = `configuration saved!`;
+			this.loader('show');
+			this.DOM.status.innerText = `saving...`;
+
+			const userData = mergeObj(Object.values(this.getFields()));
+			// console.log(JSON.stringify(userData, null, 2));
+			google.script.run
+				.withSuccessHandler(() => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✔️ configuration saved!`;
 					this.DOM.saveButton.disabled = true;
 				})
-					.setConfig(userData);
-			}
-
-			catch (e) {
-				this.DOM.status.innerText = `ERROR: ${e.message}`;
-			}
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ SAVE FAILED ... got error:\n${e.message}`;
+					this.DOM.saveButton.disabled = false;
+				})
+				.setConfig(userData);
 		}
 
 		function clearConfig() {
+			this.loader('show');
+			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
 				service_acct: "",
 				service_secret: "",
@@ -542,40 +550,69 @@
 
 			};
 
-			try {
-				google.script.run.withSuccessHandler(() => {
+
+			google.script.run
+				.withSuccessHandler(() => {
+					this.loader('hide');
 					this.DOM.status.innerText = `configuration cleared!`;
 					this.DOM.clearButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
 				})
-					.clearConfig();
-			}
-
-			catch (e) {
-				this.DOM.status.innerText = `ERROR: ${e.message}`;
-			}
-
-
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ DELETE FAILED ... got error:\n${e.message}`;
+					this.DOM.clearButton.disabled = false;
+					this.loadConfig(defaultConfig, true);
+				})
+				.clearConfig(this.getConfig());
 		}
 
 
 		function sync() {
-			// todo
-			// try {
-			// 	google.script.run.withSuccessHandler(() => {
-			// 		this.DOM.status.innerText = `syncing data!`;
-			// 		this.DOM.syncButton.disabled = true;
-			// 	})
-			// 		.syncNow(this.getConfig());
-			// }
+			this.loader('show');
+			this.DOM.syncButton.disabled = true;
+			this.DOM.status.innerText = `syncing data!`;
 
-			// catch (e) {
-			// 	this.DOM.status.innerText = `ERROR: ${e.message}`;
-			// }
+			google.script.run
+				.withSuccessHandler(([responses, summary, link]) => {
+					this.loader('hide');
+					//this.DOM.status.innerText = `✔️ sync ran imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds; will run again in one hour!`;
+					this.DOM.syncButton.disabled = false;
+				})
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
+					this.DOM.projectLink.innerText = ``;
+					this.DOM.syncButton.disabled = false;
+				})
+				.syncMpToSheets(this.getConfig());
+
+
 		}
 
-		function testConfig() {
-			//todo
+		function test() {
+			this.loader('show');
+			this.DOM.status.innerText = `syncing data!`;
+			this.DOM.testButton.disabled = true;
+
+			google.script.run
+				.withSuccessHandler(([responses, summary, link]) => {
+					this.loader('hide');
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
+					//this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;					
+					if (failed > 0) {
+						const failureToShow = responses[0];
+						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
+						this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
+					}
+					this.DOM.testButton.disabled = false;
+				})
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ TEST FAILED ... got error:\n${e.message}`;
+				})
+				.testSyncMpToSheets(this.getConfig());
+
 		}
 
 		/*

@@ -88,3 +88,20 @@ function createSheet(title = "mixpanel sync log") {
         return existingSheet;
     }
 }
+
+// DELETE
+
+/**
+ * deletes a sheet, by name, Id, or sheet itself
+ * @param  {GoogleAppsScript.Spreadsheet.Sheet | string | number} sheet
+ * @returns {{}}
+ */
+function deleteSheet(sheet) {
+    const ss = SpreadsheetApp.getActive();
+
+    if (typeof sheet === "string") sheet = ss.getSheetByName(sheet);
+    if (typeof sheet === "number") sheet = getSheetById(sheet);
+
+    ss.deleteSheet(sheet);
+    return {};
+}

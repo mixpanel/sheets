@@ -11,6 +11,7 @@ function clearTriggers() {
     for (const sync of syncs) {
         ScriptApp.deleteTrigger(sync);
     }
+    return {};
 }
 
 function getTriggers() {

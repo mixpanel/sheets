@@ -24,7 +24,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "test-server-logs",
+			"script": "view-logs",
 			"problemMatcher": [],
 			"label": "OPEN LOGGER",
 			"detail": "show GCP console"

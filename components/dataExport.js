@@ -20,24 +20,28 @@ function exportData(config = {}) {
     const type = config.entity_type;
 
     if (type === "report") {
-        // console.log(`GET`);
-        const report = getParams(config, type);
-        const { meta, payload } = report;
-
-        // console.log(`QUERY ${type} data`);
-        const csv = getReportCSV(meta.report_type, payload, config);
-
-        return [csv, meta];
+        try {
+            const report = getParams(config, type);
+            const { meta, payload } = report;
+            const csv = getReportCSV(meta.report_type, payload, config);
+            return [csv, meta];
+        } catch (e) {
+            throw e;
+        }
     }
 
     if (type === "cohort") {
-        const meta = getCohortMeta(config);
-        const profiles = getCohort(config);
-        const csv = JSONtoCSV(profiles);
-        return [csv, meta];
+        try {
+            const meta = getCohortMeta(config);
+            const profiles = getCohort(config);
+            const csv = JSONtoCSV(profiles);
+            return [csv, meta];
+        } catch (e) {
+            throw e;
+        }
     }
 
-    throw new Error(`${type} is unsupported`);
+    throw `${type} is unsupported`;
 }
 
 /**
@@ -55,9 +59,9 @@ function getParams(config) {
         method: "GET",
         headers: {
             Authorization: `Basic ${auth}`,
-            Accept: "application/json",
+            Accept: "application/json"
         },
-        muteHttpExceptions: true,
+        muteHttpExceptions: true
     };
 
     const res = UrlFetchApp.fetch(URL, options).getContentText();
@@ -71,9 +75,9 @@ function getParams(config) {
             project_id: data?.results?.project_id,
             dashboard_id: data?.results?.dashboard_id,
             workspace_id: data?.results?.workspace_id,
-            report_creator: data?.results?.creator_name || data?.results?.email || data?.results?.creator_id || "unknown",
+            report_creator: data?.results?.creator_name || data?.results?.email || data?.results?.creator_id || "unknown"
         },
-        payload: data?.results?.params,
+        payload: data?.results?.params
     };
 
     return result;
@@ -92,7 +96,7 @@ function getReportCSV(report_type, params, config) {
     if (region === "EU") subdomain = `eu.`;
 
     if (!["insights", "funnels", "retention"].includes(report_type)) {
-        throw new Error(`${report_type} reports are not currently supported for CSV export`);
+        throw `${report_type} reports are not currently supported for CSV export`;
     }
 
     let route = report_type;
@@ -104,16 +108,16 @@ function getReportCSV(report_type, params, config) {
     const payload = {
         bookmark: params,
         use_query_cache: false,
-        format: "csv",
+        format: "csv"
     };
 
     const options = {
         method: "POST",
         headers: {
-            Authorization: `Basic ${auth}`,
+            Authorization: `Basic ${auth}`
         },
         muteHttpExceptions: true,
-        payload: JSON.stringify(payload),
+        payload: JSON.stringify(payload)
     };
 
     const csv = UrlFetchApp.fetch(URL, options).getContentText();
@@ -136,17 +140,17 @@ function getCohort(config) {
     const payload = {
         filter_by_cohort: `{"id":${cohort_id}}`,
         page: 0,
-        include_all_users: false,
+        include_all_users: false
     };
 
     const options = {
         method: "POST",
         headers: {
             Authorization: `Basic ${auth}`,
-            "Content-Type": `application/x-www-form-urlencoded`,
+            "Content-Type": `application/x-www-form-urlencoded`
         },
         muteHttpExceptions: true,
-        payload: JSON.stringify(payload),
+        payload: JSON.stringify(payload)
     };
 
     const profiles = [];
@@ -191,19 +195,19 @@ function getCohortMeta(config) {
         method: "POST",
         headers: {
             Authorization: `Basic ${auth}`,
-            Accept: `application/json`,
+            Accept: `application/json`
         },
-        muteHttpExceptions: true,
+        muteHttpExceptions: true
     };
 
     const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());
-    const cohortInfos = res.find((cohort) => cohort.id.toString() === cohort_id) || {};
+    const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id) || {};
     return {
         cohort_id: cohortInfos.id,
         cohort_name: cohortInfos.name,
         cohort_desc: cohortInfos.description,
         cohort_count: cohortInfos.count,
-        project_id: cohortInfos.project_id,
+        project_id: cohortInfos.project_id
     };
 }
 

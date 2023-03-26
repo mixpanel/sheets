@@ -279,7 +279,7 @@ function runTests() {
     });
 
     //syncs: Mixpanel → Sheet
-    test.assert("SYNCS: insights reports?", () => {
+    test.assert("SYNCS: insights?", () => {
         const expected = {
             report_type: "insights",
             report_name: "an insights report",
@@ -295,7 +295,7 @@ function runTests() {
         return isDeepEqual(expected, results.metadata);
     });
 
-    test.assert("SYNCS: funnels reports?", () => {
+    test.assert("SYNCS: funnels?", () => {
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -311,7 +311,7 @@ function runTests() {
         return isDeepEqual(expected, results.metadata);
     });
 
-    test.assert("SYNCS: retention reports?", () => {
+    test.assert("SYNCS: retention?", () => {
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -339,6 +339,10 @@ function runTests() {
         const results = testSyncMpToSheets(TEST_CONFIG_COHORTS);
         return isDeepEqual(expected, results.metadata);
     });
+
+	test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => { 
+		testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+	});
 
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
 
