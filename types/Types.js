@@ -1,4 +1,3 @@
-
 /*
 ----
 TYPES
@@ -9,7 +8,6 @@ TYPES
 /**
  * @typedef {SheetMpConfig | MpSheetConfig} Config
  */
-
 
 /**
  * @typedef {SheetMpConfigAlways & (EventMappings | UserMappings | GroupMappings | TableMappings)} SheetMpConfig
@@ -27,6 +25,7 @@ TYPES
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret
+ * @property {string} auth base64 encoded credentials
  *
  */
 
@@ -48,7 +47,6 @@ TYPES
  * @property {string} [created_col] the sheet's source column name to be mapped to $created
  */
 
-
 /**
  * @typedef {Object} GroupMappings mappings columns to fields for group imports
  * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
@@ -65,7 +63,6 @@ TYPES
  * @property {string} lookup_table_id the id of the lookup table in mixpanel
  */
 
-
 /**
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
  * @property {'sheet-to-mixpanel'} config_type an identifier for where the config came from
@@ -78,10 +75,8 @@ TYPES
  * @property {string} [cohort_id] id of the cohort
  * @property {string} [report_id] id of the report
  * @property {'cohort' | 'report'} entity_type is this a cohort or a report...
- * 
+ *
  */
-
-
 
 /**
  * @typedef {Object} SheetInfo basic infos about the current sheet
@@ -111,20 +106,18 @@ TYPES
  * @property {number} code
  */
 
-
 /**
  * @typedef {Object} ReportParams
  * @property {ReportMeta} meta
  * @property {ReportPayload} payload
  */
 
-
 /**
- * @typedef {Object} ReportPayload report parameters 
+ * @typedef {Object} ReportPayload report parameters
  */
 
 /**
- * @typedef {Object} ReportMeta metadata about a report 
+ * @typedef {Object} ReportMeta metadata about a report
  * @property {number} workspace_id
  * @property {number} project_id
  * @property {number} report_id
@@ -144,13 +137,11 @@ TYPES
  * @property {number} cohort_count
  */
 
-
 /*
 ----
 MIXPANEL TYPINGS
 ----
 */
-
 
 /**
  * a mixpanel event payload
@@ -158,8 +149,6 @@ MIXPANEL TYPINGS
  * @property {string} event - the event name
  * @property {mpEvProperties} properties - the event's properties
  */
-
-
 
 /**
  * a user profile update payload
@@ -189,18 +178,16 @@ MIXPANEL TYPINGS
  * @typedef { string | string[] | number | number[] | boolean | boolean[] | Date} PropValues
  */
 
-
 /**
  * valid profile update types; {@link https://developer.mixpanel.com/reference/profile-set more info}
  * @typedef {'$set' | '$set_once' | '$add' | '$union' | '$append' | '$remove' | '$unset' } ProfileOperation
- * 
+ *
  */
-
 
 /**
  * object of k:v pairs to update the profile
  * @typedef {Partial<Record<ProfileOperation, Object<string, PropValues>>>} ProfileData
- * 
+ *
  */
 
 /**
@@ -217,4 +204,3 @@ MIXPANEL TYPINGS
  * @property {string} $group_id - the uuid of the group; like `$distinct_id` for user profiles
  * @property {string} $token - the mixpanel project identifier
  */
-

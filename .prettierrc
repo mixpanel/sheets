@@ -1,0 +1,9 @@
+{
+  "tabWidth": 4,
+  "useTabs": false,
+  "printWidth": 150,
+  "arrowParens": "avoid",
+  "trailingComma": "none",
+  "embeddedLanguageFormatting": "off"
+
+}

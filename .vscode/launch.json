@@ -11,6 +11,6 @@
 			"name": "server tests",
 			"request": "launch",
 			"type": "node-terminal"
-		}		
+		}
 	]
 }

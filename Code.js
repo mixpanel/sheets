@@ -109,6 +109,15 @@ function SheetToMixpanelView() {
 function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveSheet()) {
 	const testId = Math.random();
 	const t = tracker({ testId, record_type: config.record_type, project_id: config.project_id, view: 'sheet → mixpanel' });
+	try {
+		const auth = validateCreds(config);
+		config.auth = auth;
+	}
+
+	catch (e) {
+		//bad credentials
+		throw e;
+	}
 	const sheet = getSheetById(sheetInfo.id);
 
 	t('test start'); //something happening here... what it is ain't exactly clear
@@ -116,7 +125,7 @@ function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveShe
 	const { total, success, failed, seconds } = summary.results;
 	t('test end', { total, success, failed, seconds });
 
-	return [responses, summary,`https://mixpanel.com/project/${config.project_id}`];
+	return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
 }
 
 /**
@@ -188,10 +197,20 @@ function MixpanelToSheetView() {
 function testSyncMpToSheets(config = {}) {
 	const testId = Math.random();
 	const t = tracker({ testId, record_type: config.record_type, project_id: config.project_id, view: 'mixpanel → sheet' });
+	
+	try {
+		const auth = validateCreds(config);
+		config.auth = auth;
+	}
 
+	catch (e) {
+		//bad credentials
+		throw e;
+	}
+	
 	t('test start');
 	const [csvData, metadata] = exportData(config);
-	let sheetName;	
+	let sheetName;
 
 	if (config.entity_type === 'cohort') {
 		sheetName = `cohort: ${metadata.cohort_name}`;
@@ -214,7 +233,7 @@ function testSyncMpToSheets(config = {}) {
 	return {
 		updatedSheet,
 		metadata,
-		link : `https://mixpanel.com/project/${config.project_id}`
+		link: `https://mixpanel.com/project/${config.project_id}`
 	};
 }
 
