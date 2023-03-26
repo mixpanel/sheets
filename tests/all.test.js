@@ -32,7 +32,7 @@ if (typeof require !== "undefined") {
         lookup_table_id: process.env.MP_LOOKUP_ID,
         cohort_id: process.env.MP_COHORT_ID,
         report_id: process.env.MP_REPORT_ID,
-        region: "US",
+        region: "US"
     };
     global.creds = creds;
 }
@@ -112,120 +112,166 @@ function runTests() {
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS START\n${formatDate()}`, false);
 
     //sheets
-    test.assert("retrieves headers from sheet?", () => {
+    test.assert("MISC: retrieves headers from sheet?", () => {
         const correctHeaders = ["uuid", "timestamp", "action", "favorite color", "lucky number", "insert"];
-        const gotHeaders = getSheetHeaders();
+        const sheet = SpreadsheetApp.getActive().getSheetByName("events");
+        const gotHeaders = getSheetHeaders(sheet);
         return serial(correctHeaders) === serial(gotHeaders);
     });
 
     //misc
-    test.assert("tracks data?", () => {
+    test.assert("MISC: tracks data?", () => {
         const expected = [
             { error: null, status: 1 },
-            { error: null, status: 1 },
+            { error: null, status: 1 }
         ];
         const trackLocal = tracker(undefined, "ROBOT@aktunes.com");
         const results = trackLocal("server-side test");
         return serial(results) === serial(expected);
     });
 
-    test.assert("constructs MD5 signatures?", () => {
+    test.assert("MISC: MD5 signatures?", () => {
         const expected = `2c18fe59700b6df244c24bae1bdfe403`;
         const results = MD5("yes, it is me, i am the one who knocks");
         return expected === results;
     });
 
     //flush
-    //todo
+    test.assert("FLUSH: events?", () => {
+        const expected = [{ code: 200, num_records_imported: 1, status: "OK" }];
+        const results = flushToMixpanel(TEST_CONFIG_EVENTS_DATA, TEST_CONFIG_EVENTS);
+        return isDeepEqual(expected, results);
+    });
+
+    test.assert("FLUSH: users?", () => {
+        const expected = [{ error: null, status: 1 }];
+        const results = flushToMixpanel(TEST_CONFIG_USERS_DATA, TEST_CONFIG_USERS);
+        return isDeepEqual(expected, results);
+    });
+
+    test.assert("FLUSH: groups?", () => {
+        const expected = [{ error: null, status: 1 }];
+        const results = flushToMixpanel(TEST_CONFIG_GROUPS_DATA, TEST_CONFIG_GROUPS);
+        return isDeepEqual(expected, results);
+    });
+
+    test.assert("FLUSH: tables?", () => {
+        const expected = [{ code: 200, status: "OK" }];
+        const results = flushToMixpanel(TEST_CONFIG_TABLES_DATA, TEST_CONFIG_TABLES);
+        return isDeepEqual(expected, results);
+    });
 
     //storage
-    //todo
+    test.assert("STORAGE: save?", () => {
+        const expected = { foo: "bar", baz: "qux", mux: "dux" };
+        const results = setConfig(expected);
+        return isDeepEqual(expected, results);
+    });
+
+    test.assert("STORAGE: get?", () => {
+        const expected = { foo: "bar", baz: "qux", mux: "dux" };
+        const results = getConfig();
+        return isDeepEqual(expected, results);
+    });
+
+    test.assert("STORAGE: clear?", () => {
+        const expected = {};
+        const results = clearConfig();
+        return isDeepEqual(expected, results);
+    });
 
     //timers
     //todo
 
     //credentials
-    test.assert("validates good service account?", () => {
+    test.assert("CREDS: good service account?", () => {
         const expected = GOOD_SERVICE_ACCOUNT.answer;
         return validateCreds(GOOD_SERVICE_ACCOUNT) === expected;
     });
 
-    test.assert("validates good api secret?", () => {
+    test.assert("CREDS: good api secret?", () => {
         const expected = GOOD_API_SECRET.answer;
         return validateCreds(GOOD_API_SECRET) === expected;
     });
 
-    test.catchErr("throws bad service account?", "Not a valid service account username", () => {
+    test.catchErr("CREDS: bad service account?", "Not a valid service account username", () => {
         validateCreds(BAD_SERVICE_ACCOUNT);
     });
 
-    test.catchErr("throws bad project?", "not a project member", () => {
+    test.catchErr("CREDS: bad project?", "not a project member", () => {
         validateCreds(BAD_PROJECT_SERVICE_ACCOUNT);
     });
 
     test.catchErr(
-        "throws bad api secret?",
+        "CREDS: bad api secret?",
         "Unauthorized, invalid project secret. See docs for more information: https://developer.mixpanel.com/reference/authentication#project-secret",
         () => {
             validateCreds(BAD_API_SECRET);
         }
     );
 
-    test.catchErr("throws bad api project?", `Mismatch between project secret's project ID and URL project ID`, () => {
+    test.catchErr("CREDS: bad api project?", `Mismatch between project secret's project ID and URL project ID`, () => {
         validateCreds(BAD_PROJECT_API_SECRET);
     });
 
-    // syncs: Sheet → Mixpanel
-    test.assert("syncs events?", () => {
+    /*
+	----
+	SYNCS
+	(effectively e2e tests)
+	----
+	*/
+
+    // Sheet → Mixpanel
+    test.assert("SYNCS: events?", () => {
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const expected = {
             batches: 6,
             total: 10395,
             success: 10395,
             failed: 0,
-            errors: [],
+            errors: []
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         delete imported.results.seconds;
         return isDeepEqual(expected, imported.results);
     });
 
-    test.assert("syncs users?", () => {
+    test.assert("SYNCS: users?", () => {
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("users"));
         const expected = {
             batches: 4,
             total: 6999,
             success: 6999,
             failed: 0,
-            errors: [],
+            errors: []
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
         delete imported.results.seconds;
         return isDeepEqual(expected, imported.results);
     });
 
-    test.assert("syncs groups?", () => {
+    test.assert("SYNCS: groups?", () => {
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("groups"));
         const expected = {
             batches: 8,
             total: 1427,
             success: 1427,
             failed: 0,
-            errors: [],
+            errors: []
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
         delete imported.results.seconds;
         return isDeepEqual(expected, imported.results);
     });
 
-    test.assert("syncs tables?", () => {
+    test.assert("SYNCS: tables?", () => {
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("tables"));
         const expected = {
             batches: 1,
             total: 1,
             success: 1,
             failed: 0,
-            errors: [],
+            errors: []
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
         delete imported.results.seconds;
@@ -233,7 +279,7 @@ function runTests() {
     });
 
     //syncs: Mixpanel → Sheet
-    test.assert("syncs insights reports?", () => {
+    test.assert("SYNCS: insights reports?", () => {
         const expected = {
             report_type: "insights",
             report_name: "an insights report",
@@ -242,14 +288,14 @@ function runTests() {
             project_id: 2943452,
             dashboard_id: 4690699,
             workspace_id: 3466588,
-            report_creator: "AK ",
+            report_creator: "AK "
         };
 
         const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
         return isDeepEqual(expected, results.metadata);
     });
 
-    test.assert("syncs funnels reports?", () => {
+    test.assert("SYNCS: funnels reports?", () => {
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -258,14 +304,14 @@ function runTests() {
             report_type: "funnels",
             report_name: "a funnel report",
             report_creator: "AK ",
-            dashboard_id: 4690699,
+            dashboard_id: 4690699
         };
 
         const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
         return isDeepEqual(expected, results.metadata);
     });
 
-    test.assert("syncs retention reports?", () => {
+    test.assert("SYNCS: retention reports?", () => {
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -274,20 +320,20 @@ function runTests() {
             report_type: "retention",
             report_name: "a retention report",
             report_creator: "AK ",
-            dashboard_id: 4690699,
+            dashboard_id: 4690699
         };
 
         const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
         return isDeepEqual(expected, results.metadata);
     });
 
-    test.assert("syncs cohorts?", () => {
+    test.assert("SYNCS: cohorts?", () => {
         const expected = {
             cohort_desc: "lucky number is bigger than 70",
             project_id: 2943452,
             cohort_name: "cool peeps",
             cohort_id: 2789763,
-            cohort_count: 1617,
+            cohort_count: 1617
         };
 
         const results = testSyncMpToSheets(TEST_CONFIG_COHORTS);

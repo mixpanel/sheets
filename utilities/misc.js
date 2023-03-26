@@ -20,7 +20,7 @@ function JSONtoCSV(arr) {
         .join("\n");
 }
 
-function sliceIntoChunks(arr, chunkSize) {
+function sliceIntoChunks(arr, chunkSize = 2000) {
     const res = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
         const chunk = arr.slice(i, i + chunkSize);

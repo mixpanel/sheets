@@ -7,12 +7,12 @@ GET, CREATE AND UPDATE SHEETS + TABS
 // GETTERS
 
 /**
- * fetch headers from current sheet
- *
+ * fetch headers from sheet or current sheet
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} [sheet]
  * @returns {string[]}
  */
-function getSheetHeaders() {
-    const sheet = SpreadsheetApp.getActiveSheet();
+function getSheetHeaders(sheet) {
+    if (!sheet) sheet = SpreadsheetApp.getActiveSheet();
     const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
     const headers = range.getValues()[0]; //only first 'row'
     return headers;

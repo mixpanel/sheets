@@ -9,8 +9,9 @@ a very simple debugger to be passed to clasp run
 
 function repl() {
     //code here!
-    const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
-    return testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+    const expected = { foo: "bar", baz: "qux", mux: "dux" };
+    const results = clearConfig(expected);
+    return isDeepEqual({}, {});
     // return [
     // 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('events')),
     // 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('users')),

@@ -24,7 +24,7 @@ function flushToMixpanel(data, config, strict = 1) {
     if (record_type === "user") URL = `https://${sub}.mixpanel.com/engage?verbose=1`;
     if (record_type === "group") URL = `https://${sub}.mixpanel.com/groups?verbose=1`;
     if (record_type === "table") URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?project_id=${config.project_id}`;
-
+	
     const options = {
         method: "POST",
         contentType: "application/json",

@@ -38,5 +38,5 @@ function clearConfig(config) {
     scriptProperties.deleteAllProperties();
     clearTriggers();
     track("clear", { record_type: config.record_type, token: config.token });
-    return null;
+    return {};
 }
