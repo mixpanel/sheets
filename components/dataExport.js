@@ -8,7 +8,7 @@ DATA OUT OF MP
  * export data; if not called with a config, uses last known
  *
  * @param  {MpSheetConfig} [config={}]
- * @returns {[string, ReportMeta | CohortMeta]} string + metadata `[csv, {}]`
+ * @returns {[string, ReportMeta & CohortMeta]} string + metadata `[csv, {}]`
  */
 function exportData(config = {}) {
     const startTime = Date.now();

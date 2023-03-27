@@ -23,19 +23,21 @@ function flushToMixpanel(data, config, strict = 1) {
     if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&project_id=${config.project_id}`;
     if (record_type === "user") URL = `https://${sub}.mixpanel.com/engage?verbose=1`;
     if (record_type === "group") URL = `https://${sub}.mixpanel.com/groups?verbose=1`;
+    //@ts-ignore
     if (record_type === "table") URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?project_id=${config.project_id}`;
-	
+
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "POST",
+        method: "post",
         contentType: "application/json",
         headers: {
             Authorization: `Basic ${config.auth}`,
-            Accept: "application/json",
+            Accept: "application/json"
         },
-        muteHttpExceptions: true,
+        muteHttpExceptions: true
     };
     if (record_type === "table") {
-        options.method = "PUT";
+        options.method = "put";
         options.contentType = `text/csv`;
         options.payload = JSONtoCSV(data);
         const res = UrlFetchApp.fetch(URL, options);
@@ -49,4 +51,10 @@ function flushToMixpanel(data, config, strict = 1) {
     }
 
     return responses;
+}
+
+if (typeof module !== "undefined") {
+    const { JSONtoCSV, sliceIntoChunks } = require("./misc.js");
+    const { validateCreds } = require("./validate");
+    module.exports = { flushToMixpanel };
 }

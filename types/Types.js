@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /*
 ----
 TYPES
@@ -16,7 +18,7 @@ TYPES
 
 /**
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
- * @property {'sheet-to-mixpanel'} config_type an identifier for where the config came from
+ * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
  * @property {'event' | 'user' | 'group' | 'table'} record_type the record type being imported
  * @property {string} project_id the project identifier
  * @property {string} token the project token
@@ -25,7 +27,8 @@ TYPES
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret
- * @property {string} auth base64 encoded credentials
+ * @property {string} [auth] base64 encoded credentials
+ * @property {200 | 2000} [batchSize] size of batch
  *
  */
 
@@ -40,18 +43,19 @@ TYPES
 /**
  * @typedef {Object} UserMappings mappings columns to fields for user imports
  * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
- * @property {'$set' | '$set_once'} profile_operation the type of operation to preform when updating the profile
+ * @property {'$set' | '$set_once' | string} profile_operation the type of operation to preform when updating the profile
  * @property {string} [name_col] the sheet's source column name to be mapped to $name
  * @property {string} [email_col] the sheet's source column name to be mapped to $email
  * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
  * @property {string} [created_col] the sheet's source column name to be mapped to $created
+ * 
  */
 
 /**
  * @typedef {Object} GroupMappings mappings columns to fields for group imports
  * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
  * @property {string} group_key the group identifier key
- * @property {'$set' | '$set_once'} profile_operation the type of operation to preform when updating the profile
+ * @property {'$set' | '$set_once' | string} profile_operation the type of operation to preform when updating the profile
  * @property {string} [name_col] the sheet's source column name to be mapped to $name
  * @property {string} [email_col] the sheet's source column name to be mapped to $email
  * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
@@ -65,12 +69,14 @@ TYPES
 
 /**
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
- * @property {'sheet-to-mixpanel'} config_type an identifier for where the config came from
+ * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
  * @property {'current' | 'new'} [sheet_location] DEPRECATED; where to put the data
+ * @property {string} mixpanel_report_url URL from mixpanel report
  * @property {string} project_id the project identifier
  * @property {string} service_acct service acct name
  * @property {string} service_secret service acct pass
  * @property {string} workspace_id service acct pass
+ * @property {string} [auth] base64 auth string
  * @property {'US' | 'EU'} region US or EU residence
  * @property {string} [cohort_id] id of the cohort
  * @property {string} [report_id] id of the report
@@ -85,18 +91,16 @@ TYPES
  */
 
 /**
- * @typedef {Object} Summary
- * @property {Results} results
- */
-
-/**
- * @typedef {Object} Results summary of results of an import
+ * @typedef {Object} ImportResults summary of results of an import
  * @property {number} total # of records attempted
- * @property {number} success
- * @property {number} failed
- * @property {number} seconds
- * @property {number} batches
+ * @property {number} success # succeeded
+ * @property {number} failed # failed
+ * @property {number} seconds time elapsed
+ * @property {number} startTime
+ * @property {number} endTime
+ * @property {number} batches batches of requests
  * @property {Object[]} errors any failed requests
+ * @property {'event' | 'user' | 'group' | 'table'} record_type type of import
  */
 
 /**

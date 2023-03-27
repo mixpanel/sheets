@@ -35,9 +35,44 @@ function formatDate(date = new Date()) {
     var ampm = hours >= 12 ? "pm" : "am";
     hours = hours % 12;
     hours = hours ? hours : 12; // the hour '0' should be '12'
+    //@ts-ignore
     minutes = minutes < 10 ? "0" + minutes : minutes;
     var strTime = date.toLocaleDateString() + " @ " + hours + ":" + minutes + ampm;
     return strTime;
+}
+
+function clone(thing, opts) {
+    var newObject = {};
+    if (thing instanceof Array) {
+        return thing.map(function (i) {
+            return clone(i, opts);
+        });
+    } else if (thing instanceof Date) {
+        return new Date(thing);
+    } else if (thing instanceof RegExp) {
+        return new RegExp(thing);
+    } else if (thing instanceof Function) {
+        // @ts-ignore
+        return opts && opts.newFns ? new Function("return " + thing.toString())() : thing;
+    } else if (thing instanceof Object) {
+        Object.keys(thing).forEach(function (key) {
+            newObject[key] = clone(thing[key], opts);
+        });
+        return newObject;
+    } else if ([undefined, null].indexOf(thing) > -1) {
+        return thing;
+    } else {
+        if (thing.constructor.name === "Symbol") {
+            return Symbol(
+                thing
+                    .toString()
+                    .replace(/^Symbol\(/, "")
+                    .slice(0, -1)
+            );
+        }
+        // return _.clone(thing);  // If you must use _ ;)
+        return thing.__proto__.constructor(thing);
+    }
 }
 
 //this functions are used mostly for testing equality
@@ -69,4 +104,6 @@ function isObject(object) {
     return object != null && typeof object === "object";
 }
 
-if (typeof module !== "undefined") module.exports = { comma, JSONtoCSV, sliceIntoChunks, formatDate, serial, isDeepEqual, isObject };
+if (typeof module !== "undefined") {
+    module.exports = { comma, JSONtoCSV, sliceIntoChunks, formatDate, serial, isDeepEqual, isObject, clone };
+}

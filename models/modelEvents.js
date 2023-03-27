@@ -57,3 +57,8 @@ function modelMpEvents(row, mappings) {
 
     return mpEvent;
 }
+
+if (typeof module !== "undefined") {
+    const { MD5 } = require("../utilities/md5.js");
+    module.exports = { modelMpEvents };
+}

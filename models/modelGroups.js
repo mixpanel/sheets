@@ -10,23 +10,19 @@ https://developer.mixpanel.com/reference/group-set-property
  *
  * @param  {Object} row
  * @param  {GroupMappings} mappings
- * @param  {SheetMpConfig} config
+ * @param  {SheetMpConfig & GroupMappings} config
  */
 function modelMpGroups(row, mappings, config) {
     let {
         distinct_id_col,
         name_col,
         email_col,
-        phone_col,
         avatar_col,
         created_col,
-        latitude_col,
-        longitude_col,
-        ip_col,
-        profileOperation = "$set",
+        profile_operation = "$set"
     } = mappings;
     const { token, group_key } = config;
-    profileOperation = profileOperation.toLowerCase();
+    profile_operation = profile_operation.toLowerCase();
 
     if (!group_key) throw new Error("group_key is required!");
     if (!distinct_id_col) throw new Error("group_id mapping is required!");
@@ -41,65 +37,42 @@ function modelMpGroups(row, mappings, config) {
         $group_id: row[distinct_id_col],
         $ip: "0",
         $ignore_time: true,
-        [profileOperation]: {},
+        [profile_operation]: {}
     };
 
     delete row[distinct_id_col];
 
     // mixpanel reserved keys
     if (name_col) {
-        mpGroup[profileOperation].$name = row[name_col];
+        mpGroup[profile_operation].$name = row[name_col];
         delete row[name_col];
     }
 
     if (email_col) {
-        mpGroup[profileOperation].$email = row[email_col];
+        mpGroup[profile_operation].$email = row[email_col];
         delete row[email_col];
     }
 
-    if (phone_col) {
-        mpGroup[profileOperation].$phone = row[phone_col];
-        delete row[phone_col];
-    }
-
     if (avatar_col) {
-        mpGroup[profileOperation].$avatar = row[avatar_col];
+        mpGroup[profile_operation].$avatar = row[avatar_col];
         delete row[avatar_col];
     }
 
     if (created_col) {
         if (row[created_col]?.toISOString) {
-            mpGroup[profileOperation].$created = row[created_col].toISOString();
+            mpGroup[profile_operation].$created = row[created_col].toISOString();
         } else {
-            mpGroup[profileOperation].$created = row[created_col];
+            mpGroup[profile_operation].$created = row[created_col];
         }
         delete row[created_col];
-    }
-
-    if (ip_col) {
-        mpGroup.$ip = row[ip_col];
-        mpGroup[profileOperation]["IP Address"] = row[ip_col];
-        delete row[ip_col];
-    }
-
-    if (latitude_col) {
-        mpGroup.$latitude = row[latitude_col];
-        mpGroup[profileOperation]["Latitude"] = row[latitude_col];
-        delete row[latitude_col];
-    }
-
-    if (longitude_col) {
-        mpGroup.$longitude = row[longitude_col];
-        mpGroup[profileOperation]["Longitude"] = row[longitude_col];
-        delete row[longitude_col];
     }
 
     try {
         for (const key in row) {
             if (row[key]?.toISOString) {
-                mpGroup[profileOperation][key] = row[key].toISOString();
+                mpGroup[profile_operation][key] = row[key].toISOString();
             } else {
-                mpGroup[profileOperation][key] = row[key];
+                mpGroup[profile_operation][key] = row[key];
             }
         }
     } catch (e) {
@@ -107,4 +80,8 @@ function modelMpGroups(row, mappings, config) {
     }
 
     return mpGroup;
+}
+
+if (typeof module !== "undefined") {
+    module.exports = { modelMpGroups };
 }

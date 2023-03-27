@@ -183,3 +183,8 @@ function arrayTranspose(data) {
     }
     return ret;
 }
+
+
+if (typeof module !== "undefined") {
+    module.exports = { getJSON };
+}

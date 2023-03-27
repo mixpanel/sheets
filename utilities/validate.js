@@ -10,7 +10,8 @@ VALIDATE CREDENTIALS
  * @returns {string} a valid auth string
  * @throws {Error} a validation error
  */
-function validateCreds(config = {}) {
+function validateCreds(config) {
+    // @ts-ignore
     const { api_secret = null, service_acct = null, service_secret = null, project_id = null } = config;
 
     if (!project_id) throw "missing project id";
@@ -24,11 +25,12 @@ function validateCreds(config = {}) {
         throw "missing credentials";
     }
 
-    auth = Utilities.base64Encode(userPassStr);
+    const auth = Utilities.base64Encode(userPassStr);
     const url = `https://api.mixpanel.com/import?project_id=${project_id}&strict=0&verbose=1`;
 
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "POST",
+        method: "post",
         contentType: "application/json",
         headers: {
             Authorization: `Basic ${auth}`,
@@ -56,4 +58,9 @@ function validateCreds(config = {}) {
     } catch (e) {
         throw e;
     }
+}
+
+if (typeof module !== "undefined") {
+    const { isDeepEqual } = require("./misc.js");
+    module.exports = { validateCreds };
 }

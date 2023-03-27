@@ -53,17 +53,14 @@ function getSheetById(id) {
 // SETTERS
 
 /**
- * updates a spreadsheet; either by replacing it or appending
+ * overwrites the contents of a spreadsheet with new data
  *
  * @param  {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @param  {string} csvString
- * @param  {boolean} append=false
  * @returns {SheetInfo}
  */
-function updateSheet(csvString, sheet, append = false) {
+function overwriteSheet(csvString, sheet, append = false) {
     var csvData = Utilities.parseCsv(csvString);
-    if (append) {
-    }
     sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
     return getSheetInfo(sheet);
 }
@@ -73,7 +70,7 @@ function updateSheet(csvString, sheet, append = false) {
 /**
  * creates a new 'tab' in the sheet and returns it; if tab exists, it returns it
  *
- * @param  {'string'} [title='mixpanel sync log'] title for sheet
+ * @param  {string} [title='mixpanel sync log'] title for sheet
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}
  */
 function createSheet(title = "mixpanel sync log") {
@@ -104,4 +101,15 @@ function deleteSheet(sheet) {
 
     ss.deleteSheet(sheet);
     return {};
+}
+
+if (typeof module !== "undefined") {
+    module.exports = {
+        overwriteSheet,
+        createSheet,
+        deleteSheet,
+        getSheetHeaders,
+        getSheetInfo,
+        getSheetById
+    };
 }

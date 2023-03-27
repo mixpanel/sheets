@@ -1,26 +1,57 @@
 {
-  "name": "sheets-mixpanel",
-  "version": "1.0.0",
-  "description": "integrate google sheets with mixpanel",
-  "main": "Code.gs",
-  "scripts": {
-    "login": "clasp login --creds creds.json",    
-    "push": "clasp push --force",
-    "push-watch": "clasp push --watch --force",
-    "serve": "./node_modules/serve/build/main.js ./ui",
-    "debug": "clasp run repl",
-    "test-watch": "nodemon ./tests/all.test.js",
-    "test-server": "clasp run runTests",
-	"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",    
-	"build-types": "npx -p typescript tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types"
-  },
-  "author": "AK",
-  "license": "ISC",
-  "devDependencies": {
-    "@google/clasp": "^2.4.2",
-    "@types/google-apps-script": "^1.0.58",
-    "dotenv": "^16.0.3",
-    "nodemon": "^2.0.21",
-    "serve": "^14.2.0"
-  }
+	"name": "sheets-mixpanel",
+	"version": "1.0.0",
+	"description": "integrate google sheets with mixpanel",
+	"main": "Code.gs",
+	"scripts": {
+		"login": "clasp login --creds creds.json",
+		"push": "clasp push --force",
+		"push-watch": "clasp push --watch --force",
+		"serve": "./node_modules/serve/build/main.js ./ui",
+		"debug": "clasp run repl",
+		"debug-watch": "npm-watch debug",
+		"test-local": "node ./tests/all.test.js",
+		"test-local-watch": "npm-watch test-local",
+		"test-server": "clasp run runTests",
+		"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",
+		"build-types": "npx -p typescript tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
+		"build-types-watch" :" npm-watch build-types",
+		"watch": "npm watch"
+	},
+	"watch": {
+		"debug": {
+			"patterns": [
+				"*"
+			],
+			"quiet": true,
+			"silent": true,
+			"runOnChangeOnly": false
+		},
+		"test-local": {
+			"patterns": [
+				"*"
+			],
+			"quiet": true,
+			"silent": true,
+			"runOnChangeOnly": false
+		},
+		"build-types": {
+			"patterns": [
+				"./types/Types.js"
+			],
+			"quiet": true,
+			"silent": true,
+			"runOnChangeOnly": false
+		}
+	},
+	"author": "AK",
+	"license": "ISC",
+	"devDependencies": {
+		"@google/clasp": "^2.4.2",
+		"@types/google-apps-script": "^1.0.58",
+		"dotenv": "^16.0.3",
+		"nodemon": "^2.0.21",
+		"npm-watch": "^0.11.0",
+		"serve": "^14.2.0"
+	}
 }

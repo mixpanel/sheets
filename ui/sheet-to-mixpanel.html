@@ -859,7 +859,7 @@
 			google.script.run
 				.withSuccessHandler(([responses, summary, link]) => {
 					this.loader('hide');
-					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary;
 					this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
 					this.DOM.projectLink.innerText = link;
 					this.DOM.projectLink.href = link;

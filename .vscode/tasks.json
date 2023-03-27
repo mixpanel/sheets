@@ -3,14 +3,14 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "debug",
+			"script": "debug-watch",
 			"problemMatcher": [],
 			"label": "REPL",
 			"detail": "runs one-off functions in GAS"
 		},
 		{
 			"type": "npm",
-			"script": "test-watch",
+			"script": "test-local-watch",
 			"problemMatcher": [],
 			"label": "LOCAL TEST",
 			"detail": "runs local tests"
@@ -28,6 +28,14 @@
 			"problemMatcher": [],
 			"label": "OPEN LOGGER",
 			"detail": "show GCP console"
+		},
+		{
+			"type": "npm",
+			"script": "push-watch",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: push-watch",
+			"detail": "clasp push --watch --force"
 		}
 	]
 }

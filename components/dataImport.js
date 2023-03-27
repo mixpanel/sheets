@@ -9,7 +9,7 @@ DATA INTO MP
  *
  * @param  {SheetMpConfig} [config={}]
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
- * @returns {[ImportResponse[], Summary]}
+ * @returns {[ImportResponse[], Results]}
  */
 function importData(config = {}, sheet) {
     const runId = Math.random();
@@ -28,23 +28,23 @@ function importData(config = {}, sheet) {
     const sourceData = getJSON(sheet);
 
     // console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
-    const targetData = sourceData.slice().map((row) => transform(row, mappings, cleanConfig));
+    const targetData = sourceData.slice().map(row => transform(row, mappings, cleanConfig));
 
     // console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
     const imported = flushToMixpanel(targetData, cleanConfig);
     const endTime = Date.now();
-    const runTime = Math.floor(endTime - startTime) / 1000;
+
     // track('FLUSH', { runId, record_type });
 
     // console.log(`FINISHED: ${runTime} seconds`);
-    updateConfig(cleanConfig, imported, runTime, targetData);
+    const summary = summarizeImport(cleanConfig, imported, startTime, endTime, targetData);
 
     if (cleanConfig.results.errors.length > 0) {
         Logger.log("FAILED REQUESTS");
         Logger.log(cleanConfig.results.errors);
     }
 
-    return [imported, cleanConfig];
+    return [imported, summary];
 }
 
 /**
@@ -54,25 +54,15 @@ function importData(config = {}, sheet) {
  * @returns {EventMappings | UserMappings | GroupMappings | TableMappings}
  */
 function getMappings(config) {
-    const {
-        record_type,
-        event_name_col,
-        distinct_id_col,
-        time_col,
-        insert_id_col,
-        name_col,
-        email_col,
-        avatar_col,
-        created_col,
-        profile_operation,
-    } = config;
+    const { record_type, event_name_col, distinct_id_col, time_col, insert_id_col, name_col, email_col, avatar_col, created_col, profile_operation } =
+        config;
 
     if (record_type === "event") {
         return {
             distinct_id_col,
             event_name_col,
             time_col,
-            insert_id_col,
+            insert_id_col
         };
     }
 
@@ -83,7 +73,7 @@ function getMappings(config) {
             email_col,
             avatar_col,
             created_col,
-            profile_operation,
+            profile_operation
         };
     }
 
@@ -94,7 +84,7 @@ function getMappings(config) {
             email_col,
             avatar_col,
             created_col,
-            profile_operation,
+            profile_operation
         };
     }
 
@@ -125,8 +115,8 @@ function getMixpanelConfig(config) {
             failed: 0,
             batches: 0,
             seconds: 0,
-            errors: [],
-        },
+            errors: []
+        }
     };
 
     if (record_type === "group") mixpanel.batchSize = 200;
@@ -151,14 +141,19 @@ function getTransformType(config) {
 }
 
 /**
- * uses the responses to update the config; warning SIDE EFFECTS!!!
- * @param  {MpSheetConfig} config
+ * uses the responses to update the config
+ * @param  {MpSheetConfig} cleanConfig
  * @param  {Responses} responses
- * @param  {number} runTime
+ * @param  {number} startTime
+ * @param  {number} endTime 
  * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} targetData
+ * @returns {Results}
  */
-function updateConfig(config, responses, runTime, targetData) {
-    config.results.seconds = runTime;
+function summarizeImport(cleanConfig, responses, startTime, endTime, targetData) {
+    config = clone(cleanConfig);
+    config.results.startTime = startTime;
+    config.results.endTime = endTime;
+    config.results.seconds = Math.floor(endTime - startTime) / 1000;
     config.results.total = targetData.length;
     config.results.batches = responses.length;
 
@@ -186,4 +181,7 @@ function updateConfig(config, responses, runTime, targetData) {
         if (config.results.success > config.results.total) config.results.success = config.results.total;
         if (config.results.failed > config.results.total) config.results.failed = config.results.total;
     }
+
+    config.results.record_type = config.record_type;
+    return config.results;
 }

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 /*
 ----
 TEST RUNNER
@@ -79,6 +81,12 @@ function runTests() {
     test.assert("forms pretty dates?", () => {
         const expected = `3/3/1901 @ 4:20am`;
         return Misc.formatDate(new Date(1, 2, 3, 4, 20)) === expected;
+    });
+
+    test.assert("clones objects?", () => {
+        const original = { foo: { bar: "baz" }, qux: ["mux", "dux", "lux"], brew: { one: 1, two: 2, three: 3 } };
+        const cloned = Misc.clone(original);
+        return Misc.serial(original) === Misc.serial(cloned) && Misc.isDeepEqual(original, cloned) && cloned !== original;
     });
 
     test.assert("serializes objects?", () => {
@@ -163,6 +171,7 @@ function runTests() {
 
     //storage
     test.assert("STORAGE: save?", () => {
+        clearConfig();
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
         const results = setConfig(expected);
         clearConfig();
@@ -170,10 +179,11 @@ function runTests() {
     });
 
     test.assert("STORAGE: get?", () => {
+        clearConfig();
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
-		setConfig(expected);
+        setConfig(expected);
         const results = getConfig();
-		clearConfig();
+        clearConfig();
         return isDeepEqual(expected, results);
     });
 
@@ -232,11 +242,12 @@ function runTests() {
             total: 10395,
             success: 10395,
             failed: 0,
-            errors: []
+            errors: [],
+            record_type: "event"
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
-        delete imported.results.seconds;
-        return isDeepEqual(expected, imported.results);
+        delete imported.seconds;
+        return isDeepEqual(expected, imported);
     });
 
     test.assert("SYNCS: users?", () => {
@@ -246,11 +257,12 @@ function runTests() {
             total: 6999,
             success: 6999,
             failed: 0,
-            errors: []
+            errors: [],
+            record_type: "user"
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
-        delete imported.results.seconds;
-        return isDeepEqual(expected, imported.results);
+        delete imported.seconds;
+        return isDeepEqual(expected, imported);
     });
 
     test.assert("SYNCS: groups?", () => {
@@ -260,11 +272,12 @@ function runTests() {
             total: 1427,
             success: 1427,
             failed: 0,
-            errors: []
+            errors: [],
+            record_type: "group"
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
-        delete imported.results.seconds;
-        return isDeepEqual(expected, imported.results);
+        delete imported.seconds;
+        return isDeepEqual(expected, imported);
     });
 
     test.assert("SYNCS: tables?", () => {
@@ -274,11 +287,12 @@ function runTests() {
             total: 1,
             success: 1,
             failed: 0,
-            errors: []
+            errors: [],
+            record_type: "table"
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
-        delete imported.results.seconds;
-        return isDeepEqual(expected, imported.results);
+        delete imported.seconds;
+        return isDeepEqual(expected, imported);
     });
 
     //syncs: Mixpanel → Sheet

@@ -26,8 +26,7 @@ TODOs
 ----
 */
 
-// todo: ui for export
-// todo: hourly syncs, sync display, & sync logs
+// todo: syncs + sync logs
 // todo: docs
 
 /*
@@ -97,11 +96,16 @@ function SheetToMixpanelView() {
  *
  * @param  {SheetMpConfig} config if not supplied, last known will be used
  * @param {SheetInfo} sheetInfo the source sheet which contains the data
- * @returns {[ImportResponse[], Summary]}
+ * @returns {[ImportResponse[], ImportResults, string]}
  */
-function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveSheet()) {
+function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getActiveSheet())) {
     const testId = Math.random();
-    const t = tracker({ testId, record_type: config.record_type, project_id: config.project_id, view: "sheet → mixpanel" });
+    const t = tracker({
+        testId,
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "sheet → mixpanel"
+    });
     try {
         const auth = validateCreds(config);
         config.auth = auth;
@@ -113,8 +117,11 @@ function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveShe
 
     t("test start"); //something happening here... what it is ain't exactly clear
     const [responses, summary] = importData(config, sheet);
-    const { total, success, failed, seconds } = summary.results;
+    const { total, success, failed, seconds } = summary;
     t("test end", { total, success, failed, seconds });
+
+    //store config for future syncs
+    setConfig({ ...config, ...sheetInfo });
 
     return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
 }
@@ -123,9 +130,11 @@ function testSyncSheetsToMp(config = {}, sheetInfo = SpreadsheetApp.getActiveShe
  * called when a user clicks the 'sync' button in the Sheet → Mixpanel UI
  *
  * @param  {SheetMpConfig} config
- * @returns  {[ImportResponse[], Summary] | SheetMpConfig}
+//  * @returns  {[ImportResponse[], ImportResults[], string]}
  */
-function syncSheetsToMp(config) {}
+function syncSheetsToMp(config) {
+    return;
+}
 
 /*
 ----------------
@@ -159,9 +168,9 @@ function MixpanelToSheetView() {
  *
  * @param  {MpSheetConfig} config if not supplied, last known will be used
  */
-function testSyncMpToSheets(config = {}) {
+function testSyncMpToSheets(config) {
     const testId = Math.random();
-    const t = tracker({ testId, record_type: config.record_type, project_id: config.project_id, view: "mixpanel → sheet" });
+    const t = tracker({ testId, project_id: config.project_id, view: "mixpanel → sheet" });
 
     try {
         const auth = validateCreds(config);
@@ -188,7 +197,7 @@ function testSyncMpToSheets(config = {}) {
         }
 
         const destSheet = createSheet(sheetName);
-        const updatedSheet = updateSheet(csvData, destSheet);
+        const updatedSheet = overwriteSheet(csvData, destSheet);
 
         t("test end");
 
@@ -219,3 +228,15 @@ REF DOCS
 // ? delete triggers: https://stackoverflow.com/a/47217237
 // ? tests: https://github.com/WildH0g/UnitTestingApp
 //? bundling npm modules: https://12ft.io/proxy?q=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fthe-ultimate-guide-to-npm-modules-in-google-apps-script-a84545c3f57c
+
+if (typeof module !== "undefined") {
+    const { tracker } = require("./utilities/tracker.js");
+    const {
+        getSheetHeaders,
+        getSheetById,
+        getSheetInfo,
+        createSheet,
+        overwriteSheet
+    } = require("./utilities/sheet");
+    const { validateCreds } = require("./utilities/validate.js");
+}

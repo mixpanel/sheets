@@ -15,7 +15,9 @@ USAGE TRACKER
  */
 function tracker(superProps = {}, distinct_id, token = "703d5a3c06f359bdd838cb4cbc8abe7a") {
     // identity resolution; could be better
-    if (!distinct_id);
+    if (!distinct_id) {
+		//noop
+	};
     try {
         distinct_id = Session.getActiveUser().getEmail();
     } catch (e) {
@@ -29,8 +31,9 @@ function tracker(superProps = {}, distinct_id, token = "703d5a3c06f359bdd838cb4c
             const eventURL = `https://api.mixpanel.com/track?verbose=1`;
             const profileURL = `https://api.mixpanel.com/engage?verbose=1`;
 
+            /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
             const reqOptions = {
-                method: "POST",
+                method: "post",
                 contentType: "application/json",
                 headers: {
                     Accept: "text/plain"
@@ -87,4 +90,8 @@ function tracker(superProps = {}, distinct_id, token = "703d5a3c06f359bdd838cb4c
             //noop: track should not break anything else
         }
     };
+}
+
+if (typeof module !== "undefined") {
+    module.exports = { tracker };
 }

@@ -7,7 +7,7 @@ type SheetMpConfigAlways = {
     /**
      * an identifier for where the config came from
      */
-    config_type: 'sheet-to-mixpanel';
+    config_type?: 'sheet-to-mixpanel';
     /**
      * the record type being imported
      */
@@ -40,6 +40,14 @@ type SheetMpConfigAlways = {
      * api secret
      */
     api_secret?: string;
+    /**
+     * base64 encoded credentials
+     */
+    auth?: string;
+    /**
+     * size of batch
+     */
+    batchSize?: 200 | 2000;
 };
 /**
  * mappings columns to fields for event imports
@@ -73,7 +81,7 @@ type UserMappings = {
     /**
      * the type of operation to preform when updating the profile
      */
-    profile_operation: '$set' | '$set_once';
+    profile_operation: '$set' | '$set_once' | string;
     /**
      * the sheet's source column name to be mapped to $name
      */
@@ -106,7 +114,7 @@ type GroupMappings = {
     /**
      * the type of operation to preform when updating the profile
      */
-    profile_operation: '$set' | '$set_once';
+    profile_operation: '$set' | '$set_once' | string;
     /**
      * the sheet's source column name to be mapped to $name
      */
@@ -140,11 +148,15 @@ type MpSheetConfig = {
     /**
      * an identifier for where the config came from
      */
-    config_type: 'sheet-to-mixpanel';
+    config_type?: 'sheet-to-mixpanel';
     /**
      * DEPRECATED; where to put the data
      */
     sheet_location?: 'current' | 'new';
+    /**
+     * URL from mixpanel report
+     */
+    mixpanel_report_url: string;
     /**
      * the project identifier
      */
@@ -161,6 +173,10 @@ type MpSheetConfig = {
      * service acct pass
      */
     workspace_id: string;
+    /**
+     * base64 auth string
+     */
+    auth?: string;
     /**
      * US or EU residence
      */
@@ -191,25 +207,40 @@ type SheetInfo = {
      */
     id: number;
 };
-type Summary = {
-    results: Results;
-};
 /**
  * summary of results of an import
  */
-type Results = {
+type ImportResults = {
     /**
      * # of records attempted
      */
     total: number;
+    /**
+     * # succeeded
+     */
     success: number;
+    /**
+     * # failed
+     */
     failed: number;
+    /**
+     * time elapsed
+     */
     seconds: number;
+    startTime: number;
+    endTime: number;
+    /**
+     * batches of requests
+     */
     batches: number;
     /**
      * any failed requests
      */
     errors: any[];
+    /**
+     * type of import
+     */
+    record_type: 'event' | 'user' | 'group' | 'table';
 };
 /**
  * a mixpanel API response
