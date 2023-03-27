@@ -9,7 +9,9 @@ a very simple debugger to be passed to clasp run
 
 function repl() {
     //code here!
-	return testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+    const expected = { foo: "bar", baz: "qux", mux: "dux" };
+    const results = setConfig(expected);
+    return isDeepEqual(expected, results);
     // return [
     // 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('events')),
     // 	getSheetInfo(SpreadsheetApp.getActive().getSheetByName('users')),

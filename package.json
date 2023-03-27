@@ -11,7 +11,7 @@
     "debug": "clasp run repl",
     "test-watch": "nodemon ./tests/all.test.js",
     "test-server": "clasp run runTests",
-	"view-logs": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",    
+	"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",    
 	"build-types": "npx -p typescript tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types"
   },
   "author": "AK",

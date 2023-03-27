@@ -147,7 +147,7 @@ function MixpanelToSheetView() {
     htmlTemplate.syncs = getTriggers();
 
     // apply data to template
-    const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(500);
+    const htmlOutput = htmlTemplate.evaluate().setWidth(600).setHeight(450);
 
     //render template
     SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Mixpanel → Sheet");

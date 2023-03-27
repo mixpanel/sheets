@@ -165,12 +165,15 @@ function runTests() {
     test.assert("STORAGE: save?", () => {
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
         const results = setConfig(expected);
+        clearConfig();
         return isDeepEqual(expected, results);
     });
 
     test.assert("STORAGE: get?", () => {
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
+		setConfig(expected);
         const results = getConfig();
+		clearConfig();
         return isDeepEqual(expected, results);
     });
 
@@ -340,9 +343,9 @@ function runTests() {
         return isDeepEqual(expected, results.metadata);
     });
 
-	test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => { 
-		testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
-	});
+    test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+        testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+    });
 
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
 

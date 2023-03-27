@@ -253,7 +253,34 @@
 		button {
 			font-size: 17px;
 			text-transform: lowercase !important;
-			border-radius: 8px !important;
+			border-radius: 6px !important;
+			border: 1px solid var(--gray) !important;
+		}
+
+		button:hover:not([disabled]) {
+			box-shadow: 0 1px 2px 0 var(--gray), 0 2px 4px 0 var(--lightGray);
+			cursor: pointer;
+		}
+
+
+		#sync {
+			background: var(--purple);
+
+		}
+
+		#test {
+			background: var(--green);
+
+		}
+
+		#save {
+			background: var(--white);
+
+		}
+
+		#clear {
+			background: var(--red);
+
 		}
 
 		select {
@@ -402,23 +429,34 @@
 		const qsa = document.querySelectorAll.bind(document);
 
 		const app = {
+			//storage
 			DOM: {},
 			init,
+
+
+			//interactive
 			cacheDOM,
 			bindEventsAndViews,
 			buildDropdowns,
+			loader,
+
+			//validation
 			getFields,
 			checkFields,
 			isValid,
-			saveConfig,
-			parseConfig,
-			clearConfig,
+
+			//parsing
+			parseServerTemplate,
 			loadConfig,
 			getConfig,
+			getCurrentSheet,
+
+			//buttons
+			save,
+			clear,
 			sync,
-			test,
-			loader,
-			getCurrentSheet
+			test
+
 		};
 
 		function init() {
@@ -436,36 +474,45 @@
 
 		function cacheDOM() {
 			return {
+				//screens
 				typeSelector: qs('#record_type'),
-				typeLabel: qs('#type_label'),
 				eventMappings: qs('#event_mapping'),
 				userMappings: qs('#user_mapping'),
 				groupMappings: qs('#group_mapping'),
 				tableMappings: qs('#table_mapping'),
-				projectId: qs('#project_id'),
-				token: qs('#token'),
-				region: qs('#region'),
 				howAuth: qs('#auth_type'),
 				serviceAcctForm: qs('#service_acct_form'),
 				apiSecretForm: qs('#api_secret_form'),
+
+				//fields
+				projectId: qs('#project_id'),
+				token: qs('#token'),
+				region: qs('#region'),
 				serviceUser: qs('#service_acct'),
 				serviceSecret: qs('#service_secret'),
 				apiSecret: qs('#api_secret'),
+				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
+
+				//labels
+				typeLabel: qs('#type_label'),
+
+				//buttons
 				syncButton: qs('#sync'),
 				saveButton: qs('#save'),
 				clearButton: qs('#clear'),
 				testButton: qs('#test'),
+
+				//status
 				loader: qs('#loader'),
-				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
 				status: qs('#status_text'),
 				sheetFooter: qs('#sheet_footer'),
 				projectLink: qs('#project_link'),
 
-				//injected by server
+				//parsed server templates
 				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
-				config: this.parseConfig(qs('#config')),
-				sheet: this.parseConfig(qs('#sheet_info')),
-				syncInfo: this.parseConfig(qs("#sync_info"))
+				config: this.parseServerTemplate(qs('#config')),
+				sheet: this.parseServerTemplate(qs('#sheet_info')),
+				syncInfo: this.parseServerTemplate(qs("#sync_info"))
 			};
 		}
 
@@ -494,7 +541,6 @@
 				this.DOM.sheetFooter.innerHTML = `current tab: <b>${this.DOM.sheet.name}</b>`;
 
 			}
-
 
 			// TYPES + MAPPINGS
 			this.DOM.typeSelector.addEventListener('change', (e) => {
@@ -570,8 +616,8 @@
 			// actions
 			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
 			this.DOM.testButton.addEventListener('click', () => { this.test(); });
-			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
-			this.DOM.clearButton.addEventListener('click', () => { this.clearConfig(); });
+			this.DOM.saveButton.addEventListener('click', () => { this.save(); });
+			this.DOM.clearButton.addEventListener('click', () => { this.clear(); });
 
 		}
 
@@ -637,7 +683,7 @@
 			return fields;
 		}
 
-		function parseConfig(node) {
+		function parseServerTemplate(node) {
 			try {
 				return JSON.parse(node.innerText);
 			}
@@ -714,7 +760,7 @@
 		----
 		*/
 
-		function saveConfig() {
+		function save() {
 			this.loader('show');
 			this.DOM.status.innerText = `saving...`;
 
@@ -739,7 +785,7 @@
 
 
 
-		function clearConfig() {
+		function clear() {
 			this.loader('show');
 			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
@@ -781,10 +827,7 @@
 					this.DOM.clearButton.disabled = false;
 					this.loadConfig(defaultConfig, true);
 				})
-				.clearConfig(this.getConfig());
-
-
-
+				.clear(this.getConfig());
 		}
 
 
@@ -806,8 +849,6 @@
 					this.DOM.syncButton.disabled = false;
 				})
 				.syncSheetsToMp(this.getConfig(), this.getCurrentSheet());
-
-
 		}
 
 		function test() {

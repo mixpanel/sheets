@@ -33,27 +33,44 @@
 
 	<section id="link">
 		<div class="prompt">
-			<span class="title">🔗 Provide the URL of the report you want to sync:</span>
+			<span class="title">🔗 Provide a URL from your project:</span>
 			<input type="text" class="data" id="mixpanel_report_url"
 				placeholder="https://mixpanel.com/project/{{pid}}/view/{{wid}}/app/{{report}}/#view/{{bookmark}}/{{title}}">
 		</div>
-		<span class="note">(note: to sync <b>cohorts</b>, paste a link from your project's cohort list)</span>
+		<span class="note">(note: you will provide a <b>cohort Id</b> or <b>report Id</b> if it cannot be found in your
+			URL)</span>
 	</section>
 
-	<section id="parsing">
-		<div class="prompt">
-			<span class="title">🛠️ Report Params</span>
-			<textarea id="display_url_params" cols="50" rows="6" disabled></textarea>
+
+
+	<section id="params">
+		<div id="regions" class="hidden">
+			region:
+			<span id="US" class="hidden">🇺🇸 United States</span>
+			<span id="EU" class="hidden">🇪🇺European Union</span>
+		</div>
+		<div class="one_line">
+			<div class="prompt">
+				<span class="title">🏠 Project Id:</span>
+				<input type="text" class="data param" id="project_id" placeholder="0000000" disabled>
+			</div>
+			<div class="prompt">
+				<span class="title">👓 Workspace Id:</span>
+				<input type="text" class="data param" id="workspace_id" placeholder="1111111" disabled>
+			</div>
+		</div>
+		<div class="one_line">
+			<div class="prompt">
+				<span class="title">📊 Report Id:</span>
+				<input type="text" class="data param" id="report_id" placeholder="2222222" disabled>
+			</div>
+			<span id="or">OR</span>
+			<div class="prompt">
+				<span class="title">👥 Cohort Id:</span>
+				<input type="text" class="data param" id="cohort_id" placeholder="3333333" disabled>
+			</div>
 		</div>
 	</section>
-
-	<section id="cohort" class="hidden">
-		<div class="prompt">
-			<span class="title">👥 provide your cohort's id:</span>
-			<input type="text" class="data" id="cohort_id" placeholder="2333059">
-		</div>
-	</section>
-
 
 	<section id="controls">
 		<div>
@@ -142,11 +159,57 @@
 			padding-bottom: 5px;
 		}
 
+		div.one_line {
+			display: flex;
+		}
+
+		#or {
+			position: absolute;
+			display: inline;
+			margin-top: 7px;
+			left: 160px;
+			color: var(--red);
+			font-weight: bolder;
+			font-size: 14px;
+		}
+
 		button {
 			font-size: 17px;
 			text-transform: lowercase !important;
-			border-radius: 8px !important;
+			border-radius: 6px !important;
+			border: 1px solid var(--gray) !important;
 		}
+
+		button:hover:not([disabled]) {
+			box-shadow: 0 1px 2px 0 var(--gray), 0 2px 4px 0 var(--lightGray);
+			cursor: pointer;
+		}
+
+		input:disabled {
+			background-color: var(--white);
+		}
+
+
+		#sync {
+			background: var(--purple);
+
+		}
+
+		#test {
+			background: var(--green);
+
+		}
+
+		#save {
+			background: var(--white);
+
+		}
+
+		#clear {
+			background: var(--red);
+
+		}
+
 
 		select {
 			font-size: 14px;
@@ -160,10 +223,12 @@
 			width: 180px;
 		}
 
-		#display_url_params {
-			background-color: var(--white);
-			font-family: monospace;
+		#regions {
+			opacity: .5;
+			padding-bottom: 2px;
+			padding-top: 2px
 		}
+
 
 		#mixpanel_report_url {
 			width: 550px
@@ -290,29 +355,37 @@
 		const qsa = document.querySelectorAll.bind(document);
 
 		const app = {
+			//storage
 			DOM: {},
-			cohorts: false,
 			init,
+
+			//interactive
 			cacheDOM,
 			bindEventsAndViews,
-			buildDropdowns,
+			parseURL,
+			loader,
+			urlViewControl,
+
+			//validation
 			getFields,
 			checkFields,
 			isValid,
-			saveConfig,
-			parseConfig,
-			clearConfig,
+
+			//parsing
+			parseServerData,
 			loadConfig,
 			getConfig,
+			
+			//buttons
 			sync,
-			parseURL,
-			displayURL,
-			loader
+			test,
+			save,
+			clear
+
 		};
 
 		function init() {
 			this.DOM = this.cacheDOM();
-			this.buildDropdowns(this.DOM.sheets);
 			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
 		}
@@ -325,52 +398,44 @@
 
 		function cacheDOM() {
 			return {
+				//fields
+				projectId: qs('#project_id'),
+				workspaceId: qs('#workspace_id'),
+				reportId: qs('#report_id'),
+				cohortId: qs('#cohort_id'),
 				mixpanelURL: qs('#mixpanel_report_url'),
-				displayURL: qs('#display_url_params'),
+				dataFields: Array.from(qsa('.data')),
+				paramFields: Array.from(qsa('.param')),
+
+				//regions
+				regionContainer: qs('#regions'),
+				US: qs('#US'),
+				EU: qs('#EU'),
+
+				//service
 				serviceUser: qs('#service_acct'),
 				serviceSecret: qs('#service_secret'),
+
+				//buttons
 				syncButton: qs('#sync'),
 				saveButton: qs('#save'),
 				clearButton: qs('#clear'),
 				testButton: qs('#test'),
+
+				//status
 				status: qs('#status span'),
-				cohortId: qs('#cohort_id'),
 				loader: qs('#loader'),
-				cohortContainer: qs('#cohort'),
 
 				// server-side
-				sheet: this.parseConfig(qs('#sheet_info')),
-				config: this.parseConfig(qs('#config')),
-				syncInfo: this.parseConfig(qs("#sync_info"))
+				sheet: this.parseServerData(qs('#sheet_info')),
+				config: this.parseServerData(qs('#config')),
+				syncInfo: this.parseServerData(qs("#sync_info"))
 			};
-		}
-
-		function buildDropdowns(sheets) {
-			// todo
-			// const selectMenus = Array.from(qsa('select.data.dropdown'));
-
-			// // columns fail to render; most likely a local test
-			// if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
-			// 	columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
-			// }
-
-			// for (const select of selectMenus) {
-			// 	for (const column of columns) {
-			// 		const opt = document.createElement('option');
-			// 		opt.value = column;
-			// 		opt.innerHTML = column;
-			// 		select.appendChild(opt);
-			// 	}
-			// }
-
 		}
 
 		function bindEventsAndViews() {
 			// URL parsing
-			this.DOM.mixpanelURL.addEventListener('input', () => {
-				const urlData = this.parseURL(this.DOM.mixpanelURL.value);
-				this.displayURL(urlData);
-			});
+			this.DOM.mixpanelURL.addEventListener('input', urlViewControl.bind(app));
 
 			// "real-time" field validation
 			for (const key in this.DOM) {
@@ -384,18 +449,116 @@
 
 			}
 
+			//fields
+
 			// actions
-			this.DOM.saveButton.addEventListener('click', () => { this.saveConfig(); });
-			this.DOM.testButton.addEventListener('click', () => { this.testConfig(); });
+			this.DOM.saveButton.addEventListener('click', () => { this.save(); });
 			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
-			this.DOM.clearButton.addEventListener('click', () => { this.clearConfig(); });
+
+		}
+		function urlViewControl() {
+			const urlData = this.parseURL(this.DOM.mixpanelURL.value);
+			const emptyFields = Object.values(urlData).filter(v => !v);
+
+			//buttons
+			if (emptyFields - 2 === this.DOM.paramFields.length) {
+				this.DOM.paramFields.forEach((f) => {
+					clear,
+						save,
+						f.disabled = true;
+				});
+			};
+
+			//deal with regions
+			if (urlData?.region) {
+				this.DOM.regionContainer.classList.remove('hidden');
+				if (urlData.region === 'US') {
+					this.DOM.US.classList.remove('hidden');
+					this.DOM.EU.classList.add('hidden');
+				}
+				if (urlData.region === 'EU') {
+					this.DOM.US.classList.add('hidden');
+					this.DOM.EU.classList.remove('hidden');
+				}
+
+			}
+
+			else {
+				this.DOM.regionContainer.classList.add('hidden');
+				this.DOM.US.classList.add('hidden');
+				this.DOM.EU.classList.add('hidden');
+			}
+
+			//re-enable all fields 
+			this.DOM.paramFields.forEach((f) => {
+				f.disabled = false;
+			});
+
+			//set field values
+			if (urlData?.project_id) { this.DOM.projectId.value = urlData.project_id; }
+			else { this.DOM.projectId.value = ''; }
+			if (urlData?.workspace_id) { this.DOM.workspaceId.value = urlData.workspace_id; }
+			else { this.DOM.workspaceId.value = ''; }
+			if (urlData?.report_id) { this.DOM.reportId.value = urlData.report_id; }
+			else { this.DOM.reportId.value = ''; }
+			if (urlData?.cohort_id) { this.DOM.cohortId.value = urlData.cohort_id; }
+			else { this.DOM.cohortId.value = ''; }
 
 		}
 
-		function displayURL(data) {
-			const sadEmoji = ['😢', '😭', '😿', '😞', '😩', '🙁', '😟', '😦', '😨', '😰'];
-			const e = sample.bind(sadEmoji);
-			this.DOM.displayURL.value = `Project Id: ${data.project_id || e()}\nWorkspace Id: ${data.workspace_id || e()}\nRegion: ${data.region || e()}\nReport Id: ${data.report_id || e()}`;
+		// example URLs:
+		// direct: https://mixpanel.com/project/2943452/view/3466588/app/retention/#report/38075736/a-retention-report/
+		// from board: https://mixpanel.com/project/2943452/view/3466588/app/boards#id=4690699&editor-card-id=%22report-38075736%22
+
+		function parseURL(inputUrl = "") {
+			let project_id = workspace_id = report_id = region = cohort_id = entity_type = null;
+			try {
+				if (!inputUrl.includes('mixpanel.com')) throw `not mixpanel url`;
+				const normalize = decodeURI(inputUrl);
+				if (normalize.includes('eu.mixpanel.com')) {
+					region = 'EU';
+				}
+				else {
+					region = 'US';
+				}
+				const [url, hash] = normalize.split(/#(.*)/s);
+				const splitURL = url.split('/');
+				project_id = splitURL[4];
+				workspace_id = splitURL[6];
+
+				// boards URLs are weird
+				if (hash.includes(`"report-`)) {
+					report_id = hash.split('"').filter(t => t.includes('report-'))[0].replace('report-', '');
+				}
+
+				else {
+					report_id = hash.split('/')[1];
+				}
+
+				//cohorts are treated separately
+				if (hash.includes('cohorts')) {
+					this.entity_type = 'cohort';
+				}
+
+				else {
+					this.entity_type = 'report';
+				}
+			}
+
+			catch (e) {
+				//noop
+			}
+
+
+
+			return {
+				project_id,
+				workspace_id,
+				report_id,
+				cohort_id,
+				region,
+				entity_type
+			};
 		}
 
 		/*
@@ -420,15 +583,6 @@
 			this.DOM.saveButton.disabled = false;
 			this.DOM.clearButton.disabled = false;
 			console.log(JSON.stringify(userData, null, 2));
-
-			if (this.entity_type === 'cohort') {
-				this.DOM.cohortContainer.classList.remove('hidden');
-			}
-
-			else {
-				this.DOM.cohortContainer.classList.add('hidden');
-			}
-
 
 
 			if (valid) {
@@ -455,7 +609,8 @@
 				return { [node.id]: node.value };
 			});
 
-			fields.params = this.parseURL(this.DOM.mixpanelURL.value);
+			// fields.params = this.parseURL(this.DOM.mixpanelURL.value);
+			fields.region = { region: this.DOM.regionContainer.querySelector('span:not(.hidden)').id };
 
 
 			return fields;
@@ -472,7 +627,7 @@
 			}
 		}
 
-			function parseConfig(node) {
+		function parseServerData(node) {
 			try {
 				return JSON.parse(node.innerText);
 			}
@@ -488,21 +643,47 @@
 		----
 		*/
 
-
-	
 		// todo: refactor this nonsense
 		function loadConfig(config, force = false) {
 			const {
 				service_acct,
 				service_secret,
 				mixpanel_report_url,
-				cohort_id
+				cohort_id,
+				report_id,
+				project_id,
+				workspace_id,
+				region
 			} = config;
 
 			if (service_acct || force) setValues('#service_acct', service_acct);
 			if (service_secret || force) setValues('#service_secret', service_secret);
 			if (mixpanel_report_url || force) setValues('#mixpanel_report_url', mixpanel_report_url);
 			if (cohort_id || force) setValues('#cohort_id', cohort_id);
+			if (report_id || force) setValues('#report_id', report_id);
+			if (project_id || force) setValues('#project_id', project_id);
+			if (workspace_id || force) setValues('#workspace_id', workspace_id);
+			if (region || force) {
+				if (region === 'US') {
+					this.DOM.regionContainer.classList.remove('hidden');
+					this.DOM.US.classList.remove('hidden');
+					this.DOM.EU.classList.add('hidden');
+
+				}
+
+				else if (region === 'EU') {
+					this.DOM.regionContainer.classList.remove('hidden');
+					this.DOM.US.classList.add('hidden');
+					this.DOM.EU.classList.remove('hidden');
+				}
+
+				else {
+					this.DOM.regionContainer.classList.add('hidden');
+					this.DOM.US.classList.add('hidden');
+					this.DOM.EU.classList.add('hidden');
+				}
+
+			}
 
 		}
 
@@ -520,7 +701,7 @@
 		----
 		*/
 
-		function saveConfig() {
+		function save() {
 			this.loader('show');
 			this.DOM.status.innerText = `saving...`;
 
@@ -535,21 +716,29 @@
 				.withFailureHandler((e) => {
 					this.loader('hide');
 					this.DOM.status.innerText = `✖️ SAVE FAILED ... got error:\n${e.message}`;
+
+					//fields
 					this.DOM.saveButton.disabled = false;
 				})
 				.setConfig(userData);
 		}
 
-		function clearConfig() {
-			this.loader('show');
+		function clear() {
 			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
-				service_acct: "",
+				ct: "",
 				service_secret: "",
 				mixpanel_report_url: "",
 
+				//buttons
+				cohort_id: "",
+				report_id: "",
+				clear,
+				save,
+				project_id: "",
+				workspace_id: "",
+				region: ""
 			};
-
 
 			google.script.run
 				.withSuccessHandler(() => {
@@ -559,33 +748,37 @@
 					this.loadConfig(defaultConfig, true);
 				})
 				.withFailureHandler((e) => {
+
+					//fields
 					this.loader('hide');
 					this.DOM.status.innerText = `✖️ DELETE FAILED ... got error:\n${e.message}`;
 					this.DOM.clearButton.disabled = false;
-					this.loadConfig(defaultConfig, true);
 				})
-				.clearConfig(this.getConfig());
+				.clearConfig(defaultConfig);
 		}
-
 
 		function sync() {
 			this.loader('show');
 			this.DOM.syncButton.disabled = true;
+
+			//buttons
 			this.DOM.status.innerText = `syncing data!`;
 
-			google.script.run
-				.withSuccessHandler(([responses, summary, link]) => {
-					this.loader('hide');
-					//this.DOM.status.innerText = `✔️ sync ran imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds; will run again in one hour!`;
-					this.DOM.syncButton.disabled = false;
-				})
-				.withFailureHandler((e) => {
-					this.loader('hide');
-					this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
-					this.DOM.projectLink.innerText = ``;
-					this.DOM.syncButton.disabled = false;
-				})
-				.syncMpToSheets(this.getConfig());
+			clear,
+				save,
+				google.script.run
+					.withSuccessHandler(([responses, summary, link]) => {
+						this.loader('hide');
+						//this.DOM.status.innerText = `✔️ sync ran imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds; will run again in one hour!`;
+						this.DOM.syncButton.disabled = false;
+					})
+					.withFailureHandler((e) => {
+						this.loader('hide');
+						this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
+						this.DOM.projectLink.innerText = ``;
+						this.DOM.syncButton.disabled = false;
+					})
+					.syncMpToSheets(this.getConfig());
 
 
 		}
@@ -626,78 +819,25 @@
 				service_acct,
 				service_secret,
 				mixpanel_report_url,
+				cohort_id,
+				report_id,
 				project_id,
 				workspace_id,
-				region,
-				report_id,
-				cohort_id
+				region
 			} = config;
 
 			if (!service_acct) return false;
 			if (!service_secret) return false;
-			if (!mixpanel_report_url) return false;
 			if (!project_id) return false;
 			if (!workspace_id) return false;
 			if (!region) return false;
 			if (!report_id && !cohort_id) return false;
+			if (report_id && cohort_id) return false;
 
 			return true;
 		}
 
-		// example URLs:
-		// direct: https://mixpanel.com/project/2943452/view/3466588/app/retention/#report/38075736/a-retention-report/
-		// from board: https://mixpanel.com/project/2943452/view/3466588/app/boards#id=4690699&editor-card-id=%22report-38075736%22
 
-		function parseURL(inputUrl) {
-			let project_id, workspace_id, report_id, region;
-			try {
-				const normalize = decodeURI(inputUrl);
-				if (normalize.includes('eu.mixpanel.com')) {
-					region = 'EU';
-				}
-				else {
-					region = 'US';
-				}
-				const [url, hash] = normalize.split(/#(.*)/s);
-				const splitURL = url.split('/');
-				project_id = splitURL[4];
-				workspace_id = splitURL[6];
-
-				// boards URLs are weird
-				if (hash.includes(`"report-`)) {
-					report_id = hash.split('"').filter(t => t.includes('report-'))[0].replace('report-', '');
-				}
-
-				else {
-					report_id = hash.split('/')[1];
-				}
-
-				//cohorts are treated separately
-				if (hash.includes('cohorts')) {
-					this.entity_type = 'cohort';
-				}
-
-				else {
-					this.entity_type = 'report';
-				}
-			}
-
-			catch (e) {
-				project_id = null;
-				workspace_id = null;
-				region = null,
-					report_id = null;
-			}
-
-
-
-			return {
-				project_id,
-				workspace_id,
-				report_id,
-				region
-			};
-		}
 
 
 		/*
