@@ -84,9 +84,17 @@ function runTests() {
     });
 
     test.assert("clones objects?", () => {
-        const original = { foo: { bar: "baz" }, qux: ["mux", "dux", "lux"], brew: { one: 1, two: 2, three: 3 } };
+        const original = {
+            foo: { bar: "baz" },
+            qux: ["mux", "dux", "lux"],
+            brew: { one: 1, two: 2, three: 3 }
+        };
         const cloned = Misc.clone(original);
-        return Misc.serial(original) === Misc.serial(cloned) && Misc.isDeepEqual(original, cloned) && cloned !== original;
+        return (
+            Misc.serial(original) === Misc.serial(cloned) &&
+            Misc.isDeepEqual(original, cloned) &&
+            cloned !== original
+        );
     });
 
     test.assert("serializes objects?", () => {
@@ -223,9 +231,13 @@ function runTests() {
         }
     );
 
-    test.catchErr("CREDS: bad api project?", `Mismatch between project secret's project ID and URL project ID`, () => {
-        validateCreds(BAD_PROJECT_API_SECRET);
-    });
+    test.catchErr(
+        "CREDS: bad api project?",
+        `Mismatch between project secret's project ID and URL project ID`,
+        () => {
+            validateCreds(BAD_PROJECT_API_SECRET);
+        }
+    );
 
     /*
 	----
@@ -247,6 +259,8 @@ function runTests() {
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
         return isDeepEqual(expected, imported);
     });
 
@@ -262,6 +276,8 @@ function runTests() {
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
         delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
         return isDeepEqual(expected, imported);
     });
 
@@ -277,6 +293,8 @@ function runTests() {
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
         delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
         return isDeepEqual(expected, imported);
     });
 
@@ -292,6 +310,8 @@ function runTests() {
         };
         const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
         delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
         return isDeepEqual(expected, imported);
     });
 

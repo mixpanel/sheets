@@ -7,18 +7,19 @@ STORAGE
 /**
  * gets current stored configuration
  *
- * @returns {Config}
+ * @returns {SheetMpConfig | MpSheetConfig}
  */
 function getConfig() {
-    const scriptProperties = PropertiesService.getScriptProperties()
-    return scriptProperties.getProperties();
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const props = scriptProperties.getProperties();
+    return props;
 }
 
 /**
  * sets a new stored configuration
  *
- * @param  {Config} config
- * @returns {Config}
+ * @param  {SheetMpConfig | MpSheetConfig} config
+ * @returns {SheetMpConfig | MpSheetConfig}
  */
 function setConfig(config) {
     const scriptProperties = PropertiesService.getScriptProperties();
@@ -30,8 +31,8 @@ function setConfig(config) {
 /**
  * clears all stored data & scheduled triggers
  *
- * @param  {Config} config
- * @returns {void}
+ * @param  {SheetMpConfig | MpSheetConfig} config
+ * @returns {{}}}
  */
 function clearConfig(config) {
     const scriptProperties = PropertiesService.getScriptProperties();
@@ -39,4 +40,9 @@ function clearConfig(config) {
     clearTriggers();
     track("clear", { record_type: config?.record_type, token: config?.token });
     return {};
+}
+
+if (typeof module !== "undefined") {
+    const { tracker } = require("../utilities/tracker.js");
+    module.exports = { getConfig, setConfig, clearConfig };
 }

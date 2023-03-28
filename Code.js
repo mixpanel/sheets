@@ -28,6 +28,7 @@ TODOs
 
 // todo: syncs + sync logs
 // todo: docs
+// todo: type checking
 
 /*
 ----
@@ -121,7 +122,9 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
     t("test end", { total, success, failed, seconds });
 
     //store config for future syncs
-    setConfig({ ...config, ...sheetInfo });
+    /** @type {SheetMpConfig} */
+    const storedConfig = { ...config, ...sheetInfo };
+    setConfig(storedConfig);
 
     return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
 }
@@ -238,5 +241,17 @@ if (typeof module !== "undefined") {
         createSheet,
         overwriteSheet
     } = require("./utilities/sheet");
+
+    const { getConfig, setConfig } = require("./components/storage.js");
     const { validateCreds } = require("./utilities/validate.js");
+    const { importData } = require("./components/dataImport.js");
+    const { exportData } = require("./components/dataExport.js");
+    module.exports = {
+        onOpen,
+        SheetToMixpanelView,
+        testSyncSheetsToMp,
+        syncSheetsToMp,
+        MixpanelToSheetView,
+        testSyncMpToSheets
+    };
 }

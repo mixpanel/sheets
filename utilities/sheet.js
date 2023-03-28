@@ -7,6 +7,54 @@ GET, CREATE AND UPDATE SHEETS + TABS
 // GETTERS
 
 /**
+ * utility to get reference to a sheet by any possible identifier
+ * 
+ * @param  {GoogleAppsScript.Spreadsheet.Sheet | number | string} [sheetIdentifier]
+ * @returns {GoogleAppsScript.Spreadsheet.Sheet}
+ */
+function getSheet(sheetIdentifier) {
+    const { id } = getSheetInfo(sheetIdentifier);
+    const sheet = getSheetById(id);
+	return sheet
+}
+
+/**
+ * utility to get an existing sheet's name and id OR current sheet's info
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet | number | string} [sheet]
+ * @returns {SheetInfo}
+ */
+function getSheetInfo(sheet) {
+    if (typeof sheet === "object") {
+        return {
+            name: sheet.getSheetName(),
+            id: sheet.getSheetId()
+        };
+    }
+
+    if (typeof sheet === "string") {
+        const foundSheet = SpreadsheetApp.getActive().getSheetByName(sheet);
+        return {
+            name: foundSheet.getSheetName(),
+            id: foundSheet.getSheetId()
+        };
+    }
+
+    if (typeof sheet === "number") {
+        const foundSheet = getSheetById(sheet);
+        return {
+            name: foundSheet.getSheetName(),
+            id: foundSheet.getSheetId()
+        };
+    }
+
+    return {
+        name: SpreadsheetApp.getActiveSheet().getName(),
+        id: SpreadsheetApp.getActiveSheet().getSheetId()
+    };
+}
+
+/**
  * fetch headers from sheet or current sheet
  * @param {GoogleAppsScript.Spreadsheet.Sheet} [sheet]
  * @returns {string[]}
@@ -18,24 +66,6 @@ function getSheetHeaders(sheet) {
     return headers;
 }
 
-/**
- * get an existing sheet info or current sheet's info
- *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} [sheet]
- * @returns {SheetInfo}
- */
-function getSheetInfo(sheet) {
-    if (sheet) {
-        return {
-            name: sheet.getSheetName(),
-            id: sheet.getSheetId()
-        };
-    }
-    return {
-        name: SpreadsheetApp.getActiveSheet().getName(),
-        id: SpreadsheetApp.getActiveSheet().getSheetId()
-    };
-}
 /**
  * get sheet reference by Id... idk why google doesn't have this
  *
@@ -55,11 +85,11 @@ function getSheetById(id) {
 /**
  * overwrites the contents of a spreadsheet with new data
  *
- * @param  {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @param  {string} csvString
+ * @param  {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @returns {SheetInfo}
  */
-function overwriteSheet(csvString, sheet, append = false) {
+function overwriteSheet(csvString, sheet) {
     var csvData = Utilities.parseCsv(csvString);
     sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
     return getSheetInfo(sheet);

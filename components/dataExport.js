@@ -220,3 +220,10 @@ function getCohortMeta(config) {
 function unNest(profile) {
     return { distinct_id: profile.$distinct_id, ...profile.$properties };
 }
+
+
+if (typeof module !== "undefined") {
+    module.exports = { exportData };
+    const { getConfig } = require("./storage.js");
+    const { validateCreds } = require("../utilities/validate.js");    
+}

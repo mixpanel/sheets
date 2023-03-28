@@ -8,11 +8,11 @@ TYPES
 */
 
 /**
- * @typedef {SheetMpConfig | MpSheetConfig} Config
+ * @typedef {SheetMpConfig & MpSheetConfig} Config
  */
 
 /**
- * @typedef {SheetMpConfigAlways & (EventMappings | UserMappings | GroupMappings | TableMappings)} SheetMpConfig
+ * @typedef {SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings)} SheetMpConfig
  *
  */
 
@@ -23,7 +23,7 @@ TYPES
  * @property {string} project_id the project identifier
  * @property {string} token the project token
  * @property {'US' | 'EU'} region US or EU residence
- * @property {'service_account' | 'api_secret'} auth_type how we will authenticate
+ * @property {'service_account' | 'api_secret'} [auth_type] how we will authenticate
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret
@@ -88,6 +88,11 @@ TYPES
  * @typedef {Object} SheetInfo basic infos about the current sheet
  * @property {string} name the human readable name of the sheet
  * @property {number} id the id of the sheet
+ */
+
+/**
+ * @typedef {Object} Summary
+ * @property {ImportResults} results
  */
 
 /**

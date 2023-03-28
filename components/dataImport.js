@@ -7,15 +7,15 @@ DATA INTO MP
 /**
  * import data from sheet; if not called with a config, uses last known
  *
- * @param  {SheetMpConfig} [config={}]
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
- * @returns {[ImportResponse[], Results]}
+ * @param  {SheetMpConfig} [config]
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} [sheet]
+ * @returns {[ImportResponse[], ImportResults]}
  */
-function importData(config = {}, sheet) {
+function importData(config, sheet) {
     const runId = Math.random();
     //use last known config if unset
-    if (JSON.stringify(config) === "{}") config = getConfig();
-    if (!config.auth) config.auth = validateCreds(cleanConfig);
+    if (!config) config = getConfig();
+    if (!config.auth) config.auth = validateCreds(config);
     const { record_type } = config;
 
     // console.log('SYNC');
@@ -24,19 +24,13 @@ function importData(config = {}, sheet) {
     const cleanConfig = getMixpanelConfig(config);
     const transform = getTransformType(cleanConfig);
 
-    // console.log('GET');
     const sourceData = getJSON(sheet);
 
-    // console.log(`TRANSFORM: ${comma(sourceData.length)} ${config.record_type}s`);
     const targetData = sourceData.slice().map(row => transform(row, mappings, cleanConfig));
 
-    // console.log(`FLUSH: ${comma(targetData.length)} ${config.record_type}s`);
     const imported = flushToMixpanel(targetData, cleanConfig);
     const endTime = Date.now();
 
-    // track('FLUSH', { runId, record_type });
-
-    // console.log(`FINISHED: ${runTime} seconds`);
     const summary = summarizeImport(cleanConfig, imported, startTime, endTime, targetData);
 
     if (cleanConfig.results.errors.length > 0) {
@@ -54,8 +48,20 @@ function importData(config = {}, sheet) {
  * @returns {EventMappings | UserMappings | GroupMappings | TableMappings}
  */
 function getMappings(config) {
-    const { record_type, event_name_col, distinct_id_col, time_col, insert_id_col, name_col, email_col, avatar_col, created_col, profile_operation } =
-        config;
+    const {
+        record_type,
+        event_name_col,
+        distinct_id_col,
+        time_col,
+        insert_id_col,
+        name_col,
+        email_col,
+        avatar_col,
+        created_col,
+        profile_operation,
+        lookup_table_id,
+        group_key
+    } = config;
 
     if (record_type === "event") {
         return {
@@ -79,6 +85,7 @@ function getMappings(config) {
 
     if (record_type === "group") {
         return {
+            group_key,
             distinct_id_col,
             name_col,
             email_col,
@@ -89,7 +96,9 @@ function getMappings(config) {
     }
 
     if (record_type === "table") {
-        return {};
+        return {
+            lookup_table_id
+        };
     }
 }
 
@@ -130,7 +139,7 @@ function getMixpanelConfig(config) {
  * find the right "transformer" to model the data
  *
  * @param  {SheetsMpConfig} config
- * @returns {callback}
+ * @returns {Function}
  */
 function getTransformType(config) {
     if (config.record_type === "event") return modelMpEvents;
@@ -145,9 +154,9 @@ function getTransformType(config) {
  * @param  {MpSheetConfig} cleanConfig
  * @param  {Responses} responses
  * @param  {number} startTime
- * @param  {number} endTime 
+ * @param  {number} endTime
  * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} targetData
- * @returns {Results}
+ * @returns {ImportResults}
  */
 function summarizeImport(cleanConfig, responses, startTime, endTime, targetData) {
     config = clone(cleanConfig);
@@ -184,4 +193,17 @@ function summarizeImport(cleanConfig, responses, startTime, endTime, targetData)
 
     config.results.record_type = config.record_type;
     return config.results;
+}
+
+if (typeof module !== "undefined") {
+    module.exports = { importData };
+    const { getConfig } = require("./storage.js");
+    const { validateCreds } = require("../utilities/validate.js");
+    const { flushToMixpanel } = require("../utilities/flush.js");
+    const { getJSON } = require("../utilities/toJson.js");
+    const { clone } = require("../utilities/misc.js");
+    const { modelMpEvents } = require("../models/modelEvents.js");
+    const { modelMpUsers } = require("../models/modelUsers.js");
+    const { modelMpTables } = require("../models/modelTables.js");
+    const { modelMpGroups } = require("../models/modelGroups.js");
 }

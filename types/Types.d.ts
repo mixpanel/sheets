@@ -1,5 +1,5 @@
-type Config = SheetMpConfig | MpSheetConfig;
-type SheetMpConfig = SheetMpConfigAlways & (EventMappings | UserMappings | GroupMappings | TableMappings);
+type Config = SheetMpConfig & MpSheetConfig;
+type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
 /**
  * all the options on a payload from Sheet → Mixpanel
  */
@@ -27,7 +27,7 @@ type SheetMpConfigAlways = {
     /**
      * how we will authenticate
      */
-    auth_type: 'service_account' | 'api_secret';
+    auth_type?: 'service_account' | 'api_secret';
     /**
      * service acct name
      */
@@ -206,6 +206,9 @@ type SheetInfo = {
      * the id of the sheet
      */
     id: number;
+};
+type Summary = {
+    results: ImportResults;
 };
 /**
  * summary of results of an import
