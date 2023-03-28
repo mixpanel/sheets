@@ -114,7 +114,7 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
         //bad credentials
         throw e;
     }
-    const sheet = getSheetById(sheetInfo.id);
+    const sheet = getSheetById(sheetInfo.sheet_id);
 
     t("test start"); //something happening here... what it is ain't exactly clear
     const [responses, summary] = importData(config, sheet);
@@ -131,12 +131,104 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
 
 /**
  * called when a user clicks the 'sync' button in the Sheet → Mixpanel UI
+ * creates a schedule sync and runs it
  *
- * @param  {SheetMpConfig} config
-//  * @returns  {[ImportResponse[], ImportResults[], string]}
+ * @param  {SheetMpConfig} config if not supplied, last known will be used
+ * @param {SheetInfo} sheetInfo the source sheet which contains the data
  */
-function syncSheetsToMp(config) {
-    return;
+function createSyncSheetsToMp(config, sheetInfo) {
+    //clear all triggers + stored data
+    clearConfig(getConfig());
+
+    //validate credentials
+    try {
+        const auth = validateCreds(config);
+        config.auth = auth;
+    } catch (e) {
+        //bad credentials
+        throw e;
+    }
+    const sheet = getSheetById(Number(sheetInfo.sheet_id));
+
+    //create the sheet for storing logs
+    const receiptSheetName = `Sheet → Mixpanel (${config.record_type} logs)`;
+    const receiptSheet = createSheet(receiptSheetName);
+    config.receipt_sheet = getSheetInfo(receiptSheetName).sheet_id;
+    const columns = `Start Time,End Time,Duration,Total,Success,Failed,Errors`;
+    overwriteSheet(columns, receiptSheet);
+    receiptSheet.setFrozenRows(1);
+
+    //store config for future syncs
+    /** @type {SheetMpConfig} */
+    const storedConfig = { ...config, ...sheetInfo };
+    setConfig(storedConfig);
+
+    //create the trigger
+    const trigger = ScriptApp.newTrigger("syncSheetsToMp").timeBased().everyHours(1).create();
+
+    //run a sync now
+    const [responses, summary] = importData(config, sheet);
+    const { startTime, endTime, seconds, total, success, failed, errors } = summary;
+    //dump results to sync log
+    receiptSheet
+        .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
+        .setValues([
+            [
+                new Date(startTime),
+                new Date(endTime),
+                `${seconds} seconds`,
+                total,
+                success,
+                failed,
+                JSON.stringify(errors, null, 2)
+            ]
+        ]);
+
+    //notify the end user
+    return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
+}
+
+function syncSheetsToMp() {
+    /** @type {SheetMpConfig & SheetInfo} */
+    const config = getConfig();
+    const sourceSheet = getSheet(Number(config.sheet_id));
+    const receiptSheet = getSheet(Number(config.receipt_sheet));
+
+    //validate credentials
+    if (!config.auth) {
+        const auth = validateCreds(config);
+        config.auth = auth;
+    }
+    try {
+        //run import
+        const [responses, summary] = importData(config, sourceSheet);
+
+        //dump results to sync log
+
+        const { startTime, endTime, seconds, total, success, failed, errors } = summary;
+        //dump results to sync log
+        receiptSheet
+            .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
+            .setValues([
+                [
+                    new Date(startTime),
+                    new Date(endTime),
+                    `${seconds} seconds`,
+                    total,
+                    success,
+                    failed,
+                    JSON.stringify(errors, null, 2)
+                ]
+            ]);
+
+        return { status: "success", error: null };
+    } catch (e) {
+        receiptSheet
+            .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
+            .setValues([[new Date(), new Date(), `-----`, `-----`, `-----`, `-----`, `ERROR:\n${e.message}`]]);
+
+        return { status: "fail", error: e };
+    }
 }
 
 /*
@@ -189,11 +281,12 @@ function testSyncMpToSheets(config) {
         let sheetName;
 
         if (config.entity_type === "cohort") {
+            //@ts-ignore
             sheetName = `cohort: ${metadata.cohort_name}`;
         } else if (config.entity_type === "report") {
+            //@ts-ignore
             sheetName = `report: ${metadata.report_name}`;
         }
-
         //this should never be the case
         else {
             sheetName = `mixpanel export`;
@@ -230,7 +323,8 @@ REF DOCS
 // ? low level scheduler: https://developers.google.com/apps-script/reference/script/trigger
 // ? delete triggers: https://stackoverflow.com/a/47217237
 // ? tests: https://github.com/WildH0g/UnitTestingApp
-//? bundling npm modules: https://12ft.io/proxy?q=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fthe-ultimate-guide-to-npm-modules-in-google-apps-script-a84545c3f57c
+// ? bundling npm modules: https://12ft.io/proxy?q=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fthe-ultimate-guide-to-npm-modules-in-google-apps-script-a84545c3f57c
+// ? overloads https://austingil.com/typescript-function-overloads-with-jsdoc/
 
 if (typeof module !== "undefined") {
     const { tracker } = require("./utilities/tracker.js");
@@ -239,10 +333,13 @@ if (typeof module !== "undefined") {
         getSheetById,
         getSheetInfo,
         createSheet,
-        overwriteSheet
+        overwriteSheet,
+        getSheet,
+        getEmptyRow
     } = require("./utilities/sheet");
 
-    const { getConfig, setConfig } = require("./components/storage.js");
+    const { getConfig, setConfig, clearConfig, getTriggers, clearTriggers } = require("./utilities/storage.js");
+
     const { validateCreds } = require("./utilities/validate.js");
     const { importData } = require("./components/dataImport.js");
     const { exportData } = require("./components/dataExport.js");
@@ -250,8 +347,9 @@ if (typeof module !== "undefined") {
         onOpen,
         SheetToMixpanelView,
         testSyncSheetsToMp,
-        syncSheetsToMp,
+        createSyncSheetsToMp,
         MixpanelToSheetView,
-        testSyncMpToSheets
+        testSyncMpToSheets,
+        syncSheetsToMp
     };
 }

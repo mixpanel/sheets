@@ -7,6 +7,7 @@
 	"MISCELANOUS",
 	"nocheck",
 	"STACKDRIVER",
+	"tldr",
 	"trux"
 ],
   "files.exclude": {

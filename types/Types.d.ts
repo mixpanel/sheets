@@ -1,5 +1,10 @@
-type Config = SheetMpConfig & MpSheetConfig;
-type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
+type RecordTypes = 'event' | 'user' | 'group' | 'table';
+type Regions = 'US' | 'EU';
+type ProfileOperation = '$set' | '$set_once' | string;
+type BatchSize = 200 | 2000 | number;
+type AuthModes = 'service_account' | 'api_secret';
+type EntityTypes = 'cohort' | 'report';
+type track = Function;
 /**
  * all the options on a payload from Sheet → Mixpanel
  */
@@ -11,7 +16,7 @@ type SheetMpConfigAlways = {
     /**
      * the record type being imported
      */
-    record_type: 'event' | 'user' | 'group' | 'table';
+    record_type: RecordTypes;
     /**
      * the project identifier
      */
@@ -23,11 +28,11 @@ type SheetMpConfigAlways = {
     /**
      * US or EU residence
      */
-    region: 'US' | 'EU';
+    region: Regions;
     /**
      * how we will authenticate
      */
-    auth_type?: 'service_account' | 'api_secret';
+    auth_type: AuthModes;
     /**
      * service acct name
      */
@@ -45,9 +50,82 @@ type SheetMpConfigAlways = {
      */
     auth?: string;
     /**
-     * size of batch
+     * id of the sheet to store sync results
      */
-    batchSize?: 200 | 2000;
+    receipt_sheet?: number;
+};
+/**
+ * all the options on a payload from Mixpanel → Sheet
+ */
+type MpSheetConfig = {
+    /**
+     * an identifier for where the config came from
+     */
+    config_type?: 'sheet-to-mixpanel';
+    /**
+     * URL from mixpanel report
+     */
+    mixpanel_report_url: string;
+    /**
+     * the project identifier
+     */
+    project_id: string;
+    /**
+     * service acct name
+     */
+    service_acct: string;
+    /**
+     * service acct pass
+     */
+    service_secret: string;
+    /**
+     * service acct pass
+     */
+    workspace_id: string;
+    /**
+     * US or EU residence
+     */
+    region: Regions;
+    /**
+     * is this a cohort or a report...
+     */
+    entity_type: EntityTypes;
+    /**
+     * id of the cohort
+     */
+    cohort_id?: string | number;
+    /**
+     * id of the report
+     */
+    report_id?: string | number;
+    /**
+     * base64 auth string
+     */
+    auth?: string;
+    /**
+     * id of the sheet to store sync results
+     */
+    receipt_sheet?: string;
+};
+/**
+ * a validated copy of SheetMpConfig
+ */
+type CleanConfig = {
+    auth: string;
+    project_id: string;
+    region: Regions;
+    batchSize: BatchSize;
+    results: {
+        batches: number;
+        total: number;
+        seconds: number;
+        success: number;
+        failed: number;
+        errors: any[];
+    };
+    record_type: RecordTypes;
+    token: string;
+    lookup_table_id?: string;
 };
 /**
  * mappings columns to fields for event imports
@@ -81,7 +159,7 @@ type UserMappings = {
     /**
      * the type of operation to preform when updating the profile
      */
-    profile_operation: '$set' | '$set_once' | string;
+    profile_operation: ProfileOperation;
     /**
      * the sheet's source column name to be mapped to $name
      */
@@ -114,7 +192,7 @@ type GroupMappings = {
     /**
      * the type of operation to preform when updating the profile
      */
-    profile_operation: '$set' | '$set_once' | string;
+    profile_operation: ProfileOperation;
     /**
      * the sheet's source column name to be mapped to $name
      */
@@ -140,75 +218,6 @@ type TableMappings = {
      * the id of the lookup table in mixpanel
      */
     lookup_table_id: string;
-};
-/**
- * all the options on a payload from Mixpanel → Sheet
- */
-type MpSheetConfig = {
-    /**
-     * an identifier for where the config came from
-     */
-    config_type?: 'sheet-to-mixpanel';
-    /**
-     * DEPRECATED; where to put the data
-     */
-    sheet_location?: 'current' | 'new';
-    /**
-     * URL from mixpanel report
-     */
-    mixpanel_report_url: string;
-    /**
-     * the project identifier
-     */
-    project_id: string;
-    /**
-     * service acct name
-     */
-    service_acct: string;
-    /**
-     * service acct pass
-     */
-    service_secret: string;
-    /**
-     * service acct pass
-     */
-    workspace_id: string;
-    /**
-     * base64 auth string
-     */
-    auth?: string;
-    /**
-     * US or EU residence
-     */
-    region: 'US' | 'EU';
-    /**
-     * id of the cohort
-     */
-    cohort_id?: string;
-    /**
-     * id of the report
-     */
-    report_id?: string;
-    /**
-     * is this a cohort or a report...
-     */
-    entity_type: 'cohort' | 'report';
-};
-/**
- * basic infos about the current sheet
- */
-type SheetInfo = {
-    /**
-     * the human readable name of the sheet
-     */
-    name: string;
-    /**
-     * the id of the sheet
-     */
-    id: number;
-};
-type Summary = {
-    results: ImportResults;
 };
 /**
  * summary of results of an import
@@ -243,7 +252,7 @@ type ImportResults = {
     /**
      * type of import
      */
-    record_type: 'event' | 'user' | 'group' | 'table';
+    record_type: RecordTypes;
 };
 /**
  * a mixpanel API response
@@ -252,6 +261,8 @@ type ImportResponse = {
     status: string;
     num_records_imported: number;
     code: number;
+    failed_records?: any[];
+    error?: string;
 };
 type ReportParams = {
     meta: ReportMeta;
@@ -283,6 +294,24 @@ type CohortMeta = {
     cohort_name: string;
     cohort_id: number;
     cohort_count: number;
+};
+type Config = SheetMpConfig & MpSheetConfig;
+type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
+type Summary = {
+    results: ImportResults;
+};
+/**
+ * basic infos about the current sheet
+ */
+type SheetInfo = {
+    /**
+     * the human readable name of the sheet
+     */
+    sheet_name: string;
+    /**
+     * the id of the sheet
+     */
+    sheet_id: number;
 };
 /**
  * - a mixpanel event
@@ -332,10 +361,6 @@ type mpEvProperties = {
  * valid mixpanel property values; {@link https://help.mixpanel.com/hc/en-us/articles/115004547063-Properties-Supported-Data-Types more info}
  */
 type PropValues = string | string[] | number | number[] | boolean | boolean[] | Date;
-/**
- * valid profile update types; {@link https://developer.mixpanel.com/reference/profile-set more info}
- */
-type ProfileOperation = '$set' | '$set_once' | '$add' | '$union' | '$append' | '$remove' | '$unset';
 /**
  * object of k:v pairs to update the profile
  */

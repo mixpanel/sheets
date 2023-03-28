@@ -7,30 +7,106 @@ TYPES
 ----
 */
 
+
+/*
+----
+PRIMITIVES
+----
+*/
+
 /**
- * @typedef {SheetMpConfig & MpSheetConfig} Config
+ * @typedef {'event' | 'user' | 'group' | 'table'} RecordTypes
  */
 
 /**
- * @typedef {SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings)} SheetMpConfig
- *
+ * @typedef {'US' | 'EU'} Regions
  */
+
+/**
+ * @typedef {'$set' | '$set_once' | string} ProfileOperation
+ */
+
+/**
+ * @typedef {200 | 2000 | number} BatchSize
+ */
+
+/**
+ * @typedef {'service_account' | 'api_secret'} AuthModes
+ */
+
+/**
+ * @typedef { 'cohort' | 'report'} EntityTypes
+ */
+
+/**	
+ * @typedef {Function} track
+ * @global
+ */
+
+/*
+----
+CORE CONFIGS
+----
+*/
+
 
 /**
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
  * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
- * @property {'event' | 'user' | 'group' | 'table'} record_type the record type being imported
+ * @property {RecordTypes} record_type the record type being imported
  * @property {string} project_id the project identifier
  * @property {string} token the project token
- * @property {'US' | 'EU'} region US or EU residence
- * @property {'service_account' | 'api_secret'} [auth_type] how we will authenticate
+ * @property {Regions} region US or EU residence
+ * @property {AuthModes} auth_type how we will authenticate
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret
  * @property {string} [auth] base64 encoded credentials
- * @property {200 | 2000} [batchSize] size of batch
+ * @property {number} [receipt_sheet] id of the sheet to store sync results
  *
  */
+
+/**
+ * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
+ * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
+ * @property {string} mixpanel_report_url URL from mixpanel report
+ * @property {string} project_id the project identifier
+ * @property {string} service_acct service acct name
+ * @property {string} service_secret service acct pass
+ * @property {string} workspace_id service acct pass
+ * @property {Regions} region US or EU residence
+ * @property {EntityTypes} entity_type is this a cohort or a report...
+ * @property {string | number} [cohort_id] id of the cohort
+ * @property {string | number} [report_id] id of the report
+ * @property {string} [auth] base64 auth string
+ * @property {string} [receipt_sheet] id of the sheet to store sync results
+ *
+ */
+
+
+/**
+ * @typedef {object} CleanConfig a validated copy of SheetMpConfig
+ * @property {string} auth
+ * @property {string} project_id
+ * @property {Regions} region
+ * @property {BatchSize} batchSize
+ * @property {object} results
+ * @property {number} results.batches
+ * @property {number} results.total
+ * @property {number} results.seconds
+ * @property {number} results.success
+ * @property {number} results.failed
+ * @property {Object[]} results.errors
+ * @property {RecordTypes} record_type
+ * @property {string} token
+ * @property {string} [lookup_table_id]
+ */
+
+/*
+----
+MAPPINGS
+----
+*/
 
 /**
  * @typedef {Object} EventMappings mappings columns to fields for event imports
@@ -43,19 +119,19 @@ TYPES
 /**
  * @typedef {Object} UserMappings mappings columns to fields for user imports
  * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
- * @property {'$set' | '$set_once' | string} profile_operation the type of operation to preform when updating the profile
+ * @property {ProfileOperation} profile_operation the type of operation to preform when updating the profile
  * @property {string} [name_col] the sheet's source column name to be mapped to $name
  * @property {string} [email_col] the sheet's source column name to be mapped to $email
  * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
  * @property {string} [created_col] the sheet's source column name to be mapped to $created
- * 
+ *
  */
 
 /**
  * @typedef {Object} GroupMappings mappings columns to fields for group imports
  * @property {string} distinct_id_col the sheet's source column name to be mapped to $distinct_id
  * @property {string} group_key the group identifier key
- * @property {'$set' | '$set_once' | string} profile_operation the type of operation to preform when updating the profile
+ * @property {ProfileOperation} profile_operation the type of operation to preform when updating the profile
  * @property {string} [name_col] the sheet's source column name to be mapped to $name
  * @property {string} [email_col] the sheet's source column name to be mapped to $email
  * @property {string} [avatar_col] the sheet's source column name to be mapped to $avatar
@@ -67,33 +143,13 @@ TYPES
  * @property {string} lookup_table_id the id of the lookup table in mixpanel
  */
 
-/**
- * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
- * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
- * @property {'current' | 'new'} [sheet_location] DEPRECATED; where to put the data
- * @property {string} mixpanel_report_url URL from mixpanel report
- * @property {string} project_id the project identifier
- * @property {string} service_acct service acct name
- * @property {string} service_secret service acct pass
- * @property {string} workspace_id service acct pass
- * @property {string} [auth] base64 auth string
- * @property {'US' | 'EU'} region US or EU residence
- * @property {string} [cohort_id] id of the cohort
- * @property {string} [report_id] id of the report
- * @property {'cohort' | 'report'} entity_type is this a cohort or a report...
- *
- */
 
-/**
- * @typedef {Object} SheetInfo basic infos about the current sheet
- * @property {string} name the human readable name of the sheet
- * @property {number} id the id of the sheet
- */
+/*
+----
+DATA IMPORTS
+----
+*/
 
-/**
- * @typedef {Object} Summary
- * @property {ImportResults} results
- */
 
 /**
  * @typedef {Object} ImportResults summary of results of an import
@@ -105,7 +161,7 @@ TYPES
  * @property {number} endTime
  * @property {number} batches batches of requests
  * @property {Object[]} errors any failed requests
- * @property {'event' | 'user' | 'group' | 'table'} record_type type of import
+ * @property {RecordTypes} record_type type of import
  */
 
 /**
@@ -113,7 +169,16 @@ TYPES
  * @property {string} status
  * @property {number} num_records_imported
  * @property {number} code
+ * @property {Object[]} [failed_records]
+ * @property {string} [error]
  */
+
+
+/*
+----
+DATA EXPORTS
+----
+*/
 
 /**
  * @typedef {Object} ReportParams
@@ -145,6 +210,45 @@ TYPES
  * @property {number} cohort_id
  * @property {number} cohort_count
  */
+
+
+/*
+----
+COMPLEX TYPES
+----
+*/
+
+
+/**
+ * @typedef {SheetMpConfig & MpSheetConfig} Config
+ */
+
+/**
+ * @typedef {SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings)} SheetMpConfig
+ *
+ */
+
+/**
+ * @typedef {Object} Summary
+ * @property {ImportResults} results
+ */
+
+
+
+/*
+----
+MISC
+----
+*/
+
+/**
+ * @typedef {Object} SheetInfo basic infos about the current sheet
+ * @property {string} sheet_name the human readable name of the sheet
+ * @property {number} sheet_id the id of the sheet
+ */
+
+
+
 
 /*
 ----

@@ -27,6 +27,10 @@
 	</div>
 
 	<!-- ACTUAL UI -->
+	<div id="sync_notification">
+		<span>active sync found on sheet <span id="sync_notification_sheet">SHEET NAME</span></span><br />
+		<span>to make changes, use the clear button</span>
+	</div>
 	<section id="type">
 		<div class="prompt">
 			<span class="title"> What type of data are you importing<a target="_blank"
@@ -257,9 +261,27 @@
 			border: 1px solid var(--gray) !important;
 		}
 
+		input[disabled] {
+			background-color: var(--white);
+			opacity: .5;
+		}
+
 		button:hover:not([disabled]) {
 			box-shadow: 0 1px 2px 0 var(--gray), 0 2px 4px 0 var(--lightGray);
 			cursor: pointer;
+		}
+
+		#sync_notification {
+			position: absolute;
+			width: 250px;
+			right: 10%;
+			color: var(--orange);
+			font-size: 14px;
+		}
+
+		#sync_notification_sheet {
+			font-weight: bolder;
+			color: var(--purple)
 		}
 
 
@@ -439,6 +461,7 @@
 			bindEventsAndViews,
 			buildDropdowns,
 			loader,
+			freezeView,
 
 			//validation
 			getFields,
@@ -464,6 +487,7 @@
 			this.buildDropdowns(this.DOM.columns);
 			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
+			this.freezeView();
 		}
 
 		/*
@@ -492,6 +516,7 @@
 				serviceSecret: qs('#service_secret'),
 				apiSecret: qs('#api_secret'),
 				allMappingFields: Array.from(qsa('select.dropdown.data, input.data.field')),
+				allUserInputFields: Array.from((qsa('select, input, button, .data'))),
 
 				//labels
 				typeLabel: qs('#type_label'),
@@ -507,6 +532,8 @@
 				status: qs('#status_text'),
 				sheetFooter: qs('#sheet_footer'),
 				projectLink: qs('#project_link'),
+				activeSync: qs('#sync_notification'),
+				syncSheetLabel: qs('#sync_notification_sheet'),
 
 				//parsed server templates
 				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
@@ -782,9 +809,6 @@
 				.setConfig(userData);
 		}
 
-
-
-
 		function clear() {
 			this.loader('show');
 			this.DOM.status.innerText = `clearing...`;
@@ -814,10 +838,11 @@
 			google.script.run
 				.withSuccessHandler(() => {
 					this.loader('hide');
-					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.clearButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
+					this.DOM.activeSync.classList.add('hidden');
+					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;
 
 				})
 				.withFailureHandler((e) => {
@@ -827,7 +852,7 @@
 					this.DOM.clearButton.disabled = false;
 					this.loadConfig(defaultConfig, true);
 				})
-				.clear(this.getConfig());
+				.clearConfig(this.getConfig());
 		}
 
 
@@ -839,7 +864,8 @@
 			google.script.run
 				.withSuccessHandler(([responses, summary, link]) => {
 					this.loader('hide');
-					this.DOM.status.innerText = `✔️ sync ran imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds; will run again in one hour!`;
+					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary;
+					this.DOM.status.innerText = `✔️ sync imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds\n⏰ your configuration will sync every hour!`;
 					this.DOM.syncButton.disabled = false;
 				})
 				.withFailureHandler((e) => {
@@ -848,7 +874,7 @@
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.syncButton.disabled = false;
 				})
-				.syncSheetsToMp(this.getConfig(), this.getCurrentSheet());
+				.createSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
 		}
 
 		function test() {
@@ -885,6 +911,16 @@
 		VALIDATION
 		----
 		*/
+
+		function freezeView() {
+			// FREEZE UI IF SYNC IS ENABLED
+			if (this.DOM.syncInfo.filter(s => s?.id).length) {
+				this.DOM.activeSync.classList.remove('hidden');
+				this.DOM.syncSheetLabel.innerText = this.DOM.config.sheet_name || "";
+				this.DOM.allUserInputFields.forEach(n => n.disabled = true);
+				this.DOM.clearButton.disabled = false;
+			}
+		}
 
 		function isValid(config) {
 			const { record_type, project_id, token, region, auth_type, service_acct, service_secret, api_secret } = config;

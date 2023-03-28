@@ -14,6 +14,7 @@ DATA INTO MP
 function importData(config, sheet) {
     const runId = Math.random();
     //use last known config if unset
+    //@ts-ignore
     if (!config) config = getConfig();
     if (!config.auth) config.auth = validateCreds(config);
     const { record_type } = config;
@@ -106,7 +107,7 @@ function getMappings(config) {
  * clean version of params + creds; don't trust the front-end
  *
  * @param  {SheetMpConfig} config
- * @returns {SheetMpConfig & Summary}
+ * @returns {CleanConfig}
  */
 function getMixpanelConfig(config) {
     const { record_type, lookup_table_id, project_id, token, group_key, region, auth } = config;
@@ -138,7 +139,7 @@ function getMixpanelConfig(config) {
 /**
  * find the right "transformer" to model the data
  *
- * @param  {SheetsMpConfig} config
+ * @param  {CleanConfig} config
  * @returns {Function}
  */
 function getTransformType(config) {
@@ -151,15 +152,15 @@ function getTransformType(config) {
 
 /**
  * uses the responses to update the config
- * @param  {MpSheetConfig} cleanConfig
- * @param  {Responses} responses
+ * @param  {CleanConfig} cleanConfig
+ * @param  {ImportResponse[]} responses
  * @param  {number} startTime
  * @param  {number} endTime
  * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} targetData
  * @returns {ImportResults}
  */
 function summarizeImport(cleanConfig, responses, startTime, endTime, targetData) {
-    config = clone(cleanConfig);
+    const config = clone(cleanConfig);
     config.results.startTime = startTime;
     config.results.endTime = endTime;
     config.results.seconds = Math.floor(endTime - startTime) / 1000;
@@ -197,7 +198,7 @@ function summarizeImport(cleanConfig, responses, startTime, endTime, targetData)
 
 if (typeof module !== "undefined") {
     module.exports = { importData };
-    const { getConfig } = require("./storage.js");
+    const { getConfig } = require("../utilities/storage.js");
     const { validateCreds } = require("../utilities/validate.js");
     const { flushToMixpanel } = require("../utilities/flush.js");
     const { getJSON } = require("../utilities/toJson.js");

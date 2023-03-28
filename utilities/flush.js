@@ -9,7 +9,7 @@ SEND TO MIXPANEL
  * todo size batching : https://developer.mixpanel.com/reference/import-events#high-level-requirements
  *
  * @param  {mpEvent[] | mpUser[] | mpGroup[] | Object[]} data
- * @param  {SheetMpConfig} config
+ * @param  {CleanConfig} config
  * @param  {1 | 0} strict use or don't use strict mode
  */
 function flushToMixpanel(data, config, strict = 1) {
@@ -20,11 +20,11 @@ function flushToMixpanel(data, config, strict = 1) {
     let sub = `api`;
     if (region === "EU") sub = `api-eu`;
     let URL;
-    if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&project_id=${config.project_id}`;
+	let projIdQs = `project_id=${config.project_id}`;
+    if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&${projIdQs}`;
     if (record_type === "user") URL = `https://${sub}.mixpanel.com/engage?verbose=1`;
     if (record_type === "group") URL = `https://${sub}.mixpanel.com/groups?verbose=1`;
-    //@ts-ignore
-    if (record_type === "table") URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?project_id=${config.project_id}`;
+    if (record_type === "table") URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?${projIdQs}`;
 
     /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {

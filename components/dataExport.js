@@ -7,21 +7,22 @@ DATA OUT OF MP
 /**
  * export data; if not called with a config, uses last known
  *
- * @param  {MpSheetConfig} [config={}]
- * @returns {[string, ReportMeta & CohortMeta]} string + metadata `[csv, {}]`
+ * @param  {MpSheetConfig} [config]
+ * @returns {[string, ReportMeta | CohortMeta]} string + metadata `[csv, {}]`
  */
-function exportData(config = {}) {
+function exportData(config) {
     const startTime = Date.now();
     const runId = Math.random();
     //use last known config if unset
-    if (JSON.stringify(config) === "{}") config = getConfig();
+    //@ts-ignore
+    if (!config) config = getConfig();
     if (!config.auth) config.auth = validateCreds(config);
 
     const type = config.entity_type;
 
     if (type === "report") {
         try {
-            const report = getParams(config, type);
+            const report = getParams(config);
             const { meta, payload } = report;
             const csv = getReportCSV(meta.report_type, payload, config);
             return [csv, meta];
@@ -55,8 +56,10 @@ function getParams(config) {
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
     const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${workspace_id}/bookmarks/${report_id}?v=2`;
+    
+	/** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "GET",
+        method: "get",
         headers: {
             Authorization: `Basic ${auth}`,
             Accept: "application/json"
@@ -75,7 +78,8 @@ function getParams(config) {
             project_id: data?.results?.project_id,
             dashboard_id: data?.results?.dashboard_id,
             workspace_id: data?.results?.workspace_id,
-            report_creator: data?.results?.creator_name || data?.results?.email || data?.results?.creator_id || "unknown"
+            report_creator:
+                data?.results?.creator_name || data?.results?.email || data?.results?.creator_id || "unknown"
         },
         payload: data?.results?.params
     };
@@ -86,7 +90,7 @@ function getParams(config) {
 /**
  * turn report metadata into a CSV of it's results
  *
- * @param  {'insights', 'funnels', 'retention'} report_type
+ * @param  {'insights' | 'funnels' | 'retention' | string} report_type
  * @param  {Object} params a whole bookmark's payload
  * @param  {MpSheetConfig} config
  */
@@ -111,8 +115,9 @@ function getReportCSV(report_type, params, config) {
         format: "csv"
     };
 
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "POST",
+        method: "post",
         headers: {
             Authorization: `Basic ${auth}`
         },
@@ -143,8 +148,9 @@ function getCohort(config) {
         include_all_users: false
     };
 
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "POST",
+        method: "post",
         headers: {
             Authorization: `Basic ${auth}`,
             "Content-Type": `application/x-www-form-urlencoded`
@@ -182,7 +188,7 @@ function getCohort(config) {
 /**
  * get's meta information about a cohort
  * @param  {MpSheetConfig} config
- * @returns {CohortInfo}
+ * @returns {CohortMeta}
  */
 function getCohortMeta(config) {
     const { project_id, workspace_id, region, auth, cohort_id } = config;
@@ -191,8 +197,9 @@ function getCohortMeta(config) {
 
     let URL = `https://${subdomain}mixpanel.com/api/2.0/cohorts/list?workspace_id=${workspace_id}&project_id=${project_id}`;
 
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
-        method: "POST",
+        method: "post",
         headers: {
             Authorization: `Basic ${auth}`,
             Accept: `application/json`
@@ -218,12 +225,13 @@ function getCohortMeta(config) {
  * @returns {Object<string, PropValues>}
  */
 function unNest(profile) {
-    return { distinct_id: profile.$distinct_id, ...profile.$properties };
+	//@ts-ignore
+    return { distinct_id: profile?.$distinct_id || profile?.group_id, ...profile.$properties };
 }
-
 
 if (typeof module !== "undefined") {
     module.exports = { exportData };
-    const { getConfig } = require("./storage.js");
-    const { validateCreds } = require("../utilities/validate.js");    
+    const { getConfig } = require("../utilities/storage.js");
+    const { validateCreds } = require("../utilities/validate.js");
+	const { JSONtoCSV } = require('../utilities/misc.js')
 }

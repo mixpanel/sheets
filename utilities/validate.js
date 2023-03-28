@@ -6,7 +6,7 @@ VALIDATE CREDENTIALS
 
 /**
  * validate service account or API secret credentials
- * @param  {SheetMpConfig | MpSheetConfig} config
+ * @param  {SheetMpConfig | MpSheetConfig | CleanConfig} config
  * @returns {string} a valid auth string
  * @throws {Error} a validation error
  */

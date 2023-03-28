@@ -2,10 +2,12 @@
 	"compilerOptions": {
 		"module": "None",
 		"checkJs": true,
+		"allowJs": true,
 		"typeRoots": [
 			"./node_modules/@types",
 			"./types"
-		]
+		],
+		"skipLibCheck": true
 	},
 	"exclude": [
 		"node_modules"

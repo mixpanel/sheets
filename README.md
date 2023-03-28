@@ -1,4 +1,4 @@
-# 🧮 sheets-mixpanel
+# 🧮 sheets ⇔ mixpanel
 
 connect your google sheet with mixpanel! use **Sheet → Mixpanel** to import and sync events, profiles, groups + lookup tables! use **Mixpanel → Sheet** to export and sync reports or cohorts!
 

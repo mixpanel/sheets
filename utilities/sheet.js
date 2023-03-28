@@ -8,14 +8,14 @@ GET, CREATE AND UPDATE SHEETS + TABS
 
 /**
  * utility to get reference to a sheet by any possible identifier
- * 
+ *
  * @param  {GoogleAppsScript.Spreadsheet.Sheet | number | string} [sheetIdentifier]
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}
  */
 function getSheet(sheetIdentifier) {
-    const { id } = getSheetInfo(sheetIdentifier);
-    const sheet = getSheetById(id);
-	return sheet
+    const { sheet_id } = getSheetInfo(sheetIdentifier);
+    const sheet = getSheetById(sheet_id);
+    return sheet;
 }
 
 /**
@@ -27,30 +27,30 @@ function getSheet(sheetIdentifier) {
 function getSheetInfo(sheet) {
     if (typeof sheet === "object") {
         return {
-            name: sheet.getSheetName(),
-            id: sheet.getSheetId()
+            sheet_name: sheet.getSheetName(),
+            sheet_id: sheet.getSheetId()
         };
     }
 
     if (typeof sheet === "string") {
         const foundSheet = SpreadsheetApp.getActive().getSheetByName(sheet);
         return {
-            name: foundSheet.getSheetName(),
-            id: foundSheet.getSheetId()
+            sheet_name: foundSheet.getSheetName(),
+            sheet_id: foundSheet.getSheetId()
         };
     }
 
     if (typeof sheet === "number") {
         const foundSheet = getSheetById(sheet);
         return {
-            name: foundSheet.getSheetName(),
-            id: foundSheet.getSheetId()
+            sheet_name: foundSheet.getSheetName(),
+            sheet_id: foundSheet.getSheetId()
         };
     }
 
     return {
-        name: SpreadsheetApp.getActiveSheet().getName(),
-        id: SpreadsheetApp.getActiveSheet().getSheetId()
+        sheet_name: SpreadsheetApp.getActiveSheet().getName(),
+        sheet_id: SpreadsheetApp.getActiveSheet().getSheetId()
     };
 }
 
@@ -78,6 +78,24 @@ function getSheetById(id) {
         .filter(function (s) {
             return s.getSheetId() === id;
         })[0];
+}
+
+/**
+ * get the first empty row
+ * @param  {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @returns {number}
+ */
+function getEmptyRow(sheet) {
+    if (!sheet) {
+        sheet = SpreadsheetApp.getActiveSheet();
+    }
+    var range = sheet.getDataRange();
+    var values = range.getValues();
+    var row = 0;
+    for (var row = 0; row < values.length; row++) {
+        if (!values[row].join("")) break;
+    }
+    return row + 1;
 }
 
 // SETTERS
@@ -140,6 +158,8 @@ if (typeof module !== "undefined") {
         deleteSheet,
         getSheetHeaders,
         getSheetInfo,
-        getSheetById
+        getSheetById,
+        getSheet,
+		getEmptyRow
     };
 }
