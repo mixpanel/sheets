@@ -79,7 +79,8 @@ CORE CONFIGS
  * @property {string | number} [cohort_id] id of the cohort
  * @property {string | number} [report_id] id of the report
  * @property {string} [auth] base64 auth string
- * @property {string} [receipt_sheet] id of the sheet to store sync results
+ * @property {number} [receipt_sheet] id of the sheet to store sync results
+ * @property {number} [dest_sheet] id of the sheet to show the data in
  *
  */
 

@@ -9,8 +9,6 @@
 </head>
 <!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
 
-<!-- HTML -->
-
 <body>
 	<!-- DATA FROM SERVER -->
 	<div id="columns" class="hidden">
@@ -27,9 +25,9 @@
 	</div>
 
 	<!-- ACTUAL UI -->
-	<div id="sync_notification">
+	<div id="sync_notification" class="hidden">
 		<span>active sync found on sheet <span id="sync_notification_sheet">SHEET NAME</span></span><br />
-		<span>to make changes, use the clear button</span>
+		<span>to make changes, use the <span style="color: var(--red); font-weight: bolder;">clear button</span></span>
 	</div>
 	<section id="type">
 		<div class="prompt">
@@ -47,7 +45,7 @@
 	<section id="mappings">
 		<div class="prompt">
 			<span class="title">
-				What are the mappings from your columns headers to Mixpanel <span id="type_label">event</span> fields<a
+				🧭 What are the mappings from your columns headers to Mixpanel <span id="type_label">event</span> fields<a
 					target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
 			</span>
@@ -127,17 +125,17 @@
 
 	<section id="auth">
 		<div class="prompt">
-			<span class="title">What is your project's id<a target="_blank"
+			<span class="title">🏠 What is your project's id<a target="_blank"
 					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id">?</a></span>
 			<input type="text" id="project_id" class="data" placeholder="123456789">
 		</div>
 		<div class="prompt">
-			<span class="title">What is your project's token<a target="_blank"
+			<span class="title">🎟 What is your project's token<a target="_blank"
 					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-token">?</a></span>
 			<input type="text" id="token" class="data" placeholder="abcdefghijklmnop">
 		</div>
 		<div class="prompt">
-			<span class="title">What is your project's region<a target="_blank"
+			<span class="title">🌍 What is your project's region<a target="_blank"
 					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#data-residency">?</a></span>
 			<select id="region" class="data">
 				<option value="US">🇺🇸 United States</option>
@@ -145,7 +143,7 @@
 			</select>
 		</div>
 		<div class="prompt">
-			<span class="title"> How will you authenticate<a target="_blank"
+			<span class="title">🔑 How will you authenticate<a target="_blank"
 					href="https://developer.mixpanel.com/reference/service-accounts">?</a></span>
 			<select id="auth_type" class="data">
 				<option value="service_account">🤖 service account</option>
@@ -274,7 +272,7 @@
 		#sync_notification {
 			position: absolute;
 			width: 250px;
-			right: 10%;
+			right: 15%;
 			color: var(--orange);
 			font-size: 14px;
 		}
@@ -549,6 +547,11 @@
 			// columns fail to render; most likely a local test
 			if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
 				columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
+			}
+
+			const existingCols = Object.values(filterObj(app.DOM.config, key => key.endsWith("_col"), "key"));
+			for (const col of existingCols) {
+				columns.push(col);
 			}
 
 			for (const select of selectMenus) {
@@ -838,11 +841,14 @@
 			google.script.run
 				.withSuccessHandler(() => {
 					this.loader('hide');
-					this.DOM.projectLink.innerText = ``;
-					this.DOM.clearButton.disabled = true;
-					this.loadConfig(defaultConfig, true);
+					this.DOM.projectLink.innerText = ``;					
 					this.DOM.activeSync.classList.add('hidden');
-					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;
+					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;					
+					this.DOM.allUserInputFields.forEach(n => n.disabled = false);					
+					this.DOM.clearButton.disabled = true;					
+					this.DOM.syncButton.disabled = true;
+					this.DOM.testButton.disabled = true;
+					this.loadConfig(defaultConfig, true);
 
 				})
 				.withFailureHandler((e) => {

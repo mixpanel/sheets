@@ -328,8 +328,8 @@ function runTests() {
             report_creator: "AK "
         };
 
-        const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
-        return isDeepEqual(expected, results.metadata);
+        const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
+        return isDeepEqual(expected, metadata);
     });
 
     test.assert("SYNCS: funnels?", () => {
@@ -344,8 +344,8 @@ function runTests() {
             dashboard_id: 4690699
         };
 
-        const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
-        return isDeepEqual(expected, results.metadata);
+        const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
+        return isDeepEqual(expected, metadata);
     });
 
     test.assert("SYNCS: retention?", () => {
@@ -360,8 +360,8 @@ function runTests() {
             dashboard_id: 4690699
         };
 
-        const results = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
-        return isDeepEqual(expected, results.metadata);
+        const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
+        return isDeepEqual(expected, metadata);
     });
 
     test.assert("SYNCS: cohorts?", () => {
@@ -373,8 +373,8 @@ function runTests() {
             cohort_count: 1617
         };
 
-        const results = testSyncMpToSheets(TEST_CONFIG_COHORTS);
-        return isDeepEqual(expected, results.metadata);
+        const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_COHORTS);
+        return isDeepEqual(expected, metadata);
     });
 
     test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {

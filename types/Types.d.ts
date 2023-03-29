@@ -105,7 +105,11 @@ type MpSheetConfig = {
     /**
      * id of the sheet to store sync results
      */
-    receipt_sheet?: string;
+    receipt_sheet?: number;
+    /**
+     * id of the sheet to show the data in
+     */
+    dest_sheet?: number;
 };
 /**
  * a validated copy of SheetMpConfig

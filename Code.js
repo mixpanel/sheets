@@ -131,7 +131,7 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
 
 /**
  * called when a user clicks the 'sync' button in the Sheet → Mixpanel UI
- * creates a schedule sync and runs it
+ * creates a scheduled sync and runs it
  *
  * @param  {SheetMpConfig} config if not supplied, last known will be used
  * @param {SheetInfo} sheetInfo the source sheet which contains the data
@@ -188,18 +188,22 @@ function createSyncSheetsToMp(config, sheetInfo) {
     return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
 }
 
+/**
+ * called automatically by the trigger
+ */
 function syncSheetsToMp() {
     /** @type {SheetMpConfig & SheetInfo} */
     const config = getConfig();
     const sourceSheet = getSheet(Number(config.sheet_id));
     const receiptSheet = getSheet(Number(config.receipt_sheet));
 
-    //validate credentials
-    if (!config.auth) {
-        const auth = validateCreds(config);
-        config.auth = auth;
-    }
     try {
+        //validate credentials
+        if (!config.auth) {
+            const auth = validateCreds(config);
+            config.auth = auth;
+        }
+
         //run import
         const [responses, summary] = importData(config, sourceSheet);
 
@@ -293,17 +297,64 @@ function testSyncMpToSheets(config) {
         }
 
         const destSheet = createSheet(sheetName);
+        config.dest_sheet = getSheetInfo(destSheet).sheet_id;
+        setConfig(config);
         const updatedSheet = overwriteSheet(csvData, destSheet);
 
         t("test end");
 
-        return {
-            updatedSheet,
-            metadata
-        };
+        return [updatedSheet, metadata];
     } catch (e) {
         throw e;
     }
+}
+/**
+ * called when a user clicks the 'sync' button in the Mixpanel → Sheet UI
+ * creates a scheduled sync and runs it
+ *
+ * @param  {MpSheetConfig} config
+ */
+function createSyncMpToSheets(config) {
+    //todo!!!
+    //clear all triggers + stored data
+    clearConfig(getConfig());
+
+    //validate credentials
+    try {
+        const auth = validateCreds(config);
+        config.auth = auth;
+    } catch (e) {
+        //bad credentials
+        throw e;
+    }
+    const sheet = getSheetById(Number(sheetInfo.sheet_id));
+
+    //create the sheet for storing logs
+    const receiptSheetName = `Sheet → Mixpanel (${config.record_type} logs)`;
+    const receiptSheet = createSheet(receiptSheetName);
+    config.receipt_sheet = getSheetInfo(receiptSheetName).sheet_id;
+    const columns = `Start Time,End Time,Duration,Total,Success,Failed,Errors`;
+    overwriteSheet(columns, receiptSheet);
+    receiptSheet.setFrozenRows(1);
+
+    //store config for future syncs
+    /** @type {SheetMpConfig} */
+    const storedConfig = { ...config, ...sheetInfo };
+    setConfig(storedConfig);
+
+    //create the trigger
+    const trigger = ScriptApp.newTrigger("syncSheetsToMp").timeBased().everyHours(1).create();
+}
+
+/**
+ * called automatically by the trigger
+ */
+function syncMpToSheets() {
+    //todo!!!
+    /** @type {MpSheetConfig} */
+    const config = getConfig();
+    const destSheet = getSheet(Number(config.dest_sheet));
+    const receiptSheet = getSheet(Number(config.receipt_sheet));
 }
 
 /*

@@ -9,9 +9,9 @@
 </head>
 <!-- TODO: separate assets https://developers.google.com/apps-script/guides/html/best-practices#code.gs -->
 
-<!-- HTML -->
 
 <body>
+	<!-- DATA FROM SERVER -->
 	<div id="config" class="hidden">
 		<?= JSON.stringify(config) ?>
 	</div>
@@ -20,6 +20,12 @@
 	</div>
 	<div id="sync_info" class="hidden">
 		<?= JSON.stringify(syncs) ?>
+	</div>
+
+	<!-- ACTUAL UI -->
+	<div id="sync_notification" class="hidden">
+		<span>active sync found on <span id="sync_notification_entity">ENTITY NAME</span></span><br />
+		<span>to make changes, use the <span style="color: var(--red); font-weight: bolder;">clear button</span></span>
 	</div>
 	<section id="auth">
 		<div class="prompt">
@@ -180,13 +186,27 @@
 			border: 1px solid var(--gray) !important;
 		}
 
+		input[disabled] {
+			background-color: var(--white);
+			opacity: .5;
+		}
+
 		button:hover:not([disabled]) {
 			box-shadow: 0 1px 2px 0 var(--gray), 0 2px 4px 0 var(--lightGray);
 			cursor: pointer;
 		}
 
-		input:disabled {
-			background-color: var(--white);
+		#sync_notification {
+			position: absolute;
+			width: 250px;
+			right: 15%;
+			color: var(--orange);
+			font-size: 14px;
+		}
+
+		#sync_notification_sheet {
+			font-weight: bolder;
+			color: var(--purple)
 		}
 
 
@@ -370,12 +390,13 @@
 			getFields,
 			checkFields,
 			isValid,
+			freezeView,
 
 			//parsing
 			parseServerData,
 			loadConfig,
 			getConfig,
-			
+
 			//buttons
 			sync,
 			test,
@@ -388,6 +409,7 @@
 			this.DOM = this.cacheDOM();
 			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
+			this.freezeView();
 		}
 
 		/*
@@ -406,6 +428,7 @@
 				mixpanelURL: qs('#mixpanel_report_url'),
 				dataFields: Array.from(qsa('.data')),
 				paramFields: Array.from(qsa('.param')),
+				allUserInputFields: Array.from((qsa('select, input, button, .data'))),
 
 				//regions
 				regionContainer: qs('#regions'),
@@ -425,6 +448,8 @@
 				//status
 				status: qs('#status span'),
 				loader: qs('#loader'),
+				activeSync: qs('#sync_notification'),
+				syncEntityLabel: qs('#sync_notification_entity'),
 
 				// server-side
 				sheet: this.parseServerData(qs('#sheet_info')),
@@ -452,8 +477,10 @@
 			//fields
 
 			// actions
-			this.DOM.saveButton.addEventListener('click', () => { this.save(); });
 			this.DOM.syncButton.addEventListener('click', () => { this.sync(); });
+			this.DOM.testButton.addEventListener('click', () => { this.test(); });
+			this.DOM.saveButton.addEventListener('click', () => { this.save(); });
+			this.DOM.clearButton.addEventListener('click', () => { this.clear(); });
 
 		}
 		function urlViewControl() {
@@ -572,6 +599,8 @@
 			userData.sheet_name = this.DOM.sheet?.sheetName;
 			userData.sheet_id = this.DOM.sheet?.id;
 			userData.config_type = 'mixpanel-to-sheet';
+			if (userData.report_id) userData.entity_type = "report";
+			if (userData.cohort_id) userData.entity_type = "cohort";
 			return userData;
 		}
 
@@ -743,8 +772,12 @@
 			google.script.run
 				.withSuccessHandler(() => {
 					this.loader('hide');
-					this.DOM.status.innerText = `configuration cleared!`;
+					this.DOM.activeSync.classList.add('hidden');
+					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;
+					this.DOM.allUserInputFields.forEach(n => n.disabled = false);
 					this.DOM.clearButton.disabled = true;
+					this.DOM.syncButton.disabled = true;
+					this.DOM.testButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
 				})
 				.withFailureHandler((e) => {
@@ -754,7 +787,7 @@
 					this.DOM.status.innerText = `✖️ DELETE FAILED ... got error:\n${e.message}`;
 					this.DOM.clearButton.disabled = false;
 				})
-				.clearConfig(defaultConfig);
+				.clearConfig(this.getConfig());
 		}
 
 		function sync() {
@@ -763,22 +796,19 @@
 
 			//buttons
 			this.DOM.status.innerText = `syncing data!`;
-
-			clear,
-				save,
-				google.script.run
-					.withSuccessHandler(([responses, summary, link]) => {
-						this.loader('hide');
-						//this.DOM.status.innerText = `✔️ sync ran imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds; will run again in one hour!`;
-						this.DOM.syncButton.disabled = false;
-					})
-					.withFailureHandler((e) => {
-						this.loader('hide');
-						this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
-						this.DOM.projectLink.innerText = ``;
-						this.DOM.syncButton.disabled = false;
-					})
-					.syncMpToSheets(this.getConfig());
+			google.script.run
+				.withSuccessHandler(([updatedSheet, metadata]) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✔️ sync for ${metadata?.report_name || metadata?.cohort_name} success!\n⏰ your configuration will sync every hour!`;
+					this.DOM.syncButton.disabled = false;
+				})
+				.withFailureHandler((e) => {
+					this.loader('hide');
+					this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
+					this.DOM.projectLink.innerText = ``;
+					this.DOM.syncButton.disabled = false;
+				})
+				.createSyncMpToSheets(this.getConfig());
 
 
 		}
@@ -789,15 +819,9 @@
 			this.DOM.testButton.disabled = true;
 
 			google.script.run
-				.withSuccessHandler(([responses, summary, link]) => {
+				.withSuccessHandler(([updatedSheet, metadata]) => {
 					this.loader('hide');
-					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary.results;
-					//this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;					
-					if (failed > 0) {
-						const failureToShow = responses[0];
-						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
-						this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
-					}
+					this.DOM.status.innerText = `✔️ test complete for ${metadata?.report_name || metadata?.cohort_name}\nsee the new tab in your sheet!`;
 					this.DOM.testButton.disabled = false;
 				})
 				.withFailureHandler((e) => {
@@ -813,6 +837,16 @@
 		VALIDATION
 		----
 		*/
+
+		function freezeView() {
+			// FREEZE UI IF SYNC IS ENABLED
+			if (this.DOM.syncInfo.filter(s => s?.id).length) {
+				this.DOM.activeSync.classList.remove('hidden');
+				this.DOM.syncEntityLabel.innerText = this.DOM.config.sheet_name || "";
+				this.DOM.allUserInputFields.forEach(n => n.disabled = true);
+				this.DOM.clearButton.disabled = false;
+			}
+		}
 
 		function isValid(config) {
 			const {
