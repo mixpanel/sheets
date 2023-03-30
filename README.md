@@ -11,8 +11,8 @@ after installing you will see the `sheets ⇔ mixpanel` dropdown under `extensio
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/two%20modes.png">
 
-[**Sheet → Mixpanel**](#mapping): import event/user/group/table data from the current sheet.
-[**Mixpanel → Sheet**](#export): export reports or cohort data from your mixpanel project
+- [**Sheet → Mixpanel**](#mapping): import event/user/group/table data from the current sheet.
+- [**Mixpanel → Sheet**](#export): export reports or cohort data from your mixpanel project
 
 
 each UI has a simple user interface, and is essentially a form you fill out that contains the necessary details to carry out your desired result.
