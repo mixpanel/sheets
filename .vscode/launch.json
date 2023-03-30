@@ -1,39 +1,8 @@
 {
 	"configurations": [
-		{
-			"command": "npm run test-local-watch",
-			"name": "local tests",
-			"request": "launch",
-			"type": "node-terminal"
-		},
-		{
-			"command": "npm run build-types-watch",
-			"name": "build types",
-			"request": "launch",
-			"type": "node-terminal"
-		},
-		{
-			"command": "npm run push-watch",
-			"name": "auto push",
-			"request": "launch",
-			"type": "node-terminal"
-		}
-		{
-			"command": "npm run test-server",
-			"name": "server tests",
-			"request": "launch",
-			"type": "node-terminal"
-		}
+
 	],
 	"compounds": [
-		{
-			"name": "all watchers",
-			"configurations": [
-				"local tests",
-				"build types",
-				"auto push"
-			],
-			"stopAll": true
-		}
+		
 	]
 }

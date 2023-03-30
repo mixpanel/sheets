@@ -5,6 +5,9 @@ type BatchSize = 200 | 2000 | number;
 type AuthModes = 'service_account' | 'api_secret';
 type EntityTypes = 'cohort' | 'report';
 type track = Function;
+type ConfigType = {
+    config_type: 'sheet-to-mixpanel' | 'mixpanel-to-sheet';
+};
 /**
  * all the options on a payload from Sheet → Mixpanel
  */
@@ -53,6 +56,10 @@ type SheetMpConfigAlways = {
      * id of the sheet to store sync results
      */
     receipt_sheet?: number;
+    /**
+     * is there a sync active?
+     */
+    active_sync?: boolean;
 };
 /**
  * all the options on a payload from Mixpanel → Sheet
@@ -61,7 +68,7 @@ type MpSheetConfig = {
     /**
      * an identifier for where the config came from
      */
-    config_type?: 'sheet-to-mixpanel';
+    config_type?: 'mixpanel-to-sheet';
     /**
      * URL from mixpanel report
      */
@@ -110,6 +117,10 @@ type MpSheetConfig = {
      * id of the sheet to show the data in
      */
     dest_sheet?: number;
+    /**
+     * is there a sync active?
+     */
+    active_sync?: boolean;
 };
 /**
  * a validated copy of SheetMpConfig
@@ -299,7 +310,7 @@ type CohortMeta = {
     cohort_id: number;
     cohort_count: number;
 };
-type Config = SheetMpConfig & MpSheetConfig;
+type Config = (SheetMpConfig | MpSheetConfig) & ConfigType;
 type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
 type Summary = {
     results: ImportResults;

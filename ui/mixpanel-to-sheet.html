@@ -24,8 +24,8 @@
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
-		<span>active sync found on <span id="sync_notification_entity">ENTITY NAME</span></span><br />
-		<span>to make changes, use the <span style="color: var(--red); font-weight: bolder;">clear button</span></span>
+		<span>active sync on <span id="sync_notification_entity">ENTITY NAME</span></span><br />
+		<span>use the <span style="color: var(--red); font-weight: bolder;">clear button</span></span>
 	</div>
 	<section id="auth">
 		<div class="prompt">
@@ -199,12 +199,13 @@
 		#sync_notification {
 			position: absolute;
 			width: 250px;
-			right: 15%;
 			color: var(--orange);
 			font-size: 14px;
+			text-align: right;
+			right: 7%;
 		}
 
-		#sync_notification_sheet {
+		#sync_notification_entity {
 			font-weight: bolder;
 			color: var(--purple)
 		}
@@ -755,7 +756,7 @@
 		function clear() {
 			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
-				ct: "",
+				service_acct: "",
 				service_secret: "",
 				mixpanel_report_url: "",
 
@@ -800,7 +801,10 @@
 				.withSuccessHandler(([updatedSheet, metadata]) => {
 					this.loader('hide');
 					this.DOM.status.innerText = `✔️ sync for ${metadata?.report_name || metadata?.cohort_name} success!\n⏰ your configuration will sync every hour!`;
-					this.DOM.syncButton.disabled = false;
+					this.DOM.syncButton.disabled = true;
+					this.DOM.testButton.disabled = true;
+					this.DOM.saveButton.disabled = true;
+					this.DOM.clearButton.disabled = false;
 				})
 				.withFailureHandler((e) => {
 					this.loader('hide');
@@ -815,7 +819,7 @@
 
 		function test() {
 			this.loader('show');
-			this.DOM.status.innerText = `syncing data!`;
+			this.DOM.status.innerText = `syncing ${this.getConfig()?.entity_type || "with mixpanel"}!`;
 			this.DOM.testButton.disabled = true;
 
 			google.script.run
@@ -842,7 +846,7 @@
 			// FREEZE UI IF SYNC IS ENABLED
 			if (this.DOM.syncInfo.filter(s => s?.id).length) {
 				this.DOM.activeSync.classList.remove('hidden');
-				this.DOM.syncEntityLabel.innerText = this.DOM.config.sheet_name || "";
+				this.DOM.syncEntityLabel.innerText = this.DOM.config.entity_type || "";
 				this.DOM.allUserInputFields.forEach(n => n.disabled = true);
 				this.DOM.clearButton.disabled = false;
 			}

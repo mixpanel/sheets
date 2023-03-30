@@ -13,32 +13,6 @@ TEST RUNNER
 // - e2e.test.js (SERVER)
 // - frontend.test.js (LOCAL w/JEST + PUPPETEER)
 
-if (typeof require !== "undefined") {
-    //running locally; can require modules
-    const UnitTestingApp = require("./UnitTestingApp.js");
-    global.UnitTestingApp = UnitTestingApp;
-    const Misc = require("../utilities/misc.js");
-    global.Misc = Misc;
-
-    //see .env-sample for an example configuration
-    //right now these are not used
-    require("dotenv").config();
-    /** @type {Config} */
-    const creds = {
-        project_id: process.env.MP_PROJECT_ID,
-        workspace_id: process.env.MP_WORKSPACE_ID,
-        service_acct: process.env.MP_SERVICE_ACCT,
-        service_secret: process.env.MP_SERVICE_SECRET,
-        api_secret: process.env.MP_API_SECRET,
-        token: process.env.MP_TOKEN,
-        lookup_table_id: process.env.MP_LOOKUP_ID,
-        cohort_id: process.env.MP_COHORT_ID,
-        report_id: process.env.MP_REPORT_ID,
-        region: "US"
-    };
-    global.creds = creds;
-}
-
 /**
  * Runs the tests; insert online and offline tests where specified by comments
  * @returns {void}
@@ -201,9 +175,6 @@ function runTests() {
         return isDeepEqual(expected, results);
     });
 
-    //timers
-    //todo
-
     //credentials
     test.assert("CREDS: good service account?", () => {
         const expected = GOOD_SERVICE_ACCOUNT.answer;
@@ -241,13 +212,13 @@ function runTests() {
 
     /*
 	----
-	SYNCS
-	(effectively e2e tests)
+	TEST RUNS
 	----
 	*/
 
     // Sheet → Mixpanel
-    test.assert("SYNCS: events?", () => {
+    test.assert("TESTS: events?", () => {
+        clearConfig();
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const expected = {
             batches: 6,
@@ -261,10 +232,12 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
+        clearConfig();
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("SYNCS: users?", () => {
+    test.assert("TESTS: users?", () => {
+        clearConfig();
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("users"));
         const expected = {
             batches: 4,
@@ -278,10 +251,12 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
+        clearConfig();
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("SYNCS: groups?", () => {
+    test.assert("TESTS: groups?", () => {
+        clearConfig();
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("groups"));
         const expected = {
             batches: 8,
@@ -295,10 +270,12 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
+        clearConfig();
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("SYNCS: tables?", () => {
+    test.assert("TESTS: tables?", () => {
+        clearConfig();
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("tables"));
         const expected = {
             batches: 1,
@@ -312,11 +289,13 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
+        clearConfig();
         return isDeepEqual(expected, imported);
     });
 
-    //syncs: Mixpanel → Sheet
-    test.assert("SYNCS: insights?", () => {
+    // Mixpanel → Sheet
+    test.assert("TESTS: insights?", () => {
+        clearConfig();
         const expected = {
             report_type: "insights",
             report_name: "an insights report",
@@ -329,10 +308,12 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
+        clearConfig();
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("SYNCS: funnels?", () => {
+    test.assert("TESTS: funnels?", () => {
+        clearConfig();
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -345,10 +326,12 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
+        clearConfig();
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("SYNCS: retention?", () => {
+    test.assert("TESTS: retention?", () => {
+        clearConfig();
         const expected = {
             workspace_id: 3466588,
             project_id: 2943452,
@@ -361,10 +344,12 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
+        clearConfig();
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("SYNCS: cohorts?", () => {
+    test.assert("TESTS: cohorts?", () => {
+        clearConfig();
         const expected = {
             cohort_desc: "lucky number is bigger than 70",
             project_id: 2943452,
@@ -374,17 +359,194 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_COHORTS);
+        clearConfig();
         return isDeepEqual(expected, metadata);
     });
 
-    test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+    test.catchErr("TESTS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+        clearConfig();
         testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
-    if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
+    /*
+	----
+	SYNC RUNS
+	----
+	*/
 
+    // Sheet → Mixpanel
+    test.assert("SYNCS: events?", () => {
+        clearConfig();
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
+        const expected = {
+            batches: 6,
+            total: 10395,
+            success: 10395,
+            failed: 0,
+            errors: [],
+            record_type: "event"
+        };
+        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: users?", () => {
+        clearConfig();
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("users"));
+        const expected = {
+            batches: 4,
+            total: 6999,
+            success: 6999,
+            failed: 0,
+            errors: [],
+            record_type: "user"
+        };
+        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: groups?", () => {
+        clearConfig();
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("groups"));
+        const expected = {
+            batches: 8,
+            total: 1427,
+            success: 1427,
+            failed: 0,
+            errors: [],
+            record_type: "group"
+        };
+        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_GROUPS, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: tables?", () => {
+        clearConfig();
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("tables"));
+        const expected = {
+            batches: 1,
+            total: 1,
+            success: 1,
+            failed: 0,
+            errors: [],
+            record_type: "table"
+        };
+        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_TABLES, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported) && getTriggers().length === 1;
+    });
+
+    // Mixpanel → Sheet
+    test.assert("SYNCS: insights?", () => {
+        clearConfig();
+        const expected = {
+            report_type: "insights",
+            report_name: "an insights report",
+            report_desc: "an insights report",
+            report_id: 38075731,
+            project_id: 2943452,
+            dashboard_id: 4690699,
+            workspace_id: 3466588,
+            report_creator: "AK "
+        };
+
+        const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
+        return isDeepEqual(expected, metadata) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: funnels?", () => {
+        clearConfig();
+        const expected = {
+            workspace_id: 3466588,
+            project_id: 2943452,
+            report_id: 38075728,
+            report_desc: "a funnel report",
+            report_type: "funnels",
+            report_name: "a funnel report",
+            report_creator: "AK ",
+            dashboard_id: 4690699
+        };
+
+        const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
+        return isDeepEqual(expected, metadata) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: retention?", () => {
+        clearConfig();
+        const expected = {
+            workspace_id: 3466588,
+            project_id: 2943452,
+            report_id: 38075736,
+            report_desc: "a retention report",
+            report_type: "retention",
+            report_name: "a retention report",
+            report_creator: "AK ",
+            dashboard_id: 4690699
+        };
+
+        const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
+        return isDeepEqual(expected, metadata) && getTriggers().length === 1;
+    });
+
+    test.assert("SYNCS: cohorts?", () => {
+        clearConfig();
+        const expected = {
+            cohort_desc: "lucky number is bigger than 70",
+            project_id: 2943452,
+            cohort_name: "cool peeps",
+            cohort_id: 2789763,
+            cohort_count: 1617
+        };
+
+        const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_COHORTS);
+        return isDeepEqual(expected, metadata) && getTriggers().length === 1;
+    });
+
+    test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+        createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+    });
+	if (test.isInGas) tearDown();
+    if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
+    
     //no way to see server-side output in console :(
     return `\nAppsScript: https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions\n\nGCP: https://cloudlogging.app.goo.gl/8Tkd7KQrnoLo9YCD8\n`;
+}
+
+if (typeof require !== "undefined") {
+    //running locally; can require modules
+    const UnitTestingApp = require("./UnitTestingApp.js");
+    global.UnitTestingApp = UnitTestingApp;
+    const Misc = require("../utilities/misc.js");
+    global.Misc = Misc;
+
+    //see .env-sample for an example configuration
+    //right now these are not used
+    require("dotenv").config();
+    /** @type {Config} */
+    const creds = {
+        project_id: process.env.MP_PROJECT_ID,
+        workspace_id: process.env.MP_WORKSPACE_ID,
+        service_acct: process.env.MP_SERVICE_ACCT,
+        service_secret: process.env.MP_SERVICE_SECRET,
+        api_secret: process.env.MP_API_SECRET,
+        token: process.env.MP_TOKEN,
+        lookup_table_id: process.env.MP_LOOKUP_ID,
+        cohort_id: process.env.MP_COHORT_ID,
+        report_id: process.env.MP_REPORT_ID,
+        region: "US"
+    };
+    global.creds = creds;
 }
 
 /**
@@ -397,3 +559,25 @@ function runTests() {
     const IS_GAS_ENV = typeof ScriptApp !== "undefined";
     if (!IS_GAS_ENV) runTests();
 })();
+
+/*
+----
+TEARDOWN
+----
+*/
+
+function tearDown() {
+    clearConfig();
+    const ss = SpreadsheetApp.getActive();
+    const goodSheets = ["events", "users", "groups", "tables"];
+    const badSheets = ss
+        .getSheets()
+        .map(getSheetInfo)
+        .filter(sheet => !goodSheets.includes(sheet.sheet_name))
+        .map(sheet => getSheet(Number(sheet.sheet_id)));
+
+    for (const bad of badSheets) {
+        ss.deleteSheet(bad);
+    }
+    return true;
+}

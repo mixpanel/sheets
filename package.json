@@ -4,20 +4,20 @@
 	"description": "integrate google sheets with mixpanel",
 	"main": "Code.gs",
 	"scripts": {
-		"watch": "npm watch",
 		"login": "clasp login --creds creds.json",
 		"push": "clasp push --force",
-		"serve": "./node_modules/serve/build/main.js ./ui",
 		"debug": "clasp run repl",
 		"test-local": "node ./tests/all.test.js",
+		"test-server": "clasp run runTests",
 		"type-check": "tsc --noEmit --allowJs --checkJs Code.js",
 		"build-types": "npx -p typescript tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
 		"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",
-		"test-server": "clasp run runTests",
-		"debug-watch": "npm-watch debug",
-		"test-local-watch": "npm-watch test-local",
-		"build-types-watch": " npm-watch build-types",
-		"push-watch": "clasp push --watch --force"
+		
+		"watch-server-debug": "npm-watch debug",
+		"watch-test-local": "npm-watch test-local",
+		"watch-build-types": " npm-watch build-types",
+		"watch-push": "clasp push --watch --force",
+		"watch-serve": "./node_modules/serve/build/main.js ./ui"
 	},
 	"watch": {
 		"debug": {

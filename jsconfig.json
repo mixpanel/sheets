@@ -8,7 +8,9 @@
 			"./types"
 		],
 		"skipLibCheck": true
+		
 	},
+	"files": ["./types/Types.d.ts"],
 	"exclude": [
 		"node_modules"
 	],

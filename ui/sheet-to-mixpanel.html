@@ -45,8 +45,8 @@
 	<section id="mappings">
 		<div class="prompt">
 			<span class="title">
-				🧭 What are the mappings from your columns headers to Mixpanel <span id="type_label">event</span> fields<a
-					target="_blank"
+				🧭 What are the mappings from your columns headers to Mixpanel <span id="type_label">event</span>
+				fields<a target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
 			</span>
 			<ul id="event_mapping" class="mapping">
@@ -841,11 +841,11 @@
 			google.script.run
 				.withSuccessHandler(() => {
 					this.loader('hide');
-					this.DOM.projectLink.innerText = ``;					
+					this.DOM.projectLink.innerText = ``;
 					this.DOM.activeSync.classList.add('hidden');
-					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;					
-					this.DOM.allUserInputFields.forEach(n => n.disabled = false);					
-					this.DOM.clearButton.disabled = true;					
+					this.DOM.status.innerText = `✔️ configuration cleared! all syncs deleted!`;
+					this.DOM.allUserInputFields.forEach(n => n.disabled = false);
+					this.DOM.clearButton.disabled = true;
 					this.DOM.syncButton.disabled = true;
 					this.DOM.testButton.disabled = true;
 					this.loadConfig(defaultConfig, true);
@@ -872,7 +872,10 @@
 					this.loader('hide');
 					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary;
 					this.DOM.status.innerText = `✔️ sync imported ${comma(total)} ${summary.record_type}s in ${comma(seconds)} seconds\n⏰ your configuration will sync every hour!`;
-					this.DOM.syncButton.disabled = false;
+					this.DOM.syncButton.disabled = true;
+					this.DOM.testButton.disabled = true;
+					this.DOM.saveButton.disabled = true;
+					this.DOM.clearButton.disabled = false;
 				})
 				.withFailureHandler((e) => {
 					this.loader('hide');

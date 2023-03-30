@@ -7,7 +7,6 @@ TYPES
 ----
 */
 
-
 /*
 ----
 PRIMITIVES
@@ -38,7 +37,7 @@ PRIMITIVES
  * @typedef { 'cohort' | 'report'} EntityTypes
  */
 
-/**	
+/**
  * @typedef {Function} track
  * @global
  */
@@ -49,6 +48,10 @@ CORE CONFIGS
 ----
 */
 
+/**
+ * @typedef {Object} ConfigType
+ * @property {'sheet-to-mixpanel' | 'mixpanel-to-sheet' } config_type
+ */
 
 /**
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
@@ -63,12 +66,13 @@ CORE CONFIGS
  * @property {string} [api_secret] api secret
  * @property {string} [auth] base64 encoded credentials
  * @property {number} [receipt_sheet] id of the sheet to store sync results
+ * @property {boolean} [active_sync] is there a sync active?
  *
  */
 
 /**
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
- * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
+ * @property {'mixpanel-to-sheet'} [config_type] an identifier for where the config came from
  * @property {string} mixpanel_report_url URL from mixpanel report
  * @property {string} project_id the project identifier
  * @property {string} service_acct service acct name
@@ -81,9 +85,9 @@ CORE CONFIGS
  * @property {string} [auth] base64 auth string
  * @property {number} [receipt_sheet] id of the sheet to store sync results
  * @property {number} [dest_sheet] id of the sheet to show the data in
+ * @property {boolean} [active_sync] is there a sync active?
  *
  */
-
 
 /**
  * @typedef {object} CleanConfig a validated copy of SheetMpConfig
@@ -144,13 +148,11 @@ MAPPINGS
  * @property {string} lookup_table_id the id of the lookup table in mixpanel
  */
 
-
 /*
 ----
 DATA IMPORTS
 ----
 */
-
 
 /**
  * @typedef {Object} ImportResults summary of results of an import
@@ -173,7 +175,6 @@ DATA IMPORTS
  * @property {Object[]} [failed_records]
  * @property {string} [error]
  */
-
 
 /*
 ----
@@ -212,16 +213,14 @@ DATA EXPORTS
  * @property {number} cohort_count
  */
 
-
 /*
 ----
 COMPLEX TYPES
 ----
 */
 
-
 /**
- * @typedef {SheetMpConfig & MpSheetConfig} Config
+ * @typedef {(SheetMpConfig | MpSheetConfig) & ConfigType } Config
  */
 
 /**
@@ -234,8 +233,6 @@ COMPLEX TYPES
  * @property {ImportResults} results
  */
 
-
-
 /*
 ----
 MISC
@@ -247,9 +244,6 @@ MISC
  * @property {string} sheet_name the human readable name of the sheet
  * @property {number} sheet_id the id of the sheet
  */
-
-
-
 
 /*
 ----

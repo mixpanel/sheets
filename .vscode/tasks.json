@@ -3,14 +3,14 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "debug-watch",
+			"script": "watch-server-debug",
 			"problemMatcher": [],
 			"label": "REPL",
 			"detail": "runs one-off functions in GAS"
 		},
 		{
 			"type": "npm",
-			"script": "test-local-watch",
+			"script": "watch-test-local",
 			"problemMatcher": [],
 			"label": "LOCAL TEST",
 			"detail": "runs local tests"
@@ -31,7 +31,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "push-watch",
+			"script": "watch-push",
 			"group": "build",
 			"problemMatcher": [],
 			"label": "npm: push-watch",
