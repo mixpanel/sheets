@@ -188,7 +188,7 @@ you can run server-side tests with the `test-server` script:
 npm run test-server
 ```
 
-in order for server-side tests to work, you will need to fill out params in a `env.js` file... there is a sample comitted to the repo; this is what passing server-side tests look like (in the GCP console):
+in order for server-side tests to work, you will need to fill out params in a `env.js` file... there is [a sample (`env-sample.js`) comitted to the repo](https://github.com/ak--47/sheets-mixpanel/blob/main/env-sample.js); this is what passing server-side tests look like (in the GCP console):
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/tests.png"/>
 
