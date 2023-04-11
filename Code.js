@@ -26,7 +26,6 @@ TODOs
 ----
 */
 
-// todo: docs
 // todo: type checking
 
 /*
@@ -58,6 +57,7 @@ function onOpen(sheetOpenEv) {
         menu.addItem("Mixpanel → Sheet", "dataOutUI");
     } else {
         // user has given app permissions
+        track("menu load");
         menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
         if (authMode == ScriptApp.AuthMode.FULL || authMode == ScriptApp.AuthMode.LIMITED) {
@@ -87,8 +87,10 @@ function syncNow() {
             syncSheetsToMp();
         }
         ui.alert("✅ Sync Complete", `sync ran successfully`, ui.ButtonSet.OK);
+        track("sync now: success", { type: config.config_type });
         return { status: "success", error: null };
     } catch (e) {
+        track("sync now: fail", { type: config.config_type, error: e });
         ui.alert("❌ Sync Error", `sync failed to run; got error\n${e.message}`, ui.ButtonSet.OK);
         return { status: "fail", error: e };
     }
@@ -216,6 +218,11 @@ function createSyncSheetsToMp(config, sheetInfo) {
             ]
         ]);
 
+    track("sync: create", {
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "sheet → mixpanel"
+    });
     //notify the end user
     return [responses, summary, `https://mixpanel.com/project/${config.project_id}`];
 }
@@ -224,6 +231,14 @@ function createSyncSheetsToMp(config, sheetInfo) {
  * called automatically by the trigger: Sheet → Mixpanel
  */
 function syncSheetsToMp() {
+    const syncId = Math.random();
+    const t = tracker({
+        syncId,
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "sheet → mixpanel"
+    });
+    t("sync: start");
     /** @type {SheetMpConfig & SheetInfo} */
     const config = getConfig();
     const sourceSheet = getSheet(Number(config.sheet_id));
@@ -256,9 +271,10 @@ function syncSheetsToMp() {
                     JSON.stringify(errors, null, 2)
                 ]
             ]);
-
+        t("sync: finish");
         return { status: "success", error: null };
     } catch (e) {
+        t("sync: error", { error: e });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
             .setValues([[new Date(), new Date(), `-----`, `-----`, `-----`, `-----`, `ERROR:\n${e.message}`]]);
@@ -417,6 +433,12 @@ function createSyncMpToSheets(config) {
         ]
     ]);
 
+    track("sync: create", {
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "mixpanel → sheet"
+    });
+
     return [updatedSheet, metadata];
 }
 
@@ -424,6 +446,14 @@ function createSyncMpToSheets(config) {
  * called automatically by the trigger: Mixpanel → Sheet
  */
 function syncMpToSheets() {
+    const syncId = Math.random();
+    const t = tracker({
+        syncId,
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "mixpanel → sheet"
+    });
+    t("sync: start");
     try {
         const startTime = new Date();
         /** @type {MpSheetConfig} */
@@ -445,8 +475,10 @@ function syncMpToSheets() {
                 "none"
             ]
         ]);
+        t("sync: finish");
         return { status: "success", error: null };
     } catch (e) {
+        t("sync: error", { error: e });
         const config = getConfig();
         const receiptSheet = getSheet(Number(config.receipt_sheet));
         receiptSheet

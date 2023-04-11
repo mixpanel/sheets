@@ -13,11 +13,11 @@ USAGE TRACKER
  * @param  {string} [token] - mixpanel token
  * @returns {function} func with signature: `(event, props = {}, cb = (res)=>{})`
  */
-function tracker(superProps = {}, distinct_id, token = "703d5a3c06f359bdd838cb4cbc8abe7a") {
+function tracker(superProps = {}, distinct_id, token = "41a033e6987a1340255ded808b237a38") {
     // identity resolution; could be better
     if (!distinct_id) {
-		//noop
-	};
+        //noop
+    }
     try {
         distinct_id = Session.getActiveUser().getEmail();
     } catch (e) {
