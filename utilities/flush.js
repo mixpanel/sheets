@@ -20,11 +20,12 @@ function flushToMixpanel(data, config, strict = 1) {
     let sub = `api`;
     if (region === "EU") sub = `api-eu`;
     let URL;
-	let projIdQs = `project_id=${config.project_id}`;
+    let projIdQs = `project_id=${config.project_id}`;
     if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&${projIdQs}`;
     if (record_type === "user") URL = `https://${sub}.mixpanel.com/engage?verbose=1`;
     if (record_type === "group") URL = `https://${sub}.mixpanel.com/groups?verbose=1`;
-    if (record_type === "table") URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?${projIdQs}`;
+    if (record_type === "table")
+        URL = `https://${sub}.mixpanel.com/lookup-tables/${config.lookup_table_id}?${projIdQs}`;
 
     /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
@@ -43,12 +44,24 @@ function flushToMixpanel(data, config, strict = 1) {
         const res = UrlFetchApp.fetch(URL, options);
         return [JSON.parse(res.getContentText())];
     }
-    const responses = [];
-    for (const batch of batches) {
-        options.payload = JSON.stringify(batch);
-        const res = UrlFetchApp.fetch(URL, options);
-        responses.push(JSON.parse(res.getContentText()));
-    }
+
+    const requests = batches.map(batch => {
+        const req = clone(options);
+        req.payload = JSON.stringify(batch);
+        req.url = URL;
+        return req;
+    });
+
+    // note: fetchAll is faster than fetch by ~5x
+    // ? https://tanaikech.github.io/2018/04/19/benchmark-fetchall-method-in-urlfetch-service-for-google-apps-script/?ref=script.gs
+    const responses = UrlFetchApp.fetchAll(requests).map(res => JSON.parse(res.getContentText()));
+
+    // const responses = [];
+    // for (const batch of batches) {
+    //     options.payload = JSON.stringify(batch);
+    //     const res = UrlFetchApp.fetch(URL, options);
+    //     responses.push(JSON.parse(res.getContentText()));
+    // }
 
     return responses;
 }

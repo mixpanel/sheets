@@ -208,7 +208,8 @@ function getCohortMeta(config) {
     };
 
     const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());
-    const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id) || {};
+    const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id.toString()) || {};
+	
     return {
         cohort_id: cohortInfos.id,
         cohort_name: cohortInfos.name,

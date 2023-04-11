@@ -26,7 +26,6 @@ TODOs
 ----
 */
 
-// todo: syncs + sync logs
 // todo: docs
 // todo: type checking
 

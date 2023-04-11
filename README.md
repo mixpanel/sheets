@@ -22,7 +22,6 @@ each UI has a simple user interface, and is essentially a form you fill out that
 
 ## 🍿 demo
 
-video todo... but for now:
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/fastdemo.gif">
 
@@ -72,14 +71,131 @@ you may only have **one sync** active per sheet at a time.
 
 ## 👨‍🔧️ development
 
-todo code overview... but we have tests + type-safety!
+### local development
 
-<img src="https://aktunes.neocities.org/sheets-mixpanel/allTestPassing.png"/>
+For local development, you will need to do the following:
+- clone the repo: `git clone https://github.com/ak--47/sheets-mixpanel.git`
+
+- install dev dependencies: `npm install`
+
+- install [clasp](https://github.com/google/clasp) globally: `npm i g clasp`
+
+- create a google sheet by importing the [provided test data](https://github.com/ak--47/sheets-mixpanel/blob/main/testData/full%20sandbox.xlsx)
+
+- in the google sheets UI, go to Extensions → Appsscript → Project Settings to get your `scriptId`: 
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/scriptId.png">
+
+- using the `scriptId` create a `.clasp.json` file of the form:
+```json
+{
+	"scriptId": "your-googleapps-script-id",
+	"rootDir": "/path/to/this",
+	"projectId": "your-gcp-project"
+}
+```
+- run `clasp login`  to create a `.clasprc.json` file of the form:
+```json
+{
+	"token": {
+		"access_token": "",
+		"scope": "",
+		"token_type": "",
+		"id_token": "",
+		"expiry_date": ,
+		"refresh_token": ""
+	},
+	"oauth2ClientSettings": {
+		"clientId": "",
+		"clientSecret": "",
+		"redirectUri": "http://localhost"
+	},
+	"isLocalCreds": true
+}
+```
+[see these docs](https://github.com/google/clasp#login) for more info
+
+finally:
+
+- use `npm run push` to push the module's code into your instance
+
+- see `package.json` for other scripts; anything with a `watch` prefix will re-run on local code changes
+
+### code overview
+
+Here's an overview of the code in the repo:
+```bash
+├── Code.js				# routes + templates
+├── README.md			# this file
+├── appsscript.json		# extension manifest
+├── components			# data in/out logic
+│   ├── dataExport.js
+│   └── dataImport.js
+├── creds.json			# server-side credentials
+├── env-sample.js		# where test credentials go
+├── env.js
+├── jsconfig.json		# typescript config
+├── models				# models for data import
+│   ├── modelEvents.js
+│   ├── modelGroups.js
+│   ├── modelTables.js
+│   └── modelUsers.js
+├── package-lock.json
+├── package.json		# scripts + dependencies
+├── testData			# test data
+│   ├── events.csv
+│   ├── full\ sandbox.xlsx 	# (use this one)
+│   ├── groups.csv
+│   ├── tables.csv
+│   └── users.csv
+├── tests				# local + server tests
+│   ├── MockData.js
+│   ├── UnitTestingApp.js
+│   └── all.test.js
+├── types				# jsdoc + typescript types
+│   ├── Types.d.ts
+│   └── Types.js
+├── ui					# user interface
+│   ├── mixpanel-to-sheet.html
+│   └── sheet-to-mixpanel.html
+└── utilities			
+    ├── REPL.js			# a "quick and dirty" REPL for GAS
+    ├── flush.js		# sending data to mixpanel
+    ├── md5.js			# for $insert_id construction
+    ├── misc.js			# various utilities
+    ├── sheet.js		# for manipulating sheets
+    ├── storage.js		# modifying storage configuration
+    ├── toJson.js		# turn CSV to JSON
+    ├── tracker.js		# usage tracking
+    └── validate.js		# validation utils
+```
+
+### tests
+
+
+you can run local tests with the `watch-test-local` script:
+
+```
+npm run watch-test-local
+```
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/local.png">
+
+
+you can run server-side tests with the `test-server` script:
+
+```
+npm run test-server
+```
+
+in order for server-side tests to work, you will need to fill out params in a `env.js` file... there is a sample comitted to the repo; this is what passing server-side tests look like (in the GCP console):
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/tests.png"/>
 
 <div id="motivation"></div>
 
 ## 💬 motivation
 
-sheets are databases. mixpanel is a database. it should be easy to make these things interoperable. 
+google sheets are databases. mixpanel is a database. it should be easy to make these things interoperable. 
 
 that's it for now. have fun!

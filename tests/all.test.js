@@ -99,6 +99,7 @@ function runTests() {
 	*/
 
     test.runInGas(true);
+    if (test.isInGas) tearDown();
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS START\n${formatDate()}`, false);
 
     //sheets
@@ -298,13 +299,13 @@ function runTests() {
         clearConfig();
         const expected = {
             report_type: "insights",
-            report_name: "an insights report",
-            report_desc: "an insights report",
-            report_id: 38075731,
-            project_id: 2943452,
-            dashboard_id: 4690699,
-            workspace_id: 3466588,
-            report_creator: "AK "
+            report_name: INSIGHTS_REPORT_NAME,
+            report_desc: INSIGHTS_REPORT_DESC,
+            report_id: INSIGHTS_REPORT_ID,
+            project_id: PROJECT_ID,
+            dashboard_id: DASHBOARD_ID,
+            workspace_id: WORKSPACE_ID,
+            report_creator: REPORT_CREATOR
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
@@ -315,14 +316,14 @@ function runTests() {
     test.assert("TESTS: funnels?", () => {
         clearConfig();
         const expected = {
-            workspace_id: 3466588,
-            project_id: 2943452,
-            report_id: 38075728,
-            report_desc: "a funnel report",
+            workspace_id: WORKSPACE_ID,
+            project_id: PROJECT_ID,
+            report_id: FUNNELS_REPORT_ID,
+            report_desc: FUNNELS_REPORT_DESC,
             report_type: "funnels",
-            report_name: "a funnel report",
-            report_creator: "AK ",
-            dashboard_id: 4690699
+            report_name: FUNNELS_REPORT_NAME,
+            report_creator: REPORT_CREATOR,
+            dashboard_id: DASHBOARD_ID
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
@@ -333,14 +334,14 @@ function runTests() {
     test.assert("TESTS: retention?", () => {
         clearConfig();
         const expected = {
-            workspace_id: 3466588,
-            project_id: 2943452,
-            report_id: 38075736,
-            report_desc: "a retention report",
+            workspace_id: WORKSPACE_ID,
+            project_id: PROJECT_ID,
+            report_id: RETENTION_REPORT_ID,
+            report_desc: RETENTION_REPORT_DESC,
             report_type: "retention",
-            report_name: "a retention report",
-            report_creator: "AK ",
-            dashboard_id: 4690699
+            report_name: RETENTION_REPORT_NAME,
+            report_creator: REPORT_CREATOR,
+            dashboard_id: DASHBOARD_ID
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
@@ -351,11 +352,11 @@ function runTests() {
     test.assert("TESTS: cohorts?", () => {
         clearConfig();
         const expected = {
-            cohort_desc: "lucky number is bigger than 70",
-            project_id: 2943452,
-            cohort_name: "cool peeps",
-            cohort_id: 2789763,
-            cohort_count: 1617
+            cohort_desc: COHORT_DESC,
+            project_id: PROJECT_ID,
+            cohort_name: COHORT_NAME,
+            cohort_id: COHORT_ID,
+            cohort_count: COHORT_COUNT
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_COHORTS);
@@ -452,13 +453,13 @@ function runTests() {
         clearConfig();
         const expected = {
             report_type: "insights",
-            report_name: "an insights report",
-            report_desc: "an insights report",
-            report_id: 38075731,
-            project_id: 2943452,
-            dashboard_id: 4690699,
-            workspace_id: 3466588,
-            report_creator: "AK "
+            report_name: INSIGHTS_REPORT_NAME,
+            report_desc: INSIGHTS_REPORT_DESC,
+            report_id: INSIGHTS_REPORT_ID,
+            project_id: PROJECT_ID,
+            dashboard_id: DASHBOARD_ID,
+            workspace_id: WORKSPACE_ID,
+            report_creator: REPORT_CREATOR
         };
 
         const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
@@ -468,14 +469,14 @@ function runTests() {
     test.assert("SYNCS: funnels?", () => {
         clearConfig();
         const expected = {
-            workspace_id: 3466588,
-            project_id: 2943452,
-            report_id: 38075728,
-            report_desc: "a funnel report",
+            workspace_id: WORKSPACE_ID,
+            project_id: PROJECT_ID,
+            report_id: FUNNELS_REPORT_ID,
+            report_desc: FUNNELS_REPORT_DESC,
             report_type: "funnels",
-            report_name: "a funnel report",
-            report_creator: "AK ",
-            dashboard_id: 4690699
+            report_name: FUNNELS_REPORT_NAME,
+            report_creator: REPORT_CREATOR,
+            dashboard_id: DASHBOARD_ID
         };
 
         const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
@@ -485,14 +486,14 @@ function runTests() {
     test.assert("SYNCS: retention?", () => {
         clearConfig();
         const expected = {
-            workspace_id: 3466588,
-            project_id: 2943452,
-            report_id: 38075736,
-            report_desc: "a retention report",
+            workspace_id: WORKSPACE_ID,
+            project_id: PROJECT_ID,
+            report_id: RETENTION_REPORT_ID,
+            report_desc: RETENTION_REPORT_DESC,
             report_type: "retention",
-            report_name: "a retention report",
-            report_creator: "AK ",
-            dashboard_id: 4690699
+            report_name: RETENTION_REPORT_NAME,
+            report_creator: REPORT_CREATOR,
+            dashboard_id: DASHBOARD_ID
         };
 
         const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
@@ -502,11 +503,11 @@ function runTests() {
     test.assert("SYNCS: cohorts?", () => {
         clearConfig();
         const expected = {
-            cohort_desc: "lucky number is bigger than 70",
-            project_id: 2943452,
-            cohort_name: "cool peeps",
-            cohort_id: 2789763,
-            cohort_count: 1617
+            cohort_desc: COHORT_DESC,
+            project_id: PROJECT_ID,
+            cohort_name: COHORT_NAME,
+            cohort_id: COHORT_ID,
+            cohort_count: COHORT_COUNT
         };
 
         const [sheet, metadata] = createSyncMpToSheets(TEST_CONFIG_COHORTS);
@@ -516,9 +517,9 @@ function runTests() {
     test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
         createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
-	if (test.isInGas) tearDown();
+    if (test.isInGas) tearDown();
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);
-    
+
     //no way to see server-side output in console :(
     return `\nAppsScript: https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions\n\nGCP: https://cloudlogging.app.goo.gl/8Tkd7KQrnoLo9YCD8\n`;
 }
