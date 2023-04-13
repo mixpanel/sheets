@@ -52,8 +52,8 @@ function onOpen(sheetOpenEv) {
         // clicking on menu buttons when the script is not authorized will show the OAuth consent screen
         // OAuth consent screen is configured in GCP:
         // ? https://developers.google.com/apps-script/add-ons/concepts/editor-auth-lifecycle
-        menu.addItem("Sheet → Mixpanel", "dataInUI");
-        menu.addItem("Mixpanel → Sheet", "dataOutUI");
+        menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
+        menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
     } else {
         // user has given app permissions
         // track("menu load");
