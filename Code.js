@@ -26,7 +26,6 @@ TODOs
 ----
 */
 
-// todo: type checking
 
 /*
 ----
@@ -57,9 +56,10 @@ function onOpen(sheetOpenEv) {
         menu.addItem("Mixpanel → Sheet", "dataOutUI");
     } else {
         // user has given app permissions
-        track("menu load");
+        // track("menu load");
         menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
+		menu.addItem("Feedback + Bug Reports", "ShowFeedbackForm")
         if (authMode == ScriptApp.AuthMode.FULL || authMode == ScriptApp.AuthMode.LIMITED) {
             const activeSync = getConfig().active_sync || false;
             if (activeSync) {
@@ -68,6 +68,17 @@ function onOpen(sheetOpenEv) {
         }
     }
     menu.addToUi();
+}
+
+/**
+ * the "feedback" menu option
+ * opens a google form
+ */
+function ShowFeedbackForm() {
+    // ? https://dogmatix.medium.com/open-a-url-using-google-apps-script-b1f6b8bdaec4
+    var htmlOutput = HtmlService.createHtmlOutputFromFile("ui/feedback.html").setHeight(100);
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Feedback Form");
+    track("feedback");
 }
 
 /**

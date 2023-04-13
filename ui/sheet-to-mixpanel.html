@@ -49,6 +49,7 @@
 				fields<a target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
 			</span>
+			<span class="subtext">all other columns will be sent as properties</span>
 			<ul id="event_mapping" class="mapping">
 				<li><select id="event_name_col" class="data dropdown required">
 						<option value="">--------</option>
@@ -280,6 +281,12 @@
 		#sync_notification_sheet {
 			font-weight: bolder;
 			color: var(--purple)
+		}
+
+		span.subtext {
+			opacity: .5;
+			padding-left: 6%;
+			font-size: 10px;
 		}
 
 
@@ -542,7 +549,7 @@
 		}
 
 		function buildDropdowns(columns) {
-			const selectMenus = Array.from(qsa('select.data.dropdown'));
+			const selectMenus = Array.from(qsa('select.data.dropdown')).filter(node => node.id !== 'profile_operation');
 
 			// columns fail to render; most likely a local test
 			if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
@@ -825,7 +832,7 @@
 				email_col: "",
 				avatar_col: "",
 				created_col: "",
-				profile_operation: "",
+				profile_operation: "$set",
 				group_key: "",
 				lookup_table_id: "",
 				project_id: "",

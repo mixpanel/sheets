@@ -82,14 +82,14 @@ For local development, you will need to do the following:
 
 - create a google sheet by importing the [provided test data](https://github.com/ak--47/sheets-mixpanel/blob/main/testData/full%20sandbox.xlsx)
 
-- in the google sheets UI, go to Extensions → Appsscript → Project Settings to get your `scriptId`: 
+- in the google sheets UI, go to Extensions → AppsScript → Project Settings to get your `scriptId`: 
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/scriptId.png">
 
 - using the `scriptId` create a `.clasp.json` file of the form:
 ```json
 {
-	"scriptId": "your-googleapps-script-id",
+	"scriptId": "your-googleApps-script-id",
 	"rootDir": "/path/to/this",
 	"projectId": "your-gcp-project"
 }
@@ -188,7 +188,7 @@ you can run server-side tests with the `test-server` script:
 npm run test-server
 ```
 
-in order for server-side tests to work, you will need to fill out params in a `env.js` file... there is [a sample (`env-sample.js`) comitted to the repo](https://github.com/ak--47/sheets-mixpanel/blob/main/env-sample.js); this is what passing server-side tests look like (in the GCP console):
+in order for server-side tests to work, you will need to fill out params in a `env.js` file... there is [a sample (`env-sample.js`) committed to the repo](https://github.com/ak--47/sheets-mixpanel/blob/main/env-sample.js); this is what passing server-side tests look like (in the GCP console):
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/tests.png"/>
 
