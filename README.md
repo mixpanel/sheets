@@ -192,6 +192,32 @@ in order for server-side tests to work, you will need to fill out params in a `e
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/tests.png"/>
 
+<div id="limited"></div>
+
+## 📝 limited use policy
+
+Sheets™ ⇔ Mixpanel use and transfer to any other app of information received from Google APIs will adhere to [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes), including the Limited Use requirements. 
+
+The app is free to use and does not contain ads, nor will any data collected by Sheets™ ⇔ Mixpanel be resold in any way. No human can read your spreadsheets; usage data is collected and anonymized only to improve the end-user's experience.
+
+<div id="permissions"></div>
+
+
+## 🔏 permissions
+
+Using the principle of least-privilege, Sheets™ ⇔ Mixpanel requests access to three sensitive scopes to support application functionality, which are explained below:
+
+- `https://www.googleapis.com/auth/script.container.ui`
+is used to draw a dynamic UI which maps the columns headers of your currently active Google Sheet™ into dropdowns in the extension interface.
+
+- `https://www.googleapis.com/auth/script.scriptapp`
+is used to support scheduled hourly "sync" functionality so the pipeline you've configured in the UI can run automatically.
+
+- `https://www.googleapis.com/auth/script.external_request`
+is used to send your mapped data to mixpanel and to request your report/cohort data from mixpanel.
+
+no other sensitive scopes are requested by the application.
+
 <div id="motivation"></div>
 
 ## 💬 motivation
