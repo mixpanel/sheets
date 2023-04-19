@@ -10,7 +10,7 @@ STORAGE + TRIGGERS
  * @returns {SheetMpConfig | MpSheetConfig | Object}
  */
 function getConfig() {
-    const scriptProperties = PropertiesService.getScriptProperties();
+    const scriptProperties = PropertiesService.getDocumentProperties();
     const props = scriptProperties.getProperties();
     return props;
 }
@@ -22,7 +22,7 @@ function getConfig() {
  * @returns {SheetMpConfig | MpSheetConfig | Object}
  */
 function setConfig(config) {
-    const scriptProperties = PropertiesService.getScriptProperties();
+    const scriptProperties = PropertiesService.getDocumentProperties();
     scriptProperties.setProperties(config);
 
     // @ts-ignore
@@ -38,7 +38,7 @@ function setConfig(config) {
  * @returns {{}}
  */
 function clearConfig(config) {
-    const scriptProperties = PropertiesService.getScriptProperties();
+    const scriptProperties = PropertiesService.getDocumentProperties();
     scriptProperties.deleteAllProperties();
     clearTriggers();
 

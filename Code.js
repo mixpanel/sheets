@@ -26,6 +26,8 @@ TODOs
 ----
 */
 
+// ? https://inclu-cat.net/2021/12/14/an-easy-way-to-deal-with-google-apps-scripts-6-minute-limit/
+// ? https://github.com/inclu-cat/LongRun
 
 /*
 ----
@@ -242,7 +244,10 @@ function createSyncSheetsToMp(config, sheetInfo) {
  * called automatically by the trigger: Sheet → Mixpanel
  */
 function syncSheetsToMp() {
-    const syncId = Math.random();
+    /** @type {SheetMpConfig & SheetInfo} */
+    const config = getConfig();
+    
+	const syncId = Math.random();
     const t = tracker({
         syncId,
         record_type: config?.record_type,
@@ -250,8 +255,7 @@ function syncSheetsToMp() {
         view: "sheet → mixpanel"
     });
     t("sync: start");
-    /** @type {SheetMpConfig & SheetInfo} */
-    const config = getConfig();
+
     const sourceSheet = getSheet(Number(config.sheet_id));
     const receiptSheet = getSheet(Number(config.receipt_sheet));
 
@@ -457,6 +461,8 @@ function createSyncMpToSheets(config) {
  * called automatically by the trigger: Mixpanel → Sheet
  */
 function syncMpToSheets() {
+    /** @type {MpSheetConfig} */
+    const config = getConfig();
     const syncId = Math.random();
     const t = tracker({
         syncId,
@@ -467,8 +473,6 @@ function syncMpToSheets() {
     t("sync: start");
     try {
         const startTime = new Date();
-        /** @type {MpSheetConfig} */
-        const config = getConfig();
         const destSheet = getSheet(Number(config.dest_sheet));
         const receiptSheet = getSheet(Number(config.receipt_sheet));
         const [csvData, metadata] = exportData(config);
