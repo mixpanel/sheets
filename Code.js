@@ -59,7 +59,7 @@ function onOpen(sheetOpenEv) {
         // track("menu load");
         menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
-		menu.addItem("Feedback + Bug Reports", "ShowFeedbackForm")
+		menu.addItem("Feedback", "ShowFeedbackForm")
         if (authMode == ScriptApp.AuthMode.FULL || authMode == ScriptApp.AuthMode.LIMITED) {
             const activeSync = getConfig().active_sync || false;
             if (activeSync) {

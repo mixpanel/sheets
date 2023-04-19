@@ -26,7 +26,7 @@ function setConfig(config) {
     scriptProperties.setProperties(config);
 
     // @ts-ignore
-    track("save", { record_type: config?.record_type, token: config?.token });
+    track("save", { record_type: config?.record_type, project_id: config?.project_id });
 
     return scriptProperties.getProperties();
 }
@@ -43,7 +43,7 @@ function clearConfig(config) {
     clearTriggers();
 
     // @ts-ignore
-    track("clear", { record_type: config?.record_type, token: config?.token });
+    track("clear", { record_type: config?.record_type, project_id: config?.project_id });
 
     return {};
 }

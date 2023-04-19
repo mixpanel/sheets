@@ -2,12 +2,13 @@
 
 connect your google sheet with mixpanel! no coding required!
 
+[Install Now!](https://workspace.google.com/marketplace/app/sheets_%E2%87%94_mixpanel/1078767167468)
 
 <div id="tldr"></div>
 
 ## 👔 tldr;
 
-after installing you will see the `sheets ⇔ mixpanel` dropdown under `extensions` in any google sheet. this module provides two modes, which are exposed in the main menu:
+after [installing](https://workspace.google.com/marketplace/app/sheets_%E2%87%94_mixpanel/1078767167468) you will see the `sheets ⇔ mixpanel` dropdown under `extensions` in any google sheet. this module provides two modes, which are exposed in the main menu:
 
 <img src="https://aktunes.neocities.org/sheets-mixpanel/two%20modes.png">
 
@@ -22,8 +23,9 @@ each UI has a simple user interface, and is essentially a form you fill out that
 
 ## 🍿 demo
 
+<a href="https://youtu.be/jaT_cO2Bz5g" target="_blank"><img src="https://aktunes.neocities.org/sheets-mixpanel/youtube.png" alt="youtube demo"/></a>
 
-<img src="https://aktunes.neocities.org/sheets-mixpanel/fastdemo.gif">
+<!-- <img src="https://aktunes.neocities.org/sheets-mixpanel/fastdemo.gif"> -->
 
 <div id="mapping"></div>
 

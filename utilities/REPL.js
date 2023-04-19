@@ -9,8 +9,7 @@ a very simple debugger to be passed to clasp run
 */
 
 function repl() {
-    clearConfig();
-     return testSyncMpToSheets(TEST_CONFIG_COHORTS);
+    return 'hello there!'
 }
 
 if (typeof module !== "undefined") {

@@ -129,7 +129,7 @@ function runTests() {
 
     //flush
     test.assert("FLUSH: events?", () => {
-        const expected = [{ code: 200, num_records_imported: 1, status: "OK" }];
+        const expected = [{ code: 200, error: null, num_records_imported: 1, status: 1 }];
         const results = flushToMixpanel(TEST_CONFIG_EVENTS_DATA, TEST_CONFIG_EVENTS);
         return isDeepEqual(expected, results);
     });
