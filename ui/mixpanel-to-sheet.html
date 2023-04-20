@@ -80,29 +80,31 @@
 
 	<section id="controls">
 		<div>
+			<button id="test" class="share" disabled>
+				<svg-icon icon="event" class="mp-icon">
+					<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
+						<path
+							d="M9.014 9.64l3.068 8.766a.2.2 0 00.381-.01l1.376-4.803 4.54-1.297a.2.2 0 00.008-.382L9.644 9a.5.5 0 00-.63.64z"
+							stroke="currentColor" stroke-width="1.5"></path>
+						<path d="M9 3v2M3 9h2M4.786 13.164L6.2 11.75M13.573 4.813L12.16 6.228M4.814 4.813l1.414 1.415"
+							stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+					</svg></svg-icon> run
+			</button>
+			
 			<button id="sync" class="action" disabled>
 				<svg-icon icon="stop-watch" class="mp-icon">
 					<svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
-						<path d="M6 3a8 8 0 0 0-3 3m16.05.08A8 8 0 0 0 15.93 3" stroke-miterlimit="10"
-							stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"></path>
-						<circle cx="11" cy="11" r="6.5" stroke-miterlimit="10" fill="none" stroke="currentColor"
-							stroke-width="1.5">
+						<path d="M6 3a8 8 0 0 0-3 3m16.05.08A8 8 0 0 0 15.93 3" stroke-miterlimit="10" stroke-linecap="round"
+							fill="none" stroke="currentColor" stroke-width="1.5"></path>
+						<circle cx="11" cy="11" r="6.5" stroke-miterlimit="10" fill="none" stroke="currentColor" stroke-width="1.5">
 						</circle>
-						<path stroke-miterlimit="10" stroke-linecap="round" fill="none" stroke="currentColor"
-							stroke-width="1.5" d="M6.05 15.95L4 18m11.95-2.05L18 18"></path>
-						<path stroke-linejoin="round" stroke-linecap="round" fill="none" stroke="currentColor"
-							stroke-width="1.5" d="M11 8v3h3"></path>
+						<path stroke-miterlimit="10" stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"
+							d="M6.05 15.95L4 18m11.95-2.05L18 18"></path>
+						<path stroke-linejoin="round" stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"
+							d="M11 8v3h3"></path>
 					</svg>
-				</svg-icon>
-				sync</button>
-			<button id="test" class="share" disabled>
-				<svg-icon icon="pulse" class="mp-icon">
-					<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
-						<path
-							d="M5 10.513a.75.75 0 100 1.5v-1.5zm12 1.5a.75.75 0 000-1.5v1.5zm-2.332-.686l.698.272-.698-.272zm-1.823 4.67l-.703.26.703-.26zm.002 0l.699.273-.699-.272zM9.153 6.004l.708.248-.708-.248zm.002 0l.703-.26-.703.26zM7.33 11.196l.708.248-.708-.248zM5 12.013h2.237v-1.5H5v1.5zm3.039-.569L9.86 6.252l-1.416-.497-1.822 5.194 1.416.496zm.412-5.182l3.69 9.995 1.408-.52-3.69-9.994-1.408.52zm5.095 10.008l1.82-4.67-1.397-.545-1.82 4.67 1.397.545zm1.215-4.257H17v-1.5h-2.24v1.5zm.605-.414a.65.65 0 01-.605.414v-1.5a.85.85 0 00-.792.542l1.397.544zm-3.224 4.658c.24.65 1.153.656 1.404.013l-1.398-.545c.25-.641 1.162-.634 1.4.013l-1.406.52zM9.86 6.251c-.233.662-1.167.67-1.41.011l1.407-.52c-.243-.66-1.18-.652-1.413.012l1.416.497zm-2.624 5.762a.85.85 0 00.802-.569l-1.416-.496a.65.65 0 01.614-.435v1.5z"
-							fill="currentColor"></path>
-					</svg>
-				</svg-icon> test</button>
+				</svg-icon> sync
+			</button>
 			<button id="save">
 				<svg-icon icon="save" class="mp-icon">
 					<svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
@@ -128,7 +130,7 @@
 				</svg-icon>
 				clear</button>
 		</div>
-		<span class="optional note"><b>syncs</b> run <b>every hour</b>; <b>tests</b> run <b>only once</b></span><br />
+		<span class="optional note"><b>run</b> fetches <b>once</b>; <b>sync</b> fetches <b>every hour</b></span><br />
 		<span id="sheet_footer"></span>
 	</section>
 
