@@ -48,12 +48,12 @@ function updateConfig(key, value) {
  * @param  {string} value
  * @param  {number} [limit] max # of values to store @ key
  */
-function appendConfig(key, value, limit = 100) {
+function appendConfig(key, value, limit = 50) {
     const scriptProperties = PropertiesService.getDocumentProperties();
     const config = scriptProperties.getProperties();
     if (config[key]) {
         const currentList = JSON.parse(config[key]);
-		currentList.push(value)
+        currentList.push(value);
         const newList = Array.from(new Set(currentList));
         if (newList.length <= limit) {
             config[key] = JSON.stringify(newList);
@@ -67,7 +67,7 @@ function appendConfig(key, value, limit = 100) {
     }
 
     const newConfig = setConfig(config);
-	return newConfig
+    return newConfig;
 }
 
 /**
@@ -120,6 +120,6 @@ if (typeof module !== "undefined") {
         clearTriggers,
         getTriggers,
         updateConfig,
-		appendConfig
+        appendConfig
     };
 }

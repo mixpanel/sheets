@@ -8,12 +8,13 @@
 		"login": "clasp login --creds creds.json",
 		"push": "clasp push --force",
 		"debug": "clasp run repl",
+		"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",
+		
 		"test-local": "node ./tests/all.test.js",
 		"test-server": "clasp run runTests",
 		"type-check": "tsc --noEmit --allowJs --checkJs Code.js",
 		"build-types": "tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
-		"web-view": "open -a 'Google Chrome.app' https://docs.google.com/spreadsheets/d/1AZ_tb_kMCUGaEMvBSSH4H53jc0H2Mf1QallzJ0kJ25A https://script.google.com/home/projects/1-e_9mTJFnWHvceBDod0OEkYP7B7fgfcxTYqggyoZGLyWOCfWvFge3hZO/executions https://cloudlogging.app.goo.gl/jYVp6DWFgcwhc2zb7",
-		
+				
 		"watch-server-debug": "npm-watch debug",
 		"watch-test-local": "npm-watch test-local",
 		"watch-build-types": " npm-watch build-types",

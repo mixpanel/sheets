@@ -62,6 +62,7 @@ CORE CONFIGS
  * @property {Regions} region US or EU residence
  * @property {AuthModes} auth_type how we will authenticate
  * @property {string} [trigger] triggerId of this sync
+ * @property {string} [hashes] hashes of prior runs
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret

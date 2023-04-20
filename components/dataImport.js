@@ -74,7 +74,7 @@ function importData(config, sheet) {
         Logger.log(cleanConfig.results.errors);
     }
 
-    return [imported, summary, true];
+    return [imported, summary];
 }
 
 /**
