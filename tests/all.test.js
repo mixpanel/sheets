@@ -518,24 +518,63 @@ function runTests() {
         createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
+    /*
+	----
+	E2E
+	----
+	*/
+
     test.assert("Sheet → MP: recovers on receipt delete", () => {
         clearConfig(null, true);
-		const expected = { status: "success", error: null };
-        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));        
+        const expected = { status: "success", error: [] };
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         deleteSheet(config.receipt_sheet);
+        updateConfig("hashes", "[]");
         const nextSync = syncSheetsToMp();
         return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
     });
+    
+    test.assert("Sheet → MP: cancels sync on source delete", () => {
+		    clearConfig(null, true);
+            const tempSheetName = "tempSheet";
+            const tempSheet = createSheet(tempSheetName);
+            const tempSheetId = getSheetInfo(tempSheetName).sheet_id;
+            const columns = `uuid,timestamp,action,favorite color,lucky number,insert`;
+            overwriteSheet(columns, tempSheet);
+            tempSheet.getRange(getEmptyRow(tempSheet), 1, 3, 6).setValues([
+                ["7e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "link_click", "blue", "42", "A"],
+                ["2e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "page_view", "purple", "420", "B"],
+                ["3e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "watch_video", "green", "1", "C"]
+            ]);
+            const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName(tempSheetName));
+            const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+            deleteSheet(tempSheetId);
+            const nextSync = syncSheetsToMp();
+            return isDeepEqual("SYNC DELETED", nextSync) && getTriggers().length === 0;
+    });
 
-    // todo ... how to do this without blowing up test env?
-    // test.assert("Sheet → MP: cancels on source delete", () => {
-
-    // });
+    test.assert("Sheet → MP: don't sync dupes", () => {
+        clearConfig(null, true);
+        const expected = {
+            error: [
+                {
+                    error: "data with this hash has already been synced... skipping",                   
+                }
+            ],
+            status: "success"
+        };
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
+        const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+        deleteSheet(config.receipt_sheet);
+        const nextSync = syncSheetsToMp();
+		delete nextSync.error[0].hash
+        return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
+    });
 
     test.assert("MP → Sheet: recovers on receipt delete", () => {
         clearConfig(null, true);
-		const expected = { status: "success", error: null };
+        const expected = { status: "success", error: null };
         const [sheet, metadata, config] = createSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
         deleteSheet(config.receipt_sheet);
         const nextSync = syncMpToSheets();
@@ -543,13 +582,13 @@ function runTests() {
     });
 
     test.assert("MP → Sheet: recovers on dest delete", () => {
-		 clearConfig(null, true);
-         const expected = { status: "success", error: null };
-         const [sheet, metadata, config] = createSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
-         deleteSheet(config.dest_sheet);
-         const nextSync = syncMpToSheets();
-         return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
-	});
+        clearConfig(null, true);
+        const expected = { status: "success", error: null };
+        const [sheet, metadata, config] = createSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
+        deleteSheet(config.dest_sheet);
+        const nextSync = syncMpToSheets();
+        return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
+    });
 
     if (test.isInGas) tearDown();
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS END\n${formatDate()}`, false);

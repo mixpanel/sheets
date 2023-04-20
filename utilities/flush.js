@@ -20,7 +20,7 @@ function flushToMixpanel(data, config, strict = 0) {
     let sub = `api`;
     if (region === "EU") sub = `api-eu`;
     let URL;
-    let projIdQs = `project_id=${config.project_id}`;
+    let projIdQs = `project_id=${Number(config.project_id)}`;
     if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&${projIdQs}&verbose=1`;
     if (record_type === "user") URL = `https://${sub}.mixpanel.com/engage?verbose=1`;
     if (record_type === "group") URL = `https://${sub}.mixpanel.com/groups?verbose=1`;

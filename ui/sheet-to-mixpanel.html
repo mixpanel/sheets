@@ -910,6 +910,9 @@
 						if (responses[0]?.failed_records) failToShow = responses[0].failed_records[0];
 						this.DOM.status.innerText += `\n\nexample error:\n${JSON.stringify(failToShow, null, 2)}`;
 					}
+					else if (summary.errors.length) {
+						this.DOM.status.innerText += `\n\nERROR:\n${JSON.stringify(summary.errors, null, 2)}`;
+					}
 					this.DOM.testButton.disabled = false;
 				})
 				.withFailureHandler((e) => {

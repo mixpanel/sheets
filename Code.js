@@ -11,6 +11,8 @@
 -----------------------------
 */
 
+const APP_VERSION = "1.09"
+
 /**
  * some important things to know about google apps script
  * 	- there are no modules; every function shares a global namespace
@@ -26,9 +28,15 @@ TODOs
 ----
 */
 
-// ! some kind of dedupe
-// ! connect GCP logs better... somehow
+
 // ! test => run ... make syncs less obvious or hidden
+
+// ! receipt sheet logs use UTC; should be local timezone to user 
+// ? https://developers.google.com/apps-script/reference/base/session#getscripttimezone
+// ? https://developers.google.com/google-ads/scripts/docs/features/dates#spreadsheets
+
+// $ the 6 (or 30) minute limit
+// ? https://developers.google.com/apps-script/guides/services/quotas#current_limitations
 // ? https://inclu-cat.net/2021/12/14/an-easy-way-to-deal-with-google-apps-scripts-6-minute-limit/
 // ? https://github.com/inclu-cat/LongRun
 
@@ -266,6 +274,7 @@ function syncSheetsToMp() {
         sourceSheet = getSheet(Number(config.sheet_id));
     } catch (e) {
         //the source sheet is gone; kill the sync + config
+		t("sync: autodelete")
         clearTriggers(triggerId);
         clearConfig();
         return `SYNC DELETED`;
@@ -297,7 +306,13 @@ function syncSheetsToMp() {
         //run import
         const [responses, summary] = importData(config, sourceSheet);
 
-        //dump results to sync log
+		// track sync result
+        if (responses.length === 0) {
+			t("sync: skipped");
+		}
+		else {
+			t("sync: finish");
+		}
 
         const { startTime, endTime, seconds, total, success, failed, errors } = summary;
         //dump results to sync log
@@ -314,8 +329,8 @@ function syncSheetsToMp() {
                     JSON.stringify(errors, null, 2)
                 ]
             ]);
-        t("sync: finish");
-        return { status: "success", error: null };
+        
+        return { status: "success", error: errors };
     } catch (e) {
         t("sync: error", { error: e.message || e });
         receiptSheet
