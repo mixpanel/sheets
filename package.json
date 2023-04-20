@@ -24,7 +24,7 @@
 	"watch": {
 		"debug": {
 			"patterns": [
-				"./utilities/REPL.js"
+				"./utilities/md5.js"
 			],
 			"quiet": true,
 			"silent": true,

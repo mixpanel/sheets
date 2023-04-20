@@ -49,6 +49,8 @@ function tracker(superProps = {}, distinct_id, token = "41a033e6987a1340255ded80
                         distinct_id: distinct_id,
                         $source: "google apps script",
                         ip: "0",
+						"GCP User Id": Session.getTemporaryActiveUserKey() || "",
+						"app version": APP_VERSION,
                         ...props,
                         ...superProps
                     }

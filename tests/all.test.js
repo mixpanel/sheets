@@ -526,7 +526,7 @@ function runTests() {
 
     test.assert("Sheet → MP: recovers on receipt delete", () => {
         clearConfig(null, true);
-        const expected = { status: "success", error: null };
+        const expected = { status: "success", error: [] };
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         deleteSheet(config.receipt_sheet);
