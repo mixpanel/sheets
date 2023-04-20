@@ -41,6 +41,34 @@ function updateConfig(key, value) {
     scriptProperties.setProperty(key, value);
     return scriptProperties.getProperties();
 }
+/**
+ * append a value to a config at a key; stringifies list before saving
+ *
+ * @param  {string} key
+ * @param  {string} value
+ * @param  {number} [limit] max # of values to store @ key
+ */
+function appendConfig(key, value, limit = 100) {
+    const scriptProperties = PropertiesService.getDocumentProperties();
+    const config = scriptProperties.getProperties();
+    if (config[key]) {
+        const currentList = JSON.parse(config[key]);
+		currentList.push(value)
+        const newList = Array.from(new Set(currentList));
+        if (newList.length <= limit) {
+            config[key] = JSON.stringify(newList);
+        } else {
+            // 9KB limit per value; need to clear
+            // ? https://developers.google.com/apps-script/guides/services/quotas#current_limitations
+            config[key] = JSON.stringify([]);
+        }
+    } else {
+        config[key] = JSON.stringify([value]);
+    }
+
+    const newConfig = setConfig(config);
+	return newConfig
+}
 
 /**
  * clears all stored data & scheduled triggers
@@ -91,6 +119,7 @@ if (typeof module !== "undefined") {
         clearConfig,
         clearTriggers,
         getTriggers,
-        updateConfig
+        updateConfig,
+		appendConfig
     };
 }

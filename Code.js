@@ -27,8 +27,18 @@ TODOs
 */
 
 // ! some kind of dedupe
+// ? 
+
 // ! connect GCP logs better... somehow
+// ? https://developers.google.com/apps-script/guides/logging
+
 // ! test => run ... make syncs less obvious or hidden
+
+// ! receipt sheet logs use UTC; should be local timezone to user 
+// ? https://developers.google.com/apps-script/reference/base/session#getscripttimezone
+// ? https://developers.google.com/google-ads/scripts/docs/features/dates#spreadsheets
+
+// $ the 6 minute limit
 // ? https://inclu-cat.net/2021/12/14/an-easy-way-to-deal-with-google-apps-scripts-6-minute-limit/
 // ? https://github.com/inclu-cat/LongRun
 

@@ -21,16 +21,51 @@ function importData(config, sheet) {
 
     // console.log('SYNC');
     const startTime = Date.now();
+    let endTime;
     const mappings = getMappings(config);
     const cleanConfig = getMixpanelConfig(config);
     const transform = getTransformType(cleanConfig);
 
     const sourceData = getJSON(sheet);
 
+    // diffing
+    // todo
+    const hash = MD5(JSON.stringify(sourceData));
+    let priorHashes;
+    try {
+        priorHashes = JSON.parse(config.hashes); // this isn't working
+    } catch (e) {
+        priorHashes = [];
+    }
+
+    if (priorHashes.includes(hash)) {
+        //this data has already been synced! stop!
+        endTime = Date.now();
+        const error = {
+            hash,
+            error: "data with this hash has already been synced... skipping"
+        };
+        return [
+            [],
+            {
+                total: 0,
+                batches: 0,
+                failed: 0,
+                seconds: 0,
+                success: 0,
+                startTime,
+                endTime,
+                record_type: config.record_type,
+                errors: [error]
+            }
+        ];
+    }
+    appendConfig("hashes", hash);
+
     const targetData = sourceData.slice().map(row => transform(row, mappings, cleanConfig));
 
     const imported = flushToMixpanel(targetData, cleanConfig);
-    const endTime = Date.now();
+    endTime = Date.now();
 
     const summary = summarizeImport(cleanConfig, imported, startTime, endTime, targetData);
 
@@ -39,7 +74,7 @@ function importData(config, sheet) {
         Logger.log(cleanConfig.results.errors);
     }
 
-    return [imported, summary];
+    return [imported, summary, true];
 }
 
 /**
