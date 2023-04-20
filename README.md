@@ -33,7 +33,7 @@ each UI has a simple user interface, and is essentially a form you fill out that
 
 choose the type of data you are importing and then use the visual mapper to connect the events in your **currently active** spreadsheet to the **required fields** for the type of mixpanel data you are importing: 
 
-<img src="https://aktunes.neocities.org/sheets-mixpanel/sheet-to-mixpanel.png">
+<img src="https://aktunes.neocities.org/sheets-mixpanel/sheet-to-mp-2.png">
 
 all other columns in your spreadsheet will get sent as **properties** (event, user, or group)
 
@@ -45,7 +45,7 @@ finally, provide some project information and authentication details.
 ## 💽 exports (mixpanel → sheet)
 
 provide authentication details along with a URL of a report or cohort from your mixpanel project that you wish to sync:
-<img src="https://aktunes.neocities.org/sheets-mixpanel/mixpanel-to-sheet.png">
+<img src="https://aktunes.neocities.org/sheets-mixpanel/mp-to-sheet-2.png">
 
 the UI will try to resolve all the relevant Ids; in case it cannot, you can add in your information to specify the particular report you want to sync
 
@@ -54,16 +54,16 @@ only **report** and **cohort** syncs are supported. currently, you can not sync 
 
 <div id="sync"></div>
 
-## 🔄 tests + syncs
+## 🔄 runs + syncs
 
 each UI has a similar user interface for you to input your details with **four** key actions at the bottom:
 
-<img src="https://aktunes.neocities.org/sheets-mixpanel/buttons.png">
+<img src="https://aktunes.neocities.org/sheets-mixpanel/run-buttons.png">
 
+- **Run**: run the current configuration **once**; results are display in the UI
  - **Sync**: run the current configuration **every hour**; run receipts are stored in a log sheet
- - **Test**: run the current configuration **once**; results are display in the UI
  - **Save**: store the current configuration
- - **Clear**: delete all syncs and delete the current configuration
+ - **Clear**: delete document syncs and delete the current configuration
 
 you may only have **one sync** active per sheet at a time.
 
