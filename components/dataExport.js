@@ -55,9 +55,9 @@ function getParams(config) {
     const { project_id, workspace_id, region, report_id, auth } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
-    const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${workspace_id}/bookmarks/${report_id}?v=2`;
-    
-	/** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
+    const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(workspace_id)}/bookmarks/${Number(report_id)}?v=2`;
+
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
         method: "get",
         headers: {
@@ -108,7 +108,7 @@ function getReportCSV(report_type, params, config) {
         route = `arb_funnels`;
     }
 
-    const URL = `https://${subdomain}mixpanel.com/api/query/${route}?workspace_id=${workspace_id}&project_id=${project_id}`;
+    const URL = `https://${subdomain}mixpanel.com/api/query/${route}?workspace_id=${Number(workspace_id)}&project_id=${Number(project_id)}`;
     const payload = {
         bookmark: params,
         use_query_cache: false,
@@ -209,7 +209,7 @@ function getCohortMeta(config) {
 
     const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());
     const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id.toString()) || {};
-	
+
     return {
         cohort_id: cohortInfos.id,
         cohort_name: cohortInfos.name,
@@ -226,7 +226,7 @@ function getCohortMeta(config) {
  * @returns {Object<string, PropValues>}
  */
 function unNest(profile) {
-	//@ts-ignore
+    //@ts-ignore
     return { distinct_id: profile?.$distinct_id || profile?.group_id, ...profile.$properties };
 }
 
@@ -234,5 +234,5 @@ if (typeof module !== "undefined") {
     module.exports = { exportData };
     const { getConfig } = require("../utilities/storage.js");
     const { validateCreds } = require("../utilities/validate.js");
-	const { JSONtoCSV } = require('../utilities/misc.js')
+    const { JSONtoCSV } = require("../utilities/misc.js");
 }

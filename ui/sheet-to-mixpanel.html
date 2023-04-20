@@ -930,7 +930,7 @@
 
 		function freezeView() {
 			// FREEZE UI IF SYNC IS ENABLED
-			if (this.DOM.syncInfo.filter(s => s?.id).length) {
+			if (this.DOM.config?.trigger) {
 				this.DOM.activeSync.classList.remove('hidden');
 				this.DOM.syncSheetLabel.innerText = this.DOM.config.sheet_name || "";
 				this.DOM.allUserInputFields.forEach(n => n.disabled = true);

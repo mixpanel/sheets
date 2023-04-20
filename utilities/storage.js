@@ -30,17 +30,29 @@ function setConfig(config) {
 
     return scriptProperties.getProperties();
 }
+/**
+ * adds a single k:v pair to stored configuration
+ *
+ * @param  {string} key
+ * @param  {string} value
+ */
+function updateConfig(key, value) {
+    const scriptProperties = PropertiesService.getDocumentProperties();
+    scriptProperties.setProperty(key, value);
+    return scriptProperties.getProperties();
+}
 
 /**
  * clears all stored data & scheduled triggers
  *
  * @param  {SheetMpConfig & MpSheetConfig} [config]
+ * @param {boolean} [deleteAll] clears all triggers too
  * @returns {{}}
  */
-function clearConfig(config) {
+function clearConfig(config, deleteAll = false) {
     const scriptProperties = PropertiesService.getDocumentProperties();
     scriptProperties.deleteAllProperties();
-    clearTriggers();
+    clearTriggers(config?.trigger, deleteAll);
 
     // @ts-ignore
     track("clear", { record_type: config?.record_type, project_id: config?.project_id });
@@ -48,10 +60,12 @@ function clearConfig(config) {
     return {};
 }
 
-function clearTriggers() {
+function clearTriggers(triggerId = "", deleteAll = false) {
     const syncs = ScriptApp.getProjectTriggers();
     for (const sync of syncs) {
-        ScriptApp.deleteTrigger(sync);
+        if (sync.getUniqueId() === triggerId || deleteAll) {
+            ScriptApp.deleteTrigger(sync);
+        }
     }
     return {};
 }
@@ -71,5 +85,12 @@ function getTriggers() {
 
 if (typeof module !== "undefined") {
     const { tracker } = require("./tracker.js");
-    module.exports = { getConfig, setConfig, clearConfig, clearTriggers, getTriggers };
+    module.exports = {
+        getConfig,
+        setConfig,
+        clearConfig,
+        clearTriggers,
+        getTriggers,
+        updateConfig
+    };
 }

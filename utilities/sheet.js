@@ -13,9 +13,14 @@ GET, CREATE AND UPDATE SHEETS + TABS
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}
  */
 function getSheet(sheetIdentifier) {
-    const { sheet_id } = getSheetInfo(sheetIdentifier);
-    const sheet = getSheetById(sheet_id);
-    return sheet;
+    try {
+        const { sheet_id } = getSheetInfo(sheetIdentifier);
+        const sheet = getSheetById(sheet_id);
+        return sheet;
+    } catch (e) {
+        //sheet doesn't exist
+        throw `sheet ${sheetIdentifier} does not exist`;
+    }
 }
 
 /**
@@ -160,6 +165,6 @@ if (typeof module !== "undefined") {
         getSheetInfo,
         getSheetById,
         getSheet,
-		getEmptyRow
+        getEmptyRow
     };
 }

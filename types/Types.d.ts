@@ -37,6 +37,10 @@ type SheetMpConfigAlways = {
      */
     auth_type: AuthModes;
     /**
+     * triggerId of this sync
+     */
+    trigger?: string;
+    /**
      * service acct name
      */
     service_acct?: string;
@@ -89,6 +93,10 @@ type MpSheetConfig = {
      * service acct pass
      */
     workspace_id: string;
+    /**
+     * triggerId of this sync
+     */
+    trigger?: string;
     /**
      * US or EU residence
      */

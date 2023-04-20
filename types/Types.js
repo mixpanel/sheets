@@ -61,12 +61,14 @@ CORE CONFIGS
  * @property {string} token the project token
  * @property {Regions} region US or EU residence
  * @property {AuthModes} auth_type how we will authenticate
+ * @property {string} [trigger] triggerId of this sync
  * @property {string} [service_acct] service acct name
  * @property {string} [service_secret] service acct pass
  * @property {string} [api_secret] api secret
  * @property {string} [auth] base64 encoded credentials
  * @property {number} [receipt_sheet] id of the sheet to store sync results
  * @property {boolean} [active_sync] is there a sync active?
+ 
  *
  */
 
@@ -78,6 +80,7 @@ CORE CONFIGS
  * @property {string} service_acct service acct name
  * @property {string} service_secret service acct pass
  * @property {string} workspace_id service acct pass
+ * @property {string} [trigger] triggerId of this sync
  * @property {Regions} region US or EU residence
  * @property {EntityTypes} entity_type is this a cohort or a report...
  * @property {string | number} [cohort_id] id of the cohort
