@@ -15,6 +15,7 @@ SEND TO MIXPANEL
 function flushToMixpanel(data, config, strict = 0) {
     const { region, record_type } = config;
 
+    // @ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
     const batches = sliceIntoChunks(data, config.batchSize);
     let sub = `api`;

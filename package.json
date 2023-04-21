@@ -15,7 +15,7 @@
 		"type-check": "tsc --noEmit --allowJs --checkJs Code.js",
 		"build-types": "tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
 				
-		"watch-server-debug": "npm-watch debug",
+		"watch-debug": "npm-watch debug",
 		"watch-test-local": "npm-watch test-local",
 		"watch-build-types": " npm-watch build-types",
 		"watch-push": "clasp push --watch --force",

@@ -11,7 +11,7 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.11"
+const APP_VERSION = "1.12";
 
 /**
  * some important things to know about google apps script
@@ -28,10 +28,9 @@ TODOs
 ----
 */
 
-
 // ! test => run ... make syncs less obvious or hidden
 
-// ! receipt sheet logs use UTC; should be local timezone to user 
+// ! receipt sheet logs use UTC; should be local timezone to user
 // ? https://developers.google.com/apps-script/reference/base/session#getscripttimezone
 // ? https://developers.google.com/google-ads/scripts/docs/features/dates#spreadsheets
 
@@ -157,6 +156,7 @@ function SheetToMixpanelView() {
  * @returns {[ImportResponse[], ImportResults, string]}
  */
 function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getActiveSheet())) {
+    config.config_type = "sheet-to-mixpanel";
     const testId = Math.random();
     const t = tracker({
         testId,
@@ -165,6 +165,7 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
         view: "sheet → mixpanel"
     });
     try {
+        // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
@@ -197,9 +198,11 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
 function createSyncSheetsToMp(config, sheetInfo) {
     //clear all triggers + stored data
     clearConfig(getConfig());
+    config.config_type = "sheet-to-mixpanel";
 
     //validate credentials
     try {
+        // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
@@ -258,7 +261,8 @@ function createSyncSheetsToMp(config, sheetInfo) {
 function syncSheetsToMp() {
     /** @type {SheetMpConfig & SheetInfo} */
     const config = getConfig();
-    if (JSON.stringify(config) === "{}") return "noop: empty config";
+    if (JSON.stringify(config) === "{}") throw "no operation: sync scheduled; data not present (SH => MP)";
+    config.config_type = "sheet-to-mixpanel";
     const syncId = Math.random();
     const t = tracker({
         syncId,
@@ -274,7 +278,7 @@ function syncSheetsToMp() {
         sourceSheet = getSheet(Number(config.sheet_id));
     } catch (e) {
         //the source sheet is gone; kill the sync + config
-		t("sync: autodelete")
+        t("sync: autodelete");
         clearTriggers(triggerId);
         clearConfig();
         return `SYNC DELETED`;
@@ -299,6 +303,7 @@ function syncSheetsToMp() {
     try {
         //validate credentials
         if (!config.auth) {
+            // @ts-ignore
             const auth = validateCreds(config);
             config.auth = auth;
         }
@@ -306,13 +311,12 @@ function syncSheetsToMp() {
         //run import
         const [responses, summary] = importData(config, sourceSheet);
 
-		// track sync result
+        // track sync result
         if (responses.length === 0) {
-			t("sync: skipped");
-		}
-		else {
-			t("sync: finish");
-		}
+            t("sync: skipped");
+        } else {
+            t("sync: finish");
+        }
 
         const { startTime, endTime, seconds, total, success, failed, errors } = summary;
         //dump results to sync log
@@ -329,7 +333,7 @@ function syncSheetsToMp() {
                     JSON.stringify(errors, null, 2)
                 ]
             ]);
-        
+
         return { status: "success", error: errors };
     } catch (e) {
         t("sync: error", { error: e.message || e });
@@ -374,10 +378,12 @@ function MixpanelToSheetView() {
  * @param  {MpSheetConfig} config if not supplied, last known will be used
  */
 function testSyncMpToSheets(config) {
+    config.config_type = "mixpanel-to-sheet";
     const testId = Math.random();
     const t = tracker({ testId, project_id: config.project_id, view: "mixpanel → sheet" });
 
     try {
+        // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
@@ -422,12 +428,15 @@ function testSyncMpToSheets(config) {
  * @param  {MpSheetConfig} config
  */
 function createSyncMpToSheets(config) {
-    const startTime = new Date();
     //clear all triggers + stored data
     clearConfig(getConfig());
 
+    config.config_type = "mixpanel-to-sheet";
+    const startTime = new Date();
+
     //validate credentials
     try {
+        // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
@@ -493,7 +502,7 @@ function createSyncMpToSheets(config) {
     ]);
 
     track("sync: create", {
-        record_type: config?.record_type,
+        record_type: config?.entity_type,
         project_id: config?.project_id,
         view: "mixpanel → sheet"
     });
@@ -507,11 +516,12 @@ function createSyncMpToSheets(config) {
 function syncMpToSheets() {
     /** @type {MpSheetConfig} */
     const config = getConfig();
-    if (JSON.stringify(config) === "{}") return "noop: empty config";
+    if (JSON.stringify(config) === "{}") return "no operation: sync scheduled; data not present (MP => SH)";
+	config.config_type = "mixpanel-to-sheet"
     const syncId = Math.random();
     const t = tracker({
         syncId,
-        record_type: config?.record_type,
+        record_type: config?.entity_type,
         project_id: config?.project_id,
         view: "mixpanel → sheet"
     });

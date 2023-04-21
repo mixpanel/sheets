@@ -5,12 +5,9 @@
 		"allowJs": true,
 		"typeRoots": [
 			"./node_modules/@types",
-			"./types"
-		],
-		"skipLibCheck": true
-		
+			"./types/"
+		]		
 	},
-	"files": ["./types/Types.d.ts"],
 	"exclude": [
 		"node_modules"
 	],
