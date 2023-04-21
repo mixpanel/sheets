@@ -33,11 +33,6 @@ TODOs
 ----
 */
 
-// ! test => run ... make syncs less obvious or hidden
-
-// ! receipt sheet logs use UTC; should be local timezone to user
-// ? https://developers.google.com/apps-script/reference/base/session#getscripttimezone
-// ? https://developers.google.com/google-ads/scripts/docs/features/dates#spreadsheets
 
 // $ the 6 (or 30) minute limit
 // ? https://developers.google.com/apps-script/guides/services/quotas#current_limitations
