@@ -90,18 +90,19 @@
 							stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
 					</svg></svg-icon> run
 			</button>
-			
+
 			<button id="sync" class="action" disabled>
 				<svg-icon icon="stop-watch" class="mp-icon">
 					<svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
-						<path d="M6 3a8 8 0 0 0-3 3m16.05.08A8 8 0 0 0 15.93 3" stroke-miterlimit="10" stroke-linecap="round"
-							fill="none" stroke="currentColor" stroke-width="1.5"></path>
-						<circle cx="11" cy="11" r="6.5" stroke-miterlimit="10" fill="none" stroke="currentColor" stroke-width="1.5">
+						<path d="M6 3a8 8 0 0 0-3 3m16.05.08A8 8 0 0 0 15.93 3" stroke-miterlimit="10"
+							stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+						<circle cx="11" cy="11" r="6.5" stroke-miterlimit="10" fill="none" stroke="currentColor"
+							stroke-width="1.5">
 						</circle>
-						<path stroke-miterlimit="10" stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"
-							d="M6.05 15.95L4 18m11.95-2.05L18 18"></path>
-						<path stroke-linejoin="round" stroke-linecap="round" fill="none" stroke="currentColor" stroke-width="1.5"
-							d="M11 8v3h3"></path>
+						<path stroke-miterlimit="10" stroke-linecap="round" fill="none" stroke="currentColor"
+							stroke-width="1.5" d="M6.05 15.95L4 18m11.95-2.05L18 18"></path>
+						<path stroke-linejoin="round" stroke-linecap="round" fill="none" stroke="currentColor"
+							stroke-width="1.5" d="M11 8v3h3"></path>
 					</svg>
 				</svg-icon> sync
 			</button>
@@ -148,6 +149,11 @@
 			<span class="gray"></span>
 		</div>
 	</section>
+	<section id="docs" class="hidden">
+		<a href="https://github.com/mixpanel/sheets#-exports-mixpanel--sheet" target="_blank">help docs</a> |
+		<a href="https://forms.gle/qwhAXE2r2TBAdiQy9" target="_blank">support form</a>
+	</section>
+
 
 	<style>
 		/* CSS */
@@ -214,12 +220,12 @@
 
 
 		#sync {
-			background: var(--purple);
+			background: var(--green);
 
 		}
 
 		#test {
-			background: var(--green);
+			background: var(--purple);
 
 		}
 
@@ -452,6 +458,7 @@
 				loader: qs('#loader'),
 				activeSync: qs('#sync_notification'),
 				syncEntityLabel: qs('#sync_notification_entity'),
+				docs: qs('#docs'),
 
 				// server-side
 				sheet: this.parseServerData(qs('#sheet_info')),
@@ -747,6 +754,8 @@
 				.withFailureHandler((e) => {
 					this.loader('hide');
 					this.DOM.status.innerText = `✖️ SAVE FAILED ... got error:\n${e.message}`;
+					this.DOM.docs.classList.remove('hidden');
+					
 
 					//fields
 					this.DOM.saveButton.disabled = false;
@@ -788,6 +797,7 @@
 					this.loader('hide');
 					this.DOM.status.innerText = `✖️ DELETE FAILED ... got error:\n${e.message}`;
 					this.DOM.clearButton.disabled = false;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.clearConfig(this.getConfig());
 		}
@@ -812,6 +822,7 @@
 					this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.syncButton.disabled = false;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.createSyncMpToSheets(this.getConfig());
 
@@ -826,12 +837,13 @@
 			google.script.run
 				.withSuccessHandler(([updatedSheet, metadata]) => {
 					this.loader('hide');
-					this.DOM.status.innerText = `✔️ test complete for ${metadata?.report_name || metadata?.cohort_name}\nsee the new tab in your sheet!`;
+					this.DOM.status.innerText = `✔️ run complete for ${metadata?.report_name || metadata?.cohort_name}\nsee the new tab in your sheet!`;
 					this.DOM.testButton.disabled = false;
 				})
 				.withFailureHandler((e) => {
 					this.loader('hide');
-					this.DOM.status.innerText = `✖️ TEST FAILED ... got error:\n${e.message}`;
+					this.DOM.status.innerText = `✖️ RUN FAILED ... got error:\n${e.message}`;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.testSyncMpToSheets(this.getConfig());
 

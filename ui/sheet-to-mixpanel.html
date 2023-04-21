@@ -27,7 +27,7 @@
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
 		<span>active sync found on sheet <span id="sync_notification_sheet">SHEET NAME</span></span><br />
-		<span>to make changes, use the <span style="color: var(--red); font-weight: bolder;">clear button</span></span>
+		<span>to make changes, <span style="color: var(--red); font-weight: bolder;">clear</span> your sync</span>
 	</div>
 	<section id="type">
 		<div class="prompt">
@@ -49,7 +49,8 @@
 				fields<a target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
 			</span>
-			<span class="subtext">all other columns will be sent as properties</span>
+			<span id="sheet_name_label"></span><span class="subtext">all unmapped columns will be sent as
+				properties</span>
 			<ul id="event_mapping" class="mapping">
 				<li><select id="event_name_col" class="data dropdown required">
 						<option value="">--------</option>
@@ -59,7 +60,8 @@
 					</select> → <span class="field">distinct_id</span></li>
 				<li><select id="time_col" class="data dropdown required">
 						<option value="">--------</option>
-					</select> → <span class="field">time</span><span class="optional note">(must be a <strong>valid date time</strong> in sheet)</span></li>
+					</select> → <span class="field">time</span><span class="optional note">(must be a <strong>valid date
+							time</strong> in sheet)</span></li>
 				<li><select id="insert_id_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field">$insert_id</span> <span class="optional">(optional)</span></li>
@@ -177,7 +179,7 @@
 					</svg></svg-icon> run
 			</button>
 
-			<button id="sync" class="action" disabled>
+			<button id="sync" class="action hidden" disabled>
 				<svg-icon icon="stop-watch" class="mp-icon">
 					<svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
 						<path d="M6 3a8 8 0 0 0-3 3m16.05.08A8 8 0 0 0 15.93 3" stroke-miterlimit="10"
@@ -220,9 +222,10 @@
 				clear
 			</button>
 		</div>
-		<span class="optional note"><b>run</b> imports <b>once</b>; <b>sync</b> imports <b>every hour</b> from your
+		<span class="optional note" id="syncExplain"><b>run</b> imports <b>once</b>; <b>sync</b> imports <b>every
+				hour</b> from your
 			<b>source sheet</b></span><br />
-		<span id="sheet_footer"></span>
+
 	</section>
 
 	<section id="status" class="bottom">
@@ -241,6 +244,10 @@
 		<div>
 			<span><a id="project_link" target="_blank" href=""></a></span>
 		</div>
+	</section>
+	<section id="docs" class="hidden">
+		<a href="https://github.com/mixpanel/sheets#%EF%B8%8F-mappings-sheet--mixpanel" target="_blank">help docs</a> |
+		<a href="https://forms.gle/qwhAXE2r2TBAdiQy9" target="_blank">support form</a>
 	</section>
 
 	<style>
@@ -292,7 +299,6 @@
 
 		span.subtext {
 			opacity: .5;
-			padding-left: 6%;
 			font-size: 10px;
 		}
 
@@ -359,7 +365,7 @@
 		}
 
 
-		#sheet_footer {
+		#sheet_name_label {
 			color: var(--red);
 			opacity: 0.4;
 			font-size: 10.5px;
@@ -532,6 +538,8 @@
 
 				//labels
 				typeLabel: qs('#type_label'),
+				syncExplain: qs('#syncExplain'),
+				docs: qs('#docs'),
 
 				//buttons
 				syncButton: qs('#sync'),
@@ -542,7 +550,7 @@
 				//status
 				loader: qs('#loader'),
 				status: qs('#status_text'),
-				sheetFooter: qs('#sheet_footer'),
+				sheetNameLabel: qs('#sheet_name_label'),
 				projectLink: qs('#project_link'),
 				activeSync: qs('#sync_notification'),
 				syncSheetLabel: qs('#sync_notification_sheet'),
@@ -581,8 +589,8 @@
 
 		function bindEventsAndViews() {
 			// DYNAMIC VALUES
-			if (this.DOM.sheet.name) {
-				this.DOM.sheetFooter.innerHTML = `current tab: <b>${this.DOM.sheet.name}</b>`;
+			if (this.DOM.sheet.sheet_name) {
+				this.DOM.sheetNameLabel.innerHTML = `current sheet: <b>${this.DOM.sheet.sheet_name}</b>; `;
 
 			}
 
@@ -595,13 +603,19 @@
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					//hide syncs for events
+					this.DOM.syncButton.classList.add('hidden');
+					this.DOM.syncExplain.classList.add('hidden');
 					qs('#auth_type option[value="api_secret"]').disabled = false;
+
 				}
 				if (newVal === 'user') {
 					this.DOM.eventMappings.classList.add('hidden');
 					this.DOM.userMappings.classList.remove('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					this.DOM.syncButton.classList.remove('hidden');
+					this.DOM.syncExplain.classList.remove('hidden');
 					qs('#auth_type option[value="api_secret"]').disabled = false;
 				}
 				if (newVal === 'group') {
@@ -609,6 +623,8 @@
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.remove('hidden');
 					this.DOM.tableMappings.classList.add('hidden');
+					this.DOM.syncButton.classList.remove('hidden');
+					this.DOM.syncExplain.classList.remove('hidden');
 					qs('#auth_type option[value="api_secret"]').disabled = false;
 				}
 				if (newVal === 'table') {
@@ -616,6 +632,8 @@
 					this.DOM.userMappings.classList.add('hidden');
 					this.DOM.groupMappings.classList.add('hidden');
 					this.DOM.tableMappings.classList.remove('hidden');
+					this.DOM.syncButton.classList.remove('hidden');
+					this.DOM.syncExplain.classList.remove('hidden');
 					setValues('#auth_type', 'service_account');
 					qs('#auth_type option[value="api_secret"]').disabled = true;
 				}
@@ -822,6 +840,7 @@
 					this.DOM.status.innerText = `✖️ SAVE FAILED ... got error:\n${e.message}`;
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.saveButton.disabled = false;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.setConfig(userData);
 		}
@@ -871,6 +890,7 @@
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.clearButton.disabled = false;
 					this.loadConfig(defaultConfig, true);
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.clearConfig(this.getConfig());
 		}
@@ -896,6 +916,7 @@
 					this.DOM.status.innerText = `✖️ SYNC FAILED ... got error:\n${e.message}`;
 					this.DOM.projectLink.innerText = ``;
 					this.DOM.syncButton.disabled = false;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.createSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
 		}
@@ -909,7 +930,7 @@
 				.withSuccessHandler(([responses, summary, link]) => {
 					this.loader('hide');
 					const { total = 0, success = 0, failed = 0, batches = 0, seconds = 0 } = summary;
-					this.DOM.status.innerText = `✔️ test complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
+					this.DOM.status.innerText = `✔️ run complete!\n${comma(total)} ${summary.record_type}s ┃ ${comma(success)} success ┃ ${comma(failed)} failed ┃ ${comma(seconds)} seconds`;
 					this.DOM.projectLink.innerText = link;
 					this.DOM.projectLink.href = link;
 					if (failed > 0) {
@@ -924,8 +945,9 @@
 				})
 				.withFailureHandler((e) => {
 					this.loader('hide');
-					this.DOM.status.innerText = `✖️ TEST FAILED ... got error:\n${e.message}`;
+					this.DOM.status.innerText = `✖️ RUN FAILED ... got error:\n${e.message}`;
 					this.DOM.projectLink.innerText = ``;
+					this.DOM.docs.classList.remove('hidden');
 				})
 				.testSyncSheetsToMp(this.getConfig(), this.getCurrentSheet());
 
