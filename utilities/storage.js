@@ -26,7 +26,7 @@ function setConfig(config) {
     scriptProperties.setProperties(config);
 
     // @ts-ignore
-    track("save", { record_type: config?.record_type, project_id: config?.project_id });
+    // track("save", { record_type: config?.record_type, project_id: config?.project_id });
 
     return scriptProperties.getProperties();
 }
@@ -83,7 +83,7 @@ function clearConfig(config, deleteAll = false) {
     clearTriggers(config?.trigger, deleteAll);
 
     // @ts-ignore
-    track("clear", { record_type: config?.record_type, project_id: config?.project_id });
+    // track("clear", { record_type: config?.record_type, project_id: config?.project_id });
 
     return {};
 }
@@ -112,7 +112,7 @@ function getTriggers() {
 }
 
 if (typeof module !== "undefined") {
-    const { tracker } = require("./tracker.js");
+    // const { tracker } = require("./tracker.js");
     module.exports = {
         getConfig,
         setConfig,

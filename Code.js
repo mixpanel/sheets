@@ -20,7 +20,12 @@ const APP_VERSION = "1.12";
  */
 
 // "globally" safe to call anywhere
-const track = tracker();
+let track;
+try {
+    track = tracker();
+} catch (e) {
+    track = () => {};
+}
 
 /*
 ----
@@ -68,7 +73,6 @@ function onOpen(sheetOpenEv) {
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
     } else {
         // user has given app permissions
-        // track("menu load");
         menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
         menu.addItem("Feedback", "ShowFeedbackForm");
@@ -88,9 +92,9 @@ function onOpen(sheetOpenEv) {
  */
 function ShowFeedbackForm() {
     // ? https://dogmatix.medium.com/open-a-url-using-google-apps-script-b1f6b8bdaec4
+    track("feedback");
     var htmlOutput = HtmlService.createHtmlOutputFromFile("ui/feedback.html").setHeight(100);
     SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Feedback Form");
-    track("feedback");
 }
 
 /**
@@ -101,7 +105,14 @@ function ShowFeedbackForm() {
 function syncNow() {
     /** @type {Config} */
     const config = getConfig();
-    track("sync now: start", { type: config.config_type });
+    const runId = Math.random();
+    const t = tracker({
+        runId,
+        type: config.config_type,
+        project_id: config?.project_id,
+        manual: true
+    });
+    t("sync now: start");
     const ui = SpreadsheetApp.getUi();
     try {
         if (config.config_type === "mixpanel-to-sheet") {
@@ -111,10 +122,10 @@ function syncNow() {
             syncSheetsToMp();
         }
         ui.alert("✅ Sync Complete", `sync ran successfully`, ui.ButtonSet.OK);
-        track("sync now: success", { type: config.config_type });
+        t("sync now: end");
         return { status: "success", error: null };
     } catch (e) {
-        track("sync now: fail", { type: config.config_type, error: e.message });
+        t("sync now: error", { error: e });
         ui.alert("❌ Sync Error", `sync failed to run; got error\n${e.message}`, ui.ButtonSet.OK);
         return { status: "fail", error: e.message };
     }
@@ -157,27 +168,29 @@ function SheetToMixpanelView() {
  */
 function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getActiveSheet())) {
     config.config_type = "sheet-to-mixpanel";
-    const testId = Math.random();
+    const runId = Math.random();
     const t = tracker({
-        testId,
+        runId,
         record_type: config?.record_type,
         project_id: config?.project_id,
         view: "sheet → mixpanel"
     });
+    t("test: start");
+
     try {
         // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
         //bad credentials
+        t("test: error", { error: e });
         throw e;
     }
     const sheet = getSheetById(sheetInfo.sheet_id);
 
-    t("test start"); //something happening here... what it is ain't exactly clear
     const [responses, summary] = importData(config, sheet);
     const { total, success, failed, seconds } = summary;
-    t("test end", { total, success, failed, seconds });
+    t("test: end", { total, success, failed, seconds });
 
     //store config for future syncs
     /** @type {SheetMpConfig} */
@@ -199,6 +212,15 @@ function createSyncSheetsToMp(config, sheetInfo) {
     //clear all triggers + stored data
     clearConfig(getConfig());
     config.config_type = "sheet-to-mixpanel";
+    const runId = Math.random();
+    const t = tracker({
+        runId,
+        record_type: config?.record_type,
+        project_id: config?.project_id,
+        view: "sheet → mixpanel",
+        manual: "first sync"
+    });
+    t("sync: create start");
 
     //validate credentials
     try {
@@ -207,6 +229,7 @@ function createSyncSheetsToMp(config, sheetInfo) {
         config.auth = auth;
     } catch (e) {
         //bad credentials
+        t("sync: error", { error: e });
         throw e;
     }
     const sheet = getSheetById(Number(sheetInfo.sheet_id));
@@ -229,8 +252,11 @@ function createSyncSheetsToMp(config, sheetInfo) {
     setConfig(storedConfig);
 
     //run a sync now
+    t("sync: start");
     const [responses, summary] = importData(config, sheet);
     const { startTime, endTime, seconds, total, success, failed, errors } = summary;
+    t("sync: end", { total, success, failed, seconds });
+
     //dump results to sync log
     receiptSheet
         .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
@@ -246,11 +272,7 @@ function createSyncSheetsToMp(config, sheetInfo) {
             ]
         ]);
 
-    track("sync: create", {
-        record_type: config?.record_type,
-        project_id: config?.project_id,
-        view: "sheet → mixpanel"
-    });
+    t("sync: create end");
     //notify the end user
     return [responses, summary, `https://mixpanel.com/project/${config.project_id}`, storedConfig];
 }
@@ -263,12 +285,13 @@ function syncSheetsToMp() {
     const config = getConfig();
     if (JSON.stringify(config) === "{}") throw "no operation: sync scheduled; data not present (SH => MP)";
     config.config_type = "sheet-to-mixpanel";
-    const syncId = Math.random();
+    const runId = Math.random();
     const t = tracker({
-        syncId,
+        runId,
         record_type: config?.record_type,
         project_id: config?.project_id,
-        view: "sheet → mixpanel"
+        view: "sheet → mixpanel",
+        manual: false
     });
     t("sync: start");
     const triggerId = config.trigger;
@@ -315,7 +338,7 @@ function syncSheetsToMp() {
         if (responses.length === 0) {
             t("sync: skipped");
         } else {
-            t("sync: finish");
+            t("sync: end");
         }
 
         const { startTime, endTime, seconds, total, success, failed, errors } = summary;
@@ -336,7 +359,7 @@ function syncSheetsToMp() {
 
         return { status: "success", error: errors };
     } catch (e) {
-        t("sync: error", { error: e.message || e });
+        t("sync: error", { error: e });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
             .setValues([[new Date(), new Date(), `-----`, `-----`, `-----`, `-----`, `ERROR:\n${e.message}`]]);
@@ -379,19 +402,19 @@ function MixpanelToSheetView() {
  */
 function testSyncMpToSheets(config) {
     config.config_type = "mixpanel-to-sheet";
-    const testId = Math.random();
-    const t = tracker({ testId, project_id: config.project_id, view: "mixpanel → sheet" });
-
+    const runId = Math.random();
+    const t = tracker({ runId, project_id: config.project_id, view: "mixpanel → sheet" });
+    t("test: start");
     try {
         // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {
         //bad credentials
+        t("test: error", { error: e });
         throw e;
     }
 
-    t("test start");
     try {
         const [csvData, metadata] = exportData(config);
         let sheetName;
@@ -414,10 +437,11 @@ function testSyncMpToSheets(config) {
         setConfig(config);
         const updatedSheet = overwriteSheet(csvData, destSheet);
 
-        t("test end");
+        t("test: end");
 
         return [updatedSheet, metadata];
     } catch (e) {
+        t("test: error", { error: e });
         throw e;
     }
 }
@@ -433,6 +457,15 @@ function createSyncMpToSheets(config) {
 
     config.config_type = "mixpanel-to-sheet";
     const startTime = new Date();
+    const runId = Math.random();
+    const t = tracker({
+        runId,
+        record_type: config?.entity_type,
+        project_id: config?.project_id,
+        view: "mixpanel → sheet",
+        manual: "first time"
+    });
+    t("sync: create");
 
     //validate credentials
     try {
@@ -441,6 +474,7 @@ function createSyncMpToSheets(config) {
         config.auth = auth;
     } catch (e) {
         //bad credentials
+        t("sync: error", { error: e });
         throw e;
     }
 
@@ -453,10 +487,12 @@ function createSyncMpToSheets(config) {
     receiptSheet.setFrozenRows(1);
 
     //hit the report & get it's data
+    t("sync: start");
     let csvData, metadata;
     try {
         [csvData, metadata] = exportData(config);
     } catch (e) {
+        t("sync: error", { error: e });
         throw e;
     }
 
@@ -478,7 +514,7 @@ function createSyncMpToSheets(config) {
 
     // overwrite entire contents
     const updatedSheet = overwriteSheet(csvData, destSheet);
-
+    t("sync: end");
     //create the trigger
     const trigger = ScriptApp.newTrigger("syncMpToSheets").timeBased().everyHours(1).create();
 
@@ -501,12 +537,7 @@ function createSyncMpToSheets(config) {
         ]
     ]);
 
-    track("sync: create", {
-        record_type: config?.entity_type,
-        project_id: config?.project_id,
-        view: "mixpanel → sheet"
-    });
-
+    t("sync: created");
     return [updatedSheet, metadata, config];
 }
 
@@ -517,13 +548,14 @@ function syncMpToSheets() {
     /** @type {MpSheetConfig} */
     const config = getConfig();
     if (JSON.stringify(config) === "{}") return "no operation: sync scheduled; data not present (MP => SH)";
-	config.config_type = "mixpanel-to-sheet"
-    const syncId = Math.random();
+    config.config_type = "mixpanel-to-sheet";
+    const runId = Math.random();
     const t = tracker({
-        syncId,
+        runId,
         record_type: config?.entity_type,
         project_id: config?.project_id,
-        view: "mixpanel → sheet"
+        view: "mixpanel → sheet",
+        manual: false
     });
     t("sync: start");
     const triggerId = config.trigger;
@@ -570,10 +602,10 @@ function syncMpToSheets() {
                 "none"
             ]
         ]);
-        t("sync: finish");
+        t("sync: end");
         return { status: "success", error: null };
     } catch (e) {
-        t("sync: error", { error: e.message || e });
+        t("sync: error", { error: e });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 5)
             .setValues([[new Date(), new Date(), `-----`, `-----`, `FAIL:\n${e.message}`]]);
