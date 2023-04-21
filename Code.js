@@ -125,7 +125,7 @@ function syncNow() {
         t("sync now: end");
         return { status: "success", error: null };
     } catch (e) {
-        t("sync now: error", { error: e });
+        t("sync now: error", { error: e.toString() });
         ui.alert("❌ Sync Error", `sync failed to run; got error\n${e.message}`, ui.ButtonSet.OK);
         return { status: "fail", error: e.message };
     }
@@ -183,7 +183,7 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
         config.auth = auth;
     } catch (e) {
         //bad credentials
-        t("test: error", { error: e });
+        t("test: error", { error: e.toString() });
         throw e;
     }
     const sheet = getSheetById(sheetInfo.sheet_id);
@@ -229,7 +229,7 @@ function createSyncSheetsToMp(config, sheetInfo) {
         config.auth = auth;
     } catch (e) {
         //bad credentials
-        t("sync: error", { error: e });
+        t("sync: error", { error: e.toString() });
         throw e;
     }
     const sheet = getSheetById(Number(sheetInfo.sheet_id));
@@ -359,7 +359,7 @@ function syncSheetsToMp() {
 
         return { status: "success", error: errors };
     } catch (e) {
-        t("sync: error", { error: e });
+        t("sync: error", { error: e.toString() });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 7)
             .setValues([[new Date(), new Date(), `-----`, `-----`, `-----`, `-----`, `ERROR:\n${e.message}`]]);
@@ -411,7 +411,7 @@ function testSyncMpToSheets(config) {
         config.auth = auth;
     } catch (e) {
         //bad credentials
-        t("test: error", { error: e });
+        t("test: error", { error: e.toString() });
         throw e;
     }
 
@@ -441,7 +441,7 @@ function testSyncMpToSheets(config) {
 
         return [updatedSheet, metadata];
     } catch (e) {
-        t("test: error", { error: e });
+        t("test: error", { error: e.toString() });
         throw e;
     }
 }
@@ -474,7 +474,7 @@ function createSyncMpToSheets(config) {
         config.auth = auth;
     } catch (e) {
         //bad credentials
-        t("sync: error", { error: e });
+        t("sync: error", { error: e.toString() });
         throw e;
     }
 
@@ -492,7 +492,7 @@ function createSyncMpToSheets(config) {
     try {
         [csvData, metadata] = exportData(config);
     } catch (e) {
-        t("sync: error", { error: e });
+        t("sync: error", { error: e.toString() });
         throw e;
     }
 
@@ -605,7 +605,7 @@ function syncMpToSheets() {
         t("sync: end");
         return { status: "success", error: null };
     } catch (e) {
-        t("sync: error", { error: e });
+        t("sync: error", { error: e.toString() });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 5)
             .setValues([[new Date(), new Date(), `-----`, `-----`, `FAIL:\n${e.message}`]]);
