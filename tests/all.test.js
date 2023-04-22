@@ -102,7 +102,12 @@ function runTests() {
     if (test.isInGas) tearDown();
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS START\n${formatDate()}`, false);
 
-    //sheets
+    /*
+	----
+	MISC
+	----
+	*/
+
     test.assert("MISC: retrieves headers from sheet?", () => {
         const correctHeaders = ["uuid", "timestamp", "action", "favorite color", "lucky number", "insert"];
         const sheet = SpreadsheetApp.getActive().getSheetByName("events");
@@ -110,7 +115,6 @@ function runTests() {
         return serial(correctHeaders) === serial(gotHeaders);
     });
 
-    //misc
     test.assert("MISC: tracks data?", () => {
         const expected = [
             { error: null, status: 1 },
@@ -127,7 +131,12 @@ function runTests() {
         return expected === results;
     });
 
-    //flush
+    /*
+	----
+	FLUSH
+	----
+	*/
+
     test.assert("FLUSH: events?", () => {
         const expected = [{ code: 200, error: null, num_records_imported: 1, status: 1 }];
         const results = flushToMixpanel(TEST_CONFIG_EVENTS_DATA, TEST_CONFIG_EVENTS);
@@ -152,7 +161,12 @@ function runTests() {
         return isDeepEqual(expected, results);
     });
 
-    //storage
+    /*
+	----
+	STORAGE
+	----
+	*/
+
     test.assert("STORAGE: save?", () => {
         clearConfig(null, true);
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
@@ -176,7 +190,12 @@ function runTests() {
         return isDeepEqual(expected, results);
     });
 
-    //credentials
+    /*
+	----
+	VALIDATE CREDS
+	----
+	*/
+
     test.assert("CREDS: good service account?", () => {
         const expected = GOOD_SERVICE_ACCOUNT.answer;
         return validateCreds(GOOD_SERVICE_ACCOUNT) === expected;
@@ -186,6 +205,12 @@ function runTests() {
         const expected = GOOD_API_SECRET.answer;
         return validateCreds(GOOD_API_SECRET) === expected;
     });
+
+    /*
+	----
+	ERRORS
+	----
+	*/
 
     test.catchErr("CREDS: bad service account?", "Not a valid service account username", () => {
         validateCreds(BAD_SERVICE_ACCOUNT);
@@ -208,6 +233,29 @@ function runTests() {
         `Mismatch between project secret's project ID and URL project ID`,
         () => {
             validateCreds(BAD_PROJECT_API_SECRET);
+        }
+    );
+
+    test.catchErr("MP: flows (throws)?", "flows report is not currently supported for CSV export", () => {
+        createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+    });
+
+    test.catchErr(
+        "MP → Sheet",
+        "the report 123 could not be found; check your project, workspace, and report id's and try again",
+        () => {
+            /** @type {MpSheetConfig} */
+            const config = {
+                config_type: "mixpanel-to-sheet",
+                service_acct: SERVICE_ACCOUNT,
+                service_secret: SERVICE_SECRET,
+                report_id: 123,
+                project_id: PROJECT_ID,
+                workspace_id: WORKSPACE_ID,
+                region: "US",
+                entity_type: "report"
+            };
+            testSyncMpToSheets(config);
         }
     );
 
@@ -514,10 +562,6 @@ function runTests() {
         return isDeepEqual(expected, metadata) && getTriggers().length === 1;
     });
 
-    test.catchErr("SYNCS: flows (throws)?", "flows report is not currently supported for CSV export", () => {
-        createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
-    });
-
     /*
 	----
 	E2E
@@ -534,24 +578,24 @@ function runTests() {
         const nextSync = syncSheetsToMp();
         return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
     });
-    
+
     test.assert("Sheet → MP: cancels sync on source delete", () => {
-		    clearConfig(null, true);
-            const tempSheetName = "tempSheet";
-            const tempSheet = createSheet(tempSheetName);
-            const tempSheetId = getSheetInfo(tempSheetName).sheet_id;
-            const columns = `uuid,timestamp,action,favorite color,lucky number,insert`;
-            overwriteSheet(columns, tempSheet);
-            tempSheet.getRange(getEmptyRow(tempSheet), 1, 3, 6).setValues([
-                ["7e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "link_click", "blue", "42", "A"],
-                ["2e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "page_view", "purple", "420", "B"],
-                ["3e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "watch_video", "green", "1", "C"]
-            ]);
-            const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName(tempSheetName));
-            const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
-            deleteSheet(tempSheetId);
-            const nextSync = syncSheetsToMp();
-            return isDeepEqual("SYNC DELETED", nextSync) && getTriggers().length === 0;
+        clearConfig(null, true);
+        const tempSheetName = "tempSheet";
+        const tempSheet = createSheet(tempSheetName);
+        const tempSheetId = getSheetInfo(tempSheetName).sheet_id;
+        const columns = `uuid,timestamp,action,favorite color,lucky number,insert`;
+        overwriteSheet(columns, tempSheet);
+        tempSheet.getRange(getEmptyRow(tempSheet), 1, 3, 6).setValues([
+            ["7e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "link_click", "blue", "42", "A"],
+            ["2e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "page_view", "purple", "420", "B"],
+            ["3e1dd089-8773-5fc9-a3bc-37ba5f186ffe", new Date(), "watch_video", "green", "1", "C"]
+        ]);
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName(tempSheetName));
+        const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
+        deleteSheet(tempSheetId);
+        const nextSync = syncSheetsToMp();
+        return isDeepEqual("SYNC DELETED", nextSync) && getTriggers().length === 0;
     });
 
     test.assert("Sheet → MP: don't sync dupes", () => {
@@ -559,7 +603,7 @@ function runTests() {
         const expected = {
             error: [
                 {
-                    error: "data with this hash has already been synced... skipping",                   
+                    error: "data with this hash has already been synced... skipping"
                 }
             ],
             status: "success"
@@ -568,7 +612,7 @@ function runTests() {
         const [resp, imported, link, config] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         deleteSheet(config.receipt_sheet);
         const nextSync = syncSheetsToMp();
-		delete nextSync.error[0].hash
+        delete nextSync.error[0].hash;
         return isDeepEqual(expected, nextSync) && getTriggers().length === 1;
     });
 
