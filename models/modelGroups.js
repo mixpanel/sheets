@@ -24,9 +24,9 @@ function modelMpGroups(row, mappings, config) {
     const { token, group_key } = config;
     profile_operation = profile_operation.toLowerCase();
 
-    if (!group_key) throw new Error("group_key is required!");
-    if (!distinct_id_col) throw new Error("group_id mapping is required!");
-    if (!token) throw new Error("token mapping is required!");
+    if (!group_key) throw "group_key is required!";
+    if (!distinct_id_col) throw "group_id mapping is required!";
+    if (!token) throw "token mapping is required!";
 
     //create a copy, so we don't alter the source
     row = Object.assign({}, row);

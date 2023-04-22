@@ -12,14 +12,12 @@ DATA INTO MP
  * @returns {[ImportResponse[], ImportResults]}
  */
 function importData(config, sheet) {
-    const runId = Math.random();
     //use last known config if unset
-    //@ts-ignore
     if (!config) config = getConfig();
+    
+	//@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
-    const { record_type } = config;
 
-    // console.log('SYNC');
     const startTime = Date.now();
     let endTime;
     const mappings = getMappings(config);
@@ -29,13 +27,12 @@ function importData(config, sheet) {
     const sourceData = getJSON(sheet);
 
     // diffing
-    // todo
     const hash = MD5(JSON.stringify(sourceData));
     let priorHashes;
     try {
-        priorHashes = JSON.parse(config.hashes); // this isn't working
+        priorHashes = JSON.parse(config.hashes); // only on sync
     } catch (e) {
-        priorHashes = [];
+        priorHashes = []; // always on 'run'
     }
 
     if (priorHashes.includes(hash)) {
@@ -182,7 +179,7 @@ function getTransformType(config) {
     if (config.record_type === "user") return modelMpUsers;
     if (config.record_type === "group") return modelMpGroups;
     if (config.record_type === "table") return modelMpTables;
-    throw new Error(`${config.record_type} is not a supported record type`);
+    throw `${config.record_type} is not a supported record type`;
 }
 
 /**
@@ -233,11 +230,12 @@ function summarizeImport(cleanConfig, responses, startTime, endTime, targetData)
 
 if (typeof module !== "undefined") {
     module.exports = { importData };
-    const { getConfig } = require("../utilities/storage.js");
+    const { getConfig, appendConfig } = require("../utilities/storage.js");
     const { validateCreds } = require("../utilities/validate.js");
     const { flushToMixpanel } = require("../utilities/flush.js");
     const { getJSON } = require("../utilities/toJson.js");
     const { clone } = require("../utilities/misc.js");
+	const { MD5 } = require('../utilities/md5.js')
     const { modelMpEvents } = require("../models/modelEvents.js");
     const { modelMpUsers } = require("../models/modelUsers.js");
     const { modelMpTables } = require("../models/modelTables.js");

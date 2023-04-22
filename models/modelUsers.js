@@ -24,8 +24,8 @@ function modelMpUsers(row, mappings, config) {
     const { token } = config;
     profile_operation = profile_operation.toLowerCase();
 
-    if (!distinct_id_col) throw new Error("distinct_id_col mapping is required!");
-    if (!token) throw new Error("token is required!");
+    if (!distinct_id_col) throw "distinct_id_col mapping is required!";
+    if (!token) throw "token is required!";
 
     //create a copy, so we don't alter the source
     row = Object.assign({}, row);

@@ -19,19 +19,19 @@ type SheetMpConfigAlways = {
     /**
      * the record type being imported
      */
-    record_type: RecordTypes;
+    record_type?: RecordTypes;
     /**
      * the project identifier
      */
-    project_id: string;
+    project_id?: string | number;
     /**
      * the project token
      */
-    token: string;
+    token?: string;
     /**
      * US or EU residence
      */
-    region: Regions;
+    region?: Regions;
     /**
      * how we will authenticate
      */
@@ -40,6 +40,10 @@ type SheetMpConfigAlways = {
      * triggerId of this sync
      */
     trigger?: string;
+    /**
+     * hashes of prior runs
+     */
+    hashes?: string;
     /**
      * service acct name
      */
@@ -76,23 +80,23 @@ type MpSheetConfig = {
     /**
      * URL from mixpanel report
      */
-    mixpanel_report_url: string;
+    mixpanel_report_url?: string;
     /**
      * the project identifier
      */
-    project_id: string;
+    project_id?: string | number;
     /**
      * service acct name
      */
-    service_acct: string;
+    service_acct?: string;
     /**
      * service acct pass
      */
-    service_secret: string;
+    service_secret?: string;
     /**
      * service acct pass
      */
-    workspace_id: string;
+    workspace_id?: string;
     /**
      * triggerId of this sync
      */
@@ -100,7 +104,7 @@ type MpSheetConfig = {
     /**
      * US or EU residence
      */
-    region: Regions;
+    region?: Regions;
     /**
      * is this a cohort or a report...
      */
@@ -135,7 +139,7 @@ type MpSheetConfig = {
  */
 type CleanConfig = {
     auth: string;
-    project_id: string;
+    project_id: string | number;
     region: Regions;
     batchSize: BatchSize;
     results: {

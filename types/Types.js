@@ -56,10 +56,10 @@ CORE CONFIGS
 /**
  * @typedef {Object} SheetMpConfigAlways all the options on a payload from Sheet → Mixpanel
  * @property {'sheet-to-mixpanel'} [config_type] an identifier for where the config came from
- * @property {RecordTypes} record_type the record type being imported
- * @property {string} project_id the project identifier
- * @property {string} token the project token
- * @property {Regions} region US or EU residence
+ * @property {RecordTypes} [record_type] the record type being imported
+ * @property {string | number} [project_id] the project identifier
+ * @property {string} [token] the project token
+ * @property {Regions} [region] US or EU residence
  * @property {AuthModes} auth_type how we will authenticate
  * @property {string} [trigger] triggerId of this sync
  * @property {string} [hashes] hashes of prior runs
@@ -76,13 +76,13 @@ CORE CONFIGS
 /**
  * @typedef {Object} MpSheetConfig all the options on a payload from Mixpanel → Sheet
  * @property {'mixpanel-to-sheet'} [config_type] an identifier for where the config came from
- * @property {string} mixpanel_report_url URL from mixpanel report
- * @property {string} project_id the project identifier
- * @property {string} service_acct service acct name
- * @property {string} service_secret service acct pass
- * @property {string} workspace_id service acct pass
+ * @property {string} [mixpanel_report_url] URL from mixpanel report
+ * @property {string | number} [project_id] the project identifier
+ * @property {string} [service_acct] service acct name
+ * @property {string} [service_secret] service acct pass
+ * @property {string} [workspace_id] service acct pass
  * @property {string} [trigger] triggerId of this sync
- * @property {Regions} region US or EU residence
+ * @property {Regions} [region] US or EU residence
  * @property {EntityTypes} entity_type is this a cohort or a report...
  * @property {string | number} [cohort_id] id of the cohort
  * @property {string | number} [report_id] id of the report
@@ -96,7 +96,7 @@ CORE CONFIGS
 /**
  * @typedef {object} CleanConfig a validated copy of SheetMpConfig
  * @property {string} auth
- * @property {string} project_id
+ * @property {string | number} project_id
  * @property {Regions} region
  * @property {BatchSize} batchSize
  * @property {object} results

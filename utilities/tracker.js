@@ -24,74 +24,82 @@ function tracker(superProps = {}, distinct_id, token = "41a033e6987a1340255ded80
         distinct_id = `anonymous`;
     }
 
-    return function (eventName = "ping", props = {}) {
-        try {
-            const responses = [];
-
-            const eventURL = `https://api.mixpanel.com/track?verbose=1`;
-            const profileURL = `https://api.mixpanel.com/engage?verbose=1`;
-
-            /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
-            const reqOptions = {
-                method: "post",
-                contentType: "application/json",
-                headers: {
-                    Accept: "text/plain"
-                },
-                muteHttpExceptions: true
-            };
-
-            const eventPayload = [
-                {
-                    event: eventName,
-                    properties: {
-                        token: token,
-                        distinct_id: distinct_id,
-                        $source: "google apps script",
-                        ip: "0",
-						"GCP User Id": Session.getTemporaryActiveUserKey() || "",
-						"app version": APP_VERSION,
-                        ...props,
-                        ...superProps
-                    }
-                }
-            ];
-
-            const profilePayload = [
-                {
-                    $token: token,
-                    $distinct_id: distinct_id,
-                    $ip: "0",
-                    $set: {
-                        $name: distinct_id,
-                        $email: distinct_id
-                    }
-                }
-            ];
-
-            // send event
+    try {
+        return function (eventName = "ping", props = {}) {
             try {
-                reqOptions.payload = JSON.stringify(eventPayload);
-                const resEvent = JSON.parse(UrlFetchApp.fetch(eventURL, reqOptions).getContentText());
-                responses.push(resEvent);
-            } catch (e) {
-                //noop
-            }
+                const responses = [];
 
-            // send profile
-            try {
-                reqOptions.payload = JSON.stringify(profilePayload);
-                const resProfile = JSON.parse(UrlFetchApp.fetch(profileURL, reqOptions).getContentText());
-                responses.push(resProfile);
-            } catch (e) {
-                //noop
-            }
+                const eventURL = `https://api.mixpanel.com/track?verbose=1`;
+                const profileURL = `https://api.mixpanel.com/engage?verbose=1`;
 
-            return responses;
-        } catch (e) {
-            //noop: track should not break anything else
-        }
-    };
+                /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
+                const reqOptions = {
+                    method: "post",
+                    contentType: "application/json",
+                    headers: {
+                        Accept: "text/plain"
+                    },
+                    muteHttpExceptions: true
+                };
+
+                const eventPayload = [
+                    {
+                        event: eventName,
+                        properties: {
+                            token: token,
+                            distinct_id: distinct_id,
+                            $source: "google apps script",
+                            ip: "0",
+                            "GCP User Id": Session.getTemporaryActiveUserKey() || "",
+                            // @ts-ignore
+                            "app version": APP_VERSION,
+                            ...props,
+                            ...superProps
+                        }
+                    }
+                ];
+
+                const profilePayload = [
+                    {
+                        $token: token,
+                        $distinct_id: distinct_id,
+                        $ip: "0",
+                        $set: {
+                            $name: distinct_id,
+                            $email: distinct_id,
+                            // @ts-ignore
+                            "app version": APP_VERSION
+                        }
+                    }
+                ];
+
+                // send event
+                try {
+                    reqOptions.payload = JSON.stringify(eventPayload);
+                    const resEvent = JSON.parse(UrlFetchApp.fetch(eventURL, reqOptions).getContentText());
+                    responses.push(resEvent);
+                } catch (e) {
+                    //noop
+                }
+
+                // send profile
+                try {
+                    reqOptions.payload = JSON.stringify(profilePayload);
+                    const resProfile = JSON.parse(UrlFetchApp.fetch(profileURL, reqOptions).getContentText());
+                    responses.push(resProfile);
+                } catch (e) {
+                    //noop
+                }
+
+                return responses;
+            } catch (e) {
+                //noop: track should not break anything else
+            }
+        };
+    } catch (e) {
+        //if for some reason we can't return a tracker, return a noop function
+        return function () {};
+    }
 }
 
 if (typeof module !== "undefined") {
