@@ -31,25 +31,63 @@ each UI has a simple user interface, and is essentially a form you fill out that
 
 ## 🗺️ mappings (sheet → mixpanel)
 
-choose the type of data you are importing and then use the visual mapper to connect the events in your **currently active** spreadsheet to the **required fields** for the type of mixpanel data you are importing: 
+sheet → mixpanel queries your **currently active sheet** to get your sheet's **column headers**.
 
-<img src="https://aktunes.neocities.org/sheets-mixpanel/sheet-to-mp-2.png">
+once you choose the type of data you are importing, you will use the visual mapper to connect the **column headers** from your sheet to the **required fields** for the type of mixpanel data you are importing: 
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/mappings.png">
+
+as a brief summary of [the documentation](https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event) mixpanel's data model for events requires fields for:
+- **event name** :  what to call each event in mixpanel
+- **distinct_id** : the unique user identifier to whom the event is attributed
+- **time** : a valid *date* or *time*; if the sheet recognizes your chosen column as a 'date' or time', it should work as intended
+- **insert_id** : a value used to deduplicate records (optional) 
 
 all other columns in your spreadsheet will get sent as **properties** (event, user, or group)
 
-finally, provide some project information and authentication details.
+you'll also need to provide :
+- [project id](https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id)
+- [project token](https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-token)
+- [project region](https://help.mixpanel.com/hc/en-us/articles/360039135652-Data-Residency-in-EU#enabling-eu-residency)
+- either: 
+	- [service account](https://developer.mixpanel.com/reference/service-accounts) (admin or higher)
+	OR
+	- [API secret](https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#api-secret)
+
+note: since v1.12 **syncs** are **not supported** for events.
+
+next, read about [runs + syncs](#sync)
 
 
 <div id="export"></div>
 
 ## 💽 exports (mixpanel → sheet)
+mixpanel → sheet queries your mixpanel project for a **report** or **cohort** and makes the results available in a new sheet.
 
-provide authentication details along with a URL of a report or cohort from your mixpanel project that you wish to sync:
-<img src="https://aktunes.neocities.org/sheets-mixpanel/mp-to-sheet-2.png">
+note that this will be identical to the functionality would get when exporting a CSV file from the mixpanel UI:
 
-the UI will try to resolve all the relevant Ids; in case it cannot, you can add in your information to specify the particular report you want to sync
+<img src="https://aktunes.neocities.org/sheets-mixpanel/exportcsv.png">
 
-only **report** and **cohort** syncs are supported. currently, you can not sync flows reports.
+there are a number of parameters needed to fetch a CSV from mixpanel; the simplest way to gather those parameters is to paste the URL of the report/cohort you wish to sync from your mixpanel project, and the app should find them:
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/urlMapper.gif">
+
+in case the URL does not contain all the values you need, the UI requires:
+- a [service account](https://developer.mixpanel.com/reference/service-accounts) (consumer or higher) 
+- a URL with either `mixpanel.com` or `eu.mixpanel.com` (to resolve data residency)
+- [your project id](https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id)
+- [your workspace id](https://developer.mixpanel.com/reference/query-api-authentication#:~:text=Projects%20with%20Data,a%20request%20parameter.)
+
+- and either:
+	- [your report id](https://developer.mixpanel.com/reference/insights-query#:~:text=The%20ID%20of%20your%20Insights%20report%20can%20be%20found%20from%20the%20url%3A%20https%3A//mixpanel.com/report/1/insights%23report/%3CYOUR_BOOKMARK_ID%3E/example%2Dreport) 
+	OR 
+	- [your cohort id](https://developer.mixpanel.com/reference/cohorts-list)
+
+you can manually type these values in after pasting in a URL.
+
+note: as of v1.12 **insights**, **funnels**, & **retention** are the only supported reports
+
+next, read about [runs + syncs](#sync)
 
 
 <div id="sync"></div>
@@ -63,9 +101,17 @@ each UI has a similar user interface for you to input your details with **four**
 - **Run**: run the current configuration **once**; results are display in the UI
  - **Sync**: run the current configuration **every hour**; run receipts are stored in a log sheet
  - **Save**: store the current configuration
- - **Clear**: delete document syncs and delete the current configuration
+ - **Clear**: delete this sheet's sync and reload the UI
 
 you may only have **one sync** active per sheet at a time.
+
+if you are planning to sync data from your sheet to mixpanel, it is recommended that you do a "run" first.
+
+once created, syncs will run on an hourly schedule; they can _also_ be manually triggered from the main menu by choosing **Sync Now!**:
+
+<img src="https://aktunes.neocities.org/sheets-mixpanel/sync%20now.png">
+
+note: since v1.12 **syncs** are **not supported** for events.
 
 
 
@@ -224,6 +270,6 @@ no other sensitive scopes are requested by the application.
 
 ## 💬 motivation
 
-google sheets are databases. mixpanel is a database. it should be easy to make these things interoperable. 
+google sheets are databases. mixpanel is a database. it should be easy to make these things interoperable. now it is!
 
 that's it for now. have fun!
