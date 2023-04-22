@@ -212,16 +212,16 @@ function runTests() {
 	----
 	*/
 
-    test.catchErr("CREDS: bad service account?", "Not a valid service account username", () => {
+    test.catchErr("THROWS: bad service account?", "Not a valid service account username", () => {
         validateCreds(BAD_SERVICE_ACCOUNT);
     });
 
-    test.catchErr("CREDS: bad project?", "not a project member", () => {
+    test.catchErr("THROWS: bad project?", "not a project member", () => {
         validateCreds(BAD_PROJECT_SERVICE_ACCOUNT);
     });
 
     test.catchErr(
-        "CREDS: bad api secret?",
+        "THROWS: bad api secret?",
         "Unauthorized, invalid project secret. See docs for more information: https://developer.mixpanel.com/reference/authentication#project-secret",
         () => {
             validateCreds(BAD_API_SECRET);
@@ -229,19 +229,19 @@ function runTests() {
     );
 
     test.catchErr(
-        "CREDS: bad api project?",
+        "THROWS: bad api project?",
         `Mismatch between project secret's project ID and URL project ID`,
         () => {
             validateCreds(BAD_PROJECT_API_SECRET);
         }
     );
 
-    test.catchErr("MP: flows (throws)?", "flows report is not currently supported for CSV export", () => {
+    test.catchErr("THROWS: unsupported report?", "flows report is not currently supported for CSV export", () => {
         createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
     test.catchErr(
-        "MP → Sheet",
+        "THROWS: bad report / project / workspace id?",
         "the report 123 could not be found; check your project, workspace, and report id's and try again",
         () => {
             /** @type {MpSheetConfig} */
@@ -261,12 +261,12 @@ function runTests() {
 
     /*
 	----
-	TEST RUNS
+	RUNS
 	----
 	*/
 
     // Sheet → Mixpanel
-    test.assert("TESTS: events?", () => {
+    test.assert("RUNS: events?", () => {
         clearConfig(null, true);
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const expected = {
@@ -285,7 +285,7 @@ function runTests() {
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("TESTS: users?", () => {
+    test.assert("RUNS: users?", () => {
         clearConfig(null, true);
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("users"));
         const expected = {
@@ -304,7 +304,7 @@ function runTests() {
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("TESTS: groups?", () => {
+    test.assert("RUNS: groups?", () => {
         clearConfig(null, true);
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("groups"));
         const expected = {
@@ -323,7 +323,7 @@ function runTests() {
         return isDeepEqual(expected, imported);
     });
 
-    test.assert("TESTS: tables?", () => {
+    test.assert("RUNS: tables?", () => {
         clearConfig(null, true);
         const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("tables"));
         const expected = {
@@ -343,7 +343,7 @@ function runTests() {
     });
 
     // Mixpanel → Sheet
-    test.assert("TESTS: insights?", () => {
+    test.assert("RUNS: insights?", () => {
         clearConfig(null, true);
         const expected = {
             report_type: "insights",
@@ -361,7 +361,7 @@ function runTests() {
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("TESTS: funnels?", () => {
+    test.assert("RUNS: funnels?", () => {
         clearConfig(null, true);
         const expected = {
             workspace_id: WORKSPACE_ID,
@@ -379,7 +379,7 @@ function runTests() {
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("TESTS: retention?", () => {
+    test.assert("RUNS: retention?", () => {
         clearConfig(null, true);
         const expected = {
             workspace_id: WORKSPACE_ID,
@@ -397,7 +397,7 @@ function runTests() {
         return isDeepEqual(expected, metadata);
     });
 
-    test.assert("TESTS: cohorts?", () => {
+    test.assert("RUNS: cohorts?", () => {
         clearConfig(null, true);
         const expected = {
             cohort_desc: COHORT_DESC,
@@ -412,14 +412,14 @@ function runTests() {
         return isDeepEqual(expected, metadata);
     });
 
-    test.catchErr("TESTS: flows (throws)?", "flows report is not currently supported for CSV export", () => {
+    test.catchErr("RUNS: flows (throws)?", "flows report is not currently supported for CSV export", () => {
         clearConfig(null, true);
         testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
     /*
 	----
-	SYNC RUNS
+	SYNCS
 	----
 	*/
 
