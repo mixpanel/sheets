@@ -11,7 +11,7 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.12";
+const APP_VERSION = "1.13";
 
 /**
  * some important things to know about google apps script
@@ -104,6 +104,7 @@ function syncNow() {
         runId,
         type: config.config_type,
         project_id: config?.project_id,
+        view: config?.config_type === "sheet-to-mixpanel" ? "sheet → mixpanel" : "mixpanel → sheet",
         manual: true
     });
     t("sync now: start");
@@ -286,7 +287,12 @@ function createSyncSheetsToMp(config, sheetInfo) {
 function syncSheetsToMp() {
     /** @type {SheetMpConfig & SheetInfo} */
     const config = getConfig();
-    if (JSON.stringify(config) === "{}") throw "no operation: sync scheduled; data not present (SH => MP)";
+    if (Object.keys(config).length === 0) {
+        //console.log("no operation: sync was scheduled, but config is empty (SH => MP)");
+        clearConfig(null, true);
+        track("sync: autodelete", { view: "sheet → mixpanel" });
+        return `SYNC DELETED`;
+    }
     config.config_type = "sheet-to-mixpanel";
     const runId = Math.random();
     const t = tracker({
@@ -550,7 +556,12 @@ function createSyncMpToSheets(config) {
 function syncMpToSheets() {
     /** @type {MpSheetConfig} */
     const config = getConfig();
-    if (JSON.stringify(config) === "{}") return "no operation: sync scheduled; data not present (MP => SH)";
+    if (Object.keys(config).length === 0) {
+        //console.log("no operation: sync was scheduled, but config is empty (MP => SH)");
+        clearConfig(null, true);
+        track("sync: autodelete", { view: "mixpanel → sheet" });
+        return `SYNC DELETED`;
+    }
     config.config_type = "mixpanel-to-sheet";
     const runId = Math.random();
     const t = tracker({

@@ -236,9 +236,13 @@ function runTests() {
         }
     );
 
-    test.catchErr("THROWS: unsupported report?", "flows report is not currently supported for CSV export", () => {
-        createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
-    });
+    test.catchErr(
+        "THROWS: unsupported report?",
+        "flows report is not currently supported for CSV export",
+        () => {
+            createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+        }
+    );
 
     test.catchErr(
         "THROWS: bad report / project / workspace id?",
@@ -258,6 +262,20 @@ function runTests() {
             testSyncMpToSheets(config);
         }
     );
+
+    test.assert("RECOVER: empty MP → Sheet config", () => {
+        clearConfig(null, true);
+        const expected = `SYNC DELETED`;
+        const result = syncMpToSheets();
+        return isDeepEqual(expected, result);
+    });
+
+    test.assert("RECOVER: empty Sheet → MP config", () => {
+       clearConfig(null, true);
+       const expected = `SYNC DELETED`;
+       const result = syncSheetsToMp();
+       return isDeepEqual(expected, result);
+    });
 
     /*
 	----
