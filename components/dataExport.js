@@ -13,8 +13,8 @@ DATA OUT OF MP
 function exportData(config) {
     //use last known config if unset
     if (!config) config = getConfig();
-    
-	//@ts-ignore
+
+    //@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
 
     const type = config.entity_type;
@@ -54,7 +54,9 @@ function getParams(config) {
     const { project_id, workspace_id, region, report_id, auth } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
-    const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(workspace_id)}/bookmarks/${Number(report_id)}?v=2`;
+    const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(workspace_id)}/bookmarks/${Number(
+        report_id
+    )}?v=2`;
 
     /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
     const options = {
@@ -63,24 +65,44 @@ function getParams(config) {
             Authorization: `Basic ${auth}`,
             Accept: "application/json"
         },
-        muteHttpExceptions: false
+        muteHttpExceptions: true
     };
 
-    const res = UrlFetchApp.fetch(URL, options).getContentText();
-    const data = JSON.parse(res);
+    const res = UrlFetchApp.fetch(URL, options);
+    const statusCode = res.getResponseCode();
+    switch (statusCode) {
+        case 200:
+            //noop
+            break;
+        case 404:
+			throw `the report ${report_id || ""} could not be found; check your project, workspace, and report id's and try again`
+            break;
+		case 429:
+			throw `your project has been rate limited; this should resolve by itself`
+			break;
+		case 410:
+			throw ``
+		case 500:
+			throw `mixpanel server error; report ${report_id || ""} may no longer exist`;
+        default:
+			throw `an unknown error has occurred when getting report ${report_id || ""}'s parameters`;
+            break;
+    }
+    const text = res.getContentText();
+
+    const data = JSON.parse(text).results;
     const result = {
         meta: {
-            report_type: data?.results?.type || data?.results?.original_type,
-            report_name: data?.results?.name,
-            report_desc: data?.results?.description,
-            report_id: data?.results?.id,
-            project_id: data?.results?.project_id,
-            dashboard_id: data?.results?.dashboard_id,
-            workspace_id: data?.results?.workspace_id,
-            report_creator:
-                data?.results?.creator_name || data?.results?.email || data?.results?.creator_id || "unknown"
+            report_type: data.type || data.original_type,
+            report_name: data.name,
+            report_desc: data.description,
+            report_id: data.id,
+            project_id: data.project_id,
+            dashboard_id: data.dashboard_id,
+            workspace_id: data.workspace_id,
+            report_creator: data.creator_name || data.email || data.creator_id || "unknown"
         },
-        payload: data?.results?.params
+        payload: data.params
     };
 
     return result;
@@ -107,7 +129,9 @@ function getReportCSV(report_type, params, config) {
         route = `arb_funnels`;
     }
 
-    const URL = `https://${subdomain}mixpanel.com/api/query/${route}?workspace_id=${Number(workspace_id)}&project_id=${Number(project_id)}`;
+    const URL = `https://${subdomain}mixpanel.com/api/query/${route}?workspace_id=${Number(
+        workspace_id
+    )}&project_id=${Number(project_id)}`;
     const payload = {
         bookmark: params,
         use_query_cache: false,

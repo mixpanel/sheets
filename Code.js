@@ -147,7 +147,7 @@ function SheetToMixpanelView() {
         htmlTemplate.syncs = getTriggers();
 
         // apply data template
-        const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(750);
+        const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(740);
 
         // render template
         SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Sheet → Mixpanel");
@@ -602,7 +602,7 @@ function syncMpToSheets() {
                 `${deltaSec} seconds`,
                 // @ts-ignore
                 metadata?.cohort_name || metadata?.report_name || "unknown",
-                "none"
+                ""
             ]
         ]);
         t("sync: end");
@@ -611,7 +611,7 @@ function syncMpToSheets() {
         t("sync: error", { error: e.toString() });
         receiptSheet
             .getRange(getEmptyRow(receiptSheet), 1, 1, 5)
-            .setValues([[new Date(), new Date(), `-----`, `-----`, `FAIL:\n${e.message}`]]);
+            .setValues([[new Date(), new Date(), `-----`, `-----`, `sync fail:\n${e}`]]);
         return { status: "fail", error: e.message || e };
     }
 }

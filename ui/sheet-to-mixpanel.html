@@ -49,8 +49,7 @@
 				fields<a target="_blank"
 					href="https://developer.mixpanel.com/docs/data-structure-deep-dive#anatomy-of-an-event">?</a>
 			</span>
-			<span id="sheet_name_label"></span><span class="subtext">all unmapped columns will be sent as
-				properties</span>
+			<span id="sheet_name_label"></span>
 			<ul id="event_mapping" class="mapping">
 				<li><select id="event_name_col" class="data dropdown required">
 						<option value="">--------</option>
@@ -66,6 +65,8 @@
 						<option value="">--------</option>
 					</select> → <span class="field">$insert_id</span> <span class="optional">(optional)</span></li>
 			</ul>
+			<span class="subtext">all unmapped columns will be sent as
+				properties</span>
 			<ul id="user_mapping" class="mapping hidden">
 				<li><select id="distinct_id_col" class="data dropdown">
 						<option value="">--------</option>
@@ -253,6 +254,7 @@
 	<style>
 		/* CSS */
 
+
 		:root {
 			--mixpanel: #7856FF;
 			--purple: #4F44E0;
@@ -264,7 +266,7 @@
 		}
 
 		section {
-			padding-bottom: 5px;
+			/* padding-bottom: 5px; */
 		}
 
 		button {
@@ -300,6 +302,7 @@
 		span.subtext {
 			opacity: .5;
 			font-size: 10px;
+			padding-left: 2%;
 		}
 
 
@@ -346,6 +349,9 @@
 
 		#status {
 			position: relative;
+			/* top: 40%;
+			right: 10%;
+			font-size: 17px; */
 		}
 
 		#status span {
@@ -369,7 +375,7 @@
 			color: var(--red);
 			opacity: 0.4;
 			font-size: 10.5px;
-			padding-left: 6px;
+			padding-left: 2%;
 		}
 
 		div {
@@ -414,6 +420,7 @@
 		ol {
 			list-style: none;
 			margin-bottom: 0px;
+			margin-top: 1%;
 		}
 
 		/* SPINNER */
@@ -590,12 +597,14 @@
 		function bindEventsAndViews() {
 			// DYNAMIC VALUES
 			if (this.DOM.sheet.sheet_name) {
-				this.DOM.sheetNameLabel.innerHTML = `current sheet: <b>${this.DOM.sheet.sheet_name}</b>; `;
+				this.DOM.sheetNameLabel.innerHTML = `current sheet: <b>${this.DOM.sheet.sheet_name}</b>`;
 
 			}
 
 			// TYPES + MAPPINGS
 			this.DOM.typeSelector.addEventListener('change', (e) => {
+				//todo resize height?
+				//https://developers.google.com/apps-script/reference/html/html-output#setheightheight
 				const newVal = e.currentTarget.value;
 				this.DOM.typeLabel.innerText = newVal;
 				if (newVal === 'event') {

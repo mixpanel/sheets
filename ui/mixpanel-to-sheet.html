@@ -157,6 +157,10 @@
 
 	<style>
 		/* CSS */
+		body {
+			/* Hide scrollbars */
+			overflow: hidden;			
+		}
 
 		:root {
 			--mixpanel: #7856FF;
@@ -170,7 +174,7 @@
 		}
 
 		section {
-			padding-bottom: 5px;
+			padding-bottom: 3.5px;
 		}
 
 		div.one_line {
@@ -275,7 +279,7 @@
 		}
 
 		.title {
-			padding-bottom: 5px;
+			padding-bottom: 3.5px;
 			display: block;
 		}
 
@@ -755,7 +759,7 @@
 					this.loader('hide');
 					this.DOM.status.innerText = `✖️ SAVE FAILED ... got error:\n${e.message}`;
 					this.DOM.docs.classList.remove('hidden');
-					
+
 
 					//fields
 					this.DOM.saveButton.disabled = false;
@@ -764,17 +768,14 @@
 		}
 
 		function clear() {
+			this.loader('show');
 			this.DOM.status.innerText = `clearing...`;
 			const defaultConfig = {
 				service_acct: "",
 				service_secret: "",
 				mixpanel_report_url: "",
-
-				//buttons
 				cohort_id: "",
 				report_id: "",
-				clear,
-				save,
 				project_id: "",
 				workspace_id: "",
 				region: ""
