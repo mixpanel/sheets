@@ -364,7 +364,7 @@ function runTests() {
         return isDeepEqual(expected, metadata);
     });
 
-    test.catchErr("TESTS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+    test.catchErr("TESTS: flows (throws)?", "flows report is not currently supported for CSV export", () => {
         clearConfig(null, true);
         testSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });

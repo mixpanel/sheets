@@ -11,11 +11,10 @@ DATA OUT OF MP
  * @returns {[string, ReportMeta | CohortMeta]} string + metadata `[csv, {}]`
  */
 function exportData(config) {
-    const startTime = Date.now();
-    const runId = Math.random();
     //use last known config if unset
-    //@ts-ignore
     if (!config) config = getConfig();
+    
+	//@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
 
     const type = config.entity_type;
@@ -64,7 +63,7 @@ function getParams(config) {
             Authorization: `Basic ${auth}`,
             Accept: "application/json"
         },
-        muteHttpExceptions: true
+        muteHttpExceptions: false
     };
 
     const res = UrlFetchApp.fetch(URL, options).getContentText();
@@ -100,7 +99,7 @@ function getReportCSV(report_type, params, config) {
     if (region === "EU") subdomain = `eu.`;
 
     if (!["insights", "funnels", "retention"].includes(report_type)) {
-        throw `${report_type} reports are not currently supported for CSV export`;
+        throw `${report_type || "your supplied"} report is not currently supported for CSV export`;
     }
 
     let route = report_type;
@@ -121,7 +120,7 @@ function getReportCSV(report_type, params, config) {
         headers: {
             Authorization: `Basic ${auth}`
         },
-        muteHttpExceptions: true,
+        muteHttpExceptions: false,
         payload: JSON.stringify(payload)
     };
 
@@ -204,7 +203,7 @@ function getCohortMeta(config) {
             Authorization: `Basic ${auth}`,
             Accept: `application/json`
         },
-        muteHttpExceptions: true
+        muteHttpExceptions: false
     };
 
     const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());

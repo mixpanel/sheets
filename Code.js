@@ -33,7 +33,6 @@ TODOs
 ----
 */
 
-
 // $ the 6 (or 30) minute limit
 // ? https://developers.google.com/apps-script/guides/services/quotas#current_limitations
 // ? https://inclu-cat.net/2021/12/14/an-easy-way-to-deal-with-google-apps-scripts-6-minute-limit/
@@ -138,20 +137,29 @@ Sheet → Mixpanel
  * @returns {void}
  */
 function SheetToMixpanelView() {
-    const htmlTemplate = HtmlService.createTemplateFromFile("ui/sheet-to-mixpanel.html");
+    try {
+        const htmlTemplate = HtmlService.createTemplateFromFile("ui/sheet-to-mixpanel.html");
 
-    // server-side data
-    htmlTemplate.columns = getSheetHeaders();
-    htmlTemplate.config = getConfig();
-    htmlTemplate.sheet = getSheetInfo();
-    htmlTemplate.syncs = getTriggers();
+        // server-side data
+        htmlTemplate.columns = getSheetHeaders();
+        htmlTemplate.config = getConfig();
+        htmlTemplate.sheet = getSheetInfo();
+        htmlTemplate.syncs = getTriggers();
 
-    // apply data template
-    const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(750);
+        // apply data template
+        const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(750);
 
-    // render template
-    SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Sheet → Mixpanel");
-    track("open", { view: "sheet → mixpanel" });
+        // render template
+        SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Sheet → Mixpanel");
+        track("open", { view: "sheet → mixpanel" });
+    } catch (e) {
+        const ui = SpreadsheetApp.getUi();
+        ui.alert(
+            "🕳 Empty Sheet",
+            `your current active sheet is empty...\n\nplease open Sheet → Mixpanel from a sheet that has data`,
+            ui.ButtonSet.OK
+        );
+    }
 }
 
 /**
