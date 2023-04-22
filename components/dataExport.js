@@ -75,17 +75,23 @@ function getParams(config) {
             //noop
             break;
         case 404:
-			throw `the report ${report_id || ""} could not be found; check your project, workspace, and report id's and try again`
+            throw `404: the report ${
+                report_id || ""
+            } could not be found; check your project, workspace, and report id's and try again`;
             break;
-		case 429:
-			throw `your project has been rate limited; this should resolve by itself`
-			break;
-		case 410:
-			throw ``
-		case 500:
-			throw `mixpanel server error; report ${report_id || ""} may no longer exist`;
+        case 429:
+            throw `429: your project has been rate limited; this should resolve by itself`;
+            break;
+        case 410:
+            throw `410: unauthorized; your service account cannot access report ${report_id}`;
+        case 500:
+            throw `500: mixpanel server error; report ${report_id || ""} may no longer exist`;
+        case 504:
+            throw `504: mixpanel timed out when fetching report ${
+                report_id || ""
+            }; this should resolve by itself`;
         default:
-			throw `an unknown error has occurred when getting report ${report_id || ""}'s parameters`;
+            throw `${statusCode}: an unknown error has occurred`;
             break;
     }
     const text = res.getContentText();
@@ -144,11 +150,33 @@ function getReportCSV(report_type, params, config) {
         headers: {
             Authorization: `Basic ${auth}`
         },
-        muteHttpExceptions: false,
+        muteHttpExceptions: true,
         payload: JSON.stringify(payload)
     };
 
-    const csv = UrlFetchApp.fetch(URL, options).getContentText();
+    const res = UrlFetchApp.fetch(URL, options);
+    const statusCode = res.getResponseCode();
+    switch (statusCode) {
+        case 200:
+            //noop
+            break;
+        case 404:
+            throw `404: report could not be found; check your project, workspace, and report id's and try again`;
+            break;
+        case 429:
+            throw `429: your project has been rate limited; this should resolve by itself`;
+            break;
+        case 410:
+            throw `410: unauthorized; your service account cannot access report`;
+        case 500:
+            throw `500: mixpanel server error; report may no longer exist`;
+        case 504:
+            throw `504: mixpanel timed out when fetching report; this should resolve by itself`;
+        default:
+            throw `${statusCode}: an unknown error has occurred`;
+            break;
+    }
+    const csv = res.getContentText();
     return csv;
 }
 
@@ -227,11 +255,33 @@ function getCohortMeta(config) {
             Authorization: `Basic ${auth}`,
             Accept: `application/json`
         },
-        muteHttpExceptions: false
+        muteHttpExceptions: true
     };
 
-    const res = JSON.parse(UrlFetchApp.fetch(URL, options).getContentText());
-    const cohortInfos = res.find(cohort => cohort.id.toString() === cohort_id.toString()) || {};
+    const res = UrlFetchApp.fetch(URL, options);
+    const statusCode = res.getResponseCode();
+    switch (statusCode) {
+        case 200:
+            //noop
+            break;
+        case 404:
+            throw `404: cohort could not be found; check your project, workspace, and report id's and try again`;
+            break;
+        case 429:
+            throw `429: your project has been rate limited; this should resolve by itself`;
+            break;
+        case 410:
+            throw `410: unauthorized; your service account cannot access cohort`;
+        case 500:
+            throw `500: mixpanel server error; cohort may no longer exist`;
+        case 504:
+            throw `504: mixpanel timed out when fetching cohort; this should resolve by itself`;
+        default:
+            throw `${statusCode}: an unknown error has occurred`;
+            break;
+    }
+    const data = JSON.parse(res.getContentText());
+    const cohortInfos = data.find(cohort => cohort.id.toString() === cohort_id.toString()) || {};
 
     return {
         cohort_id: cohortInfos.id,

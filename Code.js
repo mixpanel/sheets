@@ -11,7 +11,7 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.13";
+const APP_VERSION = "1.14";
 
 /**
  * some important things to know about google apps script
@@ -290,7 +290,7 @@ function syncSheetsToMp() {
     if (Object.keys(config).length === 0) {
         //console.log("no operation: sync was scheduled, but config is empty (SH => MP)");
         clearConfig(null, true);
-        track("sync: autodelete", { view: "sheet → mixpanel" });
+        track("sync: autodelete", { view: "sheet → mixpanel", reason: "empty config" });
         return `SYNC DELETED`;
     }
     config.config_type = "sheet-to-mixpanel";
@@ -310,7 +310,7 @@ function syncSheetsToMp() {
         sourceSheet = getSheet(Number(config.sheet_id));
     } catch (e) {
         //the source sheet is gone; kill the sync + config
-        t("sync: autodelete");
+        t("sync: autodelete", { reason: "source sheet deleted" });
         clearTriggers(triggerId);
         clearConfig();
         return `SYNC DELETED`;
@@ -559,7 +559,7 @@ function syncMpToSheets() {
     if (Object.keys(config).length === 0) {
         //console.log("no operation: sync was scheduled, but config is empty (MP => SH)");
         clearConfig(null, true);
-        track("sync: autodelete", { view: "mixpanel → sheet" });
+        track("sync: autodelete", { view: "mixpanel → sheet", reason: "empty config" });
         return `SYNC DELETED`;
     }
     config.config_type = "mixpanel-to-sheet";

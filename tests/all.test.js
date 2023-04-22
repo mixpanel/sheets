@@ -263,18 +263,18 @@ function runTests() {
         }
     );
 
-    test.assert("RECOVER: empty MP → Sheet config", () => {
+    test.assert("RECOVER: empty config (MP → Sheet)", () => {
         clearConfig(null, true);
         const expected = `SYNC DELETED`;
         const result = syncMpToSheets();
         return isDeepEqual(expected, result);
     });
 
-    test.assert("RECOVER: empty Sheet → MP config", () => {
-       clearConfig(null, true);
-       const expected = `SYNC DELETED`;
-       const result = syncSheetsToMp();
-       return isDeepEqual(expected, result);
+    test.assert("RECOVER: empty config (Sheet → MP)", () => {
+        clearConfig(null, true);
+        const expected = `SYNC DELETED`;
+        const result = syncSheetsToMp();
+        return isDeepEqual(expected, result);
     });
 
     /*
