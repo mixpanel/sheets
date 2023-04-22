@@ -468,7 +468,7 @@ function createSyncMpToSheets(config) {
         view: "mixpanel → sheet",
         manual: "first time"
     });
-    t("sync: create");
+    t("sync: create start");
 
     //validate credentials
     try {
@@ -540,7 +540,7 @@ function createSyncMpToSheets(config) {
         ]
     ]);
 
-    t("sync: created");
+    t("sync: create end");
     return [updatedSheet, metadata, config];
 }
 

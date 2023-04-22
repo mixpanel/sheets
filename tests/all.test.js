@@ -514,7 +514,7 @@ function runTests() {
         return isDeepEqual(expected, metadata) && getTriggers().length === 1;
     });
 
-    test.catchErr("SYNCS: flows (throws)?", "flows reports are not currently supported for CSV export", () => {
+    test.catchErr("SYNCS: flows (throws)?", "flows report is not currently supported for CSV export", () => {
         createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
