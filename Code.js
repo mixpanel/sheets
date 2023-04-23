@@ -17,9 +17,10 @@ const APP_VERSION = "1.14";
  * some important things to know about google apps script
  * 	- there are no modules; every function shares a global namespace
  * 	- 'Types' are declared in Types.gs
+ *  - all of the 'typeof module' stuff at the bottom is to enable IDE support
  */
 
-// "globally" safe to call anywhere
+// track(event, {props}) in GAS
 let track;
 try {
     track = tracker();
@@ -29,14 +30,18 @@ try {
 
 /*
 ----
-TODOs
+IDEAS
 ----
 */
 
-// $ the 6 (or 30) minute limit
+// $ overcome the 6 (or 30) minute limit for an execution
 // ? https://developers.google.com/apps-script/guides/services/quotas#current_limitations
 // ? https://inclu-cat.net/2021/12/14/an-easy-way-to-deal-with-google-apps-scripts-6-minute-limit/
 // ? https://github.com/inclu-cat/LongRun
+
+
+// $ in case this script ever needs to store secrets
+// ? https://stackoverflow.com/a/75735362
 
 /*
 ----

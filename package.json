@@ -12,12 +12,9 @@
 		
 		"test-local": "node ./tests/all.test.js",
 		"test-server": "clasp run runTests",
-		"type-check": "tsc --noEmit --allowJs --checkJs Code.js",
-		"build-types": "tsc types/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
-				
+		"type-check": "tsc --noEmit --allowJs --checkJs Code.js",			
 		"watch-debug": "npm-watch debug",
 		"watch-test-local": "npm-watch test-local",
-		"watch-build-types": " npm-watch build-types",
 		"watch-push": "clasp push --watch --force",
 		"watch-serve": "./node_modules/serve/build/main.js ./ui"
 	},

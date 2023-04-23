@@ -1,13 +1,15 @@
-type RecordTypes = 'event' | 'user' | 'group' | 'table';
-type Regions = 'US' | 'EU';
-type ProfileOperation = '$set' | '$set_once' | string;
+type RecordTypes = "event" | "user" | "group" | "table";
+type Regions = "US" | "EU";
+type ProfileOperation = "$set" | "$set_once" | string;
 type BatchSize = 200 | 2000 | number;
-type AuthModes = 'service_account' | 'api_secret';
-type EntityTypes = 'cohort' | 'report';
+type AuthModes = "service_account" | "api_secret";
+type EntityTypes = "cohort" | "report" | "dashboard";
 type track = Function;
-type ConfigType = {
-    config_type: 'sheet-to-mixpanel' | 'mixpanel-to-sheet';
-};
+type ConfigType = "sheet-to-mixpanel" | "mixpanel-to-sheet";
+
+type Config = SheetMpConfig | MpSheetConfig;
+type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
+
 /**
  * all the options on a payload from Sheet → Mixpanel
  */
@@ -15,7 +17,7 @@ type SheetMpConfigAlways = {
     /**
      * an identifier for where the config came from
      */
-    config_type?: 'sheet-to-mixpanel';
+    config_type: ConfigType;
     /**
      * the record type being imported
      */
@@ -76,7 +78,7 @@ type MpSheetConfig = {
     /**
      * an identifier for where the config came from
      */
-    config_type?: 'mixpanel-to-sheet';
+    config_type?: ConfigType;
     /**
      * URL from mixpanel report
      */
@@ -117,6 +119,10 @@ type MpSheetConfig = {
      * id of the report
      */
     report_id?: string | number;
+    /**
+     * id of dashboard
+     */
+    dash_id?: string | number;
     /**
      * base64 auth string
      */
@@ -322,8 +328,24 @@ type CohortMeta = {
     cohort_id: number;
     cohort_count: number;
 };
-type Config = (SheetMpConfig | MpSheetConfig) & ConfigType;
-type SheetMpConfig = SheetMpConfigAlways & (EventMappings & UserMappings & GroupMappings & TableMappings);
+
+/**
+ * metadata about a dashboard
+ */
+type Dash = {
+    reports: NameId[];
+};
+
+type DashMeta = Dash & NameId;
+
+/**
+ * general name/id type
+ */
+type NameId = {
+    name: string;
+    id: string;
+};
+
 type Summary = {
     results: ImportResults;
 };
@@ -391,9 +413,14 @@ type PropValues = string | string[] | number | number[] | boolean | boolean[] | 
 /**
  * object of k:v pairs to update the profile
  */
-type ProfileData = Partial<Record<ProfileOperation, {
-    [x: string]: PropValues;
-}>>;
+type ProfileData = Partial<
+    Record<
+        ProfileOperation,
+        {
+            [x: string]: PropValues;
+        }
+    >
+>;
 type mpUserStandardProps = {
     /**
      * - the `distinct_id` of the profile to update
