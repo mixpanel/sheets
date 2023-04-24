@@ -14,7 +14,6 @@ function exportData(config) {
     //use last known config if unset
     if (!config) config = getConfig();
 
-    //@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
 
     const type = config.entity_type;
@@ -45,7 +44,7 @@ function exportData(config) {
         try {
             const dashMeta = enumDashboard(config);
             const CSVs = [];
-            loopReports: for (const report of dash.reports) {
+            loopReports: for (const report of dashMeta.reports) {
                 try {
                     const { meta, payload } = getParams({ report_id: report.id, ...config });
                     CSVs.push(getReportCSV(meta.report_type, payload, config));
@@ -53,6 +52,7 @@ function exportData(config) {
                     CSVs.push({ error: e });
                 }
             }
+			//todo
             return [CSVs, dashMeta];
         } catch (e) {
             throw e;

@@ -11,7 +11,7 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.14";
+const APP_VERSION = "1.15";
 
 /**
  * some important things to know about google apps script
@@ -153,7 +153,7 @@ function SheetToMixpanelView() {
         htmlTemplate.syncs = getTriggers();
 
         // apply data template
-        const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(740);
+        const htmlOutput = htmlTemplate.evaluate().setWidth(700).setHeight(700);
 
         // render template
         SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Sheet → Mixpanel");
@@ -420,7 +420,6 @@ function testSyncMpToSheets(config) {
     const t = tracker({ runId, project_id: config.project_id, view: "mixpanel → sheet" });
     t("test: start");
     try {
-        // @ts-ignore
         const auth = validateCreds(config);
         config.auth = auth;
     } catch (e) {

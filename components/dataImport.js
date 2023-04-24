@@ -15,7 +15,6 @@ function importData(config, sheet) {
     //use last known config if unset
     if (!config) config = getConfig();
     
-	//@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
 
     const startTime = Date.now();
@@ -60,7 +59,7 @@ function importData(config, sheet) {
     appendConfig("hashes", hash);
 
     const targetData = sourceData.slice().map(row => transform(row, mappings, cleanConfig));
-
+	
     const imported = flushToMixpanel(targetData, cleanConfig);
     endTime = Date.now();
 
@@ -84,7 +83,9 @@ function getMappings(config) {
     const {
         record_type,
         event_name_col,
+		hardcode_event_name,
         distinct_id_col,
+		hardcode_distinct_id,
         time_col,
         insert_id_col,
         name_col,
@@ -101,7 +102,9 @@ function getMappings(config) {
             distinct_id_col,
             event_name_col,
             time_col,
-            insert_id_col
+            insert_id_col,
+			hardcode_event_name,
+			hardcode_distinct_id
         };
     }
 

@@ -179,7 +179,15 @@ type EventMappings = {
     /**
      * the sheet's source column name to be mapped to $insert_id
      */
-    insert_id_col?: string;
+    insert_id_col: string;
+	/**
+	 * a hardcoded event name
+	 */
+    hardcode_event_name: string;
+	/**
+	 * a hardcoded distinct_id
+	 */
+    hardcode_distinct_id: string;
 };
 /**
  * mappings columns to fields for user imports
@@ -332,11 +340,11 @@ type CohortMeta = {
 /**
  * metadata about a dashboard
  */
-type Dash = {
+type DashMeta = {
+    name: string;
+    id: string;
     reports: NameId[];
 };
-
-type DashMeta = Dash & NameId;
 
 /**
  * general name/id type

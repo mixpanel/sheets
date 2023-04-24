@@ -13,20 +13,18 @@ https://developer.mixpanel.com/reference/import-events
  * @returns {mpEvent}
  */
 function modelMpEvents(row, mappings) {
-    const { distinct_id_col, event_name_col, time_col, insert_id_col } = mappings;
+    const { distinct_id_col, event_name_col, time_col, insert_id_col, hardcode_distinct_id, hardcode_event_name } = mappings;
 
     // required fields
-    if (!distinct_id_col) throw "distinct_id_col mapping is required!";
-    if (!event_name_col) throw "event_name_col mapping is required!";
     if (!time_col) throw "time_col mapping is required!";
 
     // create a copy, so we don't alter the source
     row = Object.assign({}, row);
 
     const mpEvent = {
-        event: row[event_name_col].toString(),
+        event: event_name_col === "hardcode" ? hardcode_event_name : row[event_name_col].toString(),
         properties: {
-            distinct_id: row[distinct_id_col].toString(),
+            distinct_id: distinct_id_col === "hardcode" ? hardcode_distinct_id : row[distinct_id_col].toString(),
             $source: "sheets-mixpanel"
         }
     };

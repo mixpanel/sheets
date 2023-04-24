@@ -171,7 +171,6 @@ function runTests() {
         clearConfig(null, true);
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
         const results = setConfig(expected);
-        clearConfig(null, true);
         return isDeepEqual(expected, results);
     });
 
@@ -180,7 +179,6 @@ function runTests() {
         const expected = { foo: "bar", baz: "qux", mux: "dux" };
         setConfig(expected);
         const results = getConfig();
-        clearConfig(null, true);
         return isDeepEqual(expected, results);
     });
 
@@ -299,9 +297,35 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
-        clearConfig(null, true);
         return isDeepEqual(expected, imported);
     });
+
+	    test.assert("RUNS: events w/hardcode?", () => {
+            clearConfig(null, true);
+            const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
+            const expected = {
+                batches: 6,
+                total: 10395,
+                success: 10395,
+                failed: 0,
+                errors: [],
+                record_type: "event"
+            };
+			 const config = {
+                 ...TEST_CONFIG_EVENTS,
+                 event_name_col: "hardcode",
+                 distinct_id_col: "hardcode",
+                 hardcode_event_name: "foo",
+                 hardcode_distinct_id: "bar"
+             };
+            const [resp, imported] = testSyncSheetsToMp(config, sheet);
+            delete imported.seconds;
+            delete imported.startTime;
+            delete imported.endTime;
+            return isDeepEqual(expected, imported);
+        });
+
+
 
     test.assert("RUNS: users?", () => {
         clearConfig(null, true);
@@ -318,7 +342,6 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
-        clearConfig(null, true);
         return isDeepEqual(expected, imported);
     });
 
@@ -337,7 +360,6 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
-        clearConfig(null, true);
         return isDeepEqual(expected, imported);
     });
 
@@ -356,7 +378,6 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
-        clearConfig(null, true);
         return isDeepEqual(expected, imported);
     });
 
@@ -375,7 +396,6 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_INSIGHTS);
-        clearConfig(null, true);
         return isDeepEqual(expected, metadata);
     });
 
@@ -393,7 +413,6 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_FUNNELS);
-        clearConfig(null, true);
         return isDeepEqual(expected, metadata);
     });
 
@@ -411,7 +430,6 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_REPORTS_RETENTION);
-        clearConfig(null, true);
         return isDeepEqual(expected, metadata);
     });
 
@@ -426,7 +444,6 @@ function runTests() {
         };
 
         const [sheet, metadata] = testSyncMpToSheets(TEST_CONFIG_COHORTS);
-        clearConfig(null, true);
         return isDeepEqual(expected, metadata);
     });
 
