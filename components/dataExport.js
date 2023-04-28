@@ -8,13 +8,12 @@ DATA OUT OF MP
  * export data; if not called with a config, uses last known
  *
  * @param  {MpSheetConfig} [config]
- * @returns {[string, ReportMeta | CohortMeta]} string + metadata `[csv, {}]`
+ * @returns {[string, ReportMeta | CohortMeta | DashMeta]} string + metadata `[csv, {}]`
  */
 function exportData(config) {
     //use last known config if unset
     if (!config) config = getConfig();
 
-    //@ts-ignore
     if (!config.auth) config.auth = validateCreds(config);
 
     const type = config.entity_type;
@@ -41,7 +40,95 @@ function exportData(config) {
         }
     }
 
+    if (type === "dashboard") {
+        try {
+            const dashMeta = enumDashboard(config);
+            const CSVs = [];
+            loopReports: for (const report of dashMeta.reports) {
+                try {
+                    const { meta, payload } = getParams({ report_id: report.id, ...config });
+                    CSVs.push(getReportCSV(meta.report_type, payload, config));
+                } catch (e) {
+                    CSVs.push({ error: e });
+                }
+            }
+            //todo
+            //this feature is NOT ready and should not yet be included in the UI
+            //current this function is expected to return [csvString, {reportMeta}]
+            //allowing it to return MULTIPLE reports would require a refactor of Mixpanel → Sheet functions
+			//because we would have to build MULTIPLE sheets to store + sync the data
+            return [CSVs, dashMeta];
+        } catch (e) {
+            throw e;
+        }
+    }
+
     throw `${type} is unsupported`;
+}
+/**
+ * @param  {MpSheetConfig} config
+ * @returns {DashMeta}
+ */
+function enumDashboard(config) {
+    const { project_id, workspace_id, region, auth, dash_id } = config;
+    let subdomain = ``;
+    if (region === "EU") subdomain = `eu.`;
+
+    const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(
+        workspace_id
+    )}/dashboards/${Number(dash_id)}`;
+
+    /** @type {GoogleAppsScript.URL_Fetch.URLFetchRequestOptions} */
+    const options = {
+        method: "get",
+        headers: {
+            Authorization: `Basic ${auth}`,
+            Accept: "application/json"
+        },
+        muteHttpExceptions: true
+    };
+
+    const res = UrlFetchApp.fetch(URL, options);
+    const statusCode = res.getResponseCode();
+    switch (statusCode) {
+        case 200:
+            //noop
+            break;
+        case 404:
+            throw `404: the board ${
+                dash_id || ""
+            } could not be found; check your project, workspace, and board id's and try again`;
+            break;
+        case 429:
+            throw `429: your project has been rate limited; this should resolve by itself`;
+            break;
+        case 410:
+            throw `410: unauthorized; your service account cannot access board ${dash_id}`;
+        case 500:
+            throw `500: mixpanel server error; board ${dash_id || ""} may no longer exist`;
+        case 504:
+            throw `504: mixpanel timed out when fetching board ${dash_id || ""}; this should resolve by itself`;
+        default:
+            throw `${statusCode}: an unknown error has occurred`;
+            break;
+    }
+    const text = res.getContentText();
+
+    const data = JSON.parse(text).results;
+    const results = {
+        name: data.title,
+        id: data.id,
+        reports: []
+    };
+    const foundReports = data.contents.report;
+    for (const report_id in foundReports) {
+        results.reports.push({
+            id: report_id,
+            name: foundReports[report_id].name
+        });
+    }
+
+    return results;
 }
 
 /**

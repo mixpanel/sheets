@@ -1,32 +1,32 @@
 {
-  "cSpell.words": [
-	"abcdefghijklmnop",
-	"ampm",
-	"appsscript",
-	"autodelete",
-	"brux",
-	"clasprc",
-	"MISCELANOUS",
-	"nocheck",
-	"smol",
-	"STACKDRIVER",
-	"tldr",
-	"trux"
-],
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/node_modules": true,
-    "**.gitattribues": true,
-    ".gitattributes": true,
-    "package-lock.json": true
-  },
-"editor.defaultFormatter": "esbenp.prettier-vscode",
-"[javascript]": {
-	"editor.defaultFormatter": "esbenp.prettier-vscode"
-}
+    "cSpell.words": [
+        "abcdefghijklmnop",
+        "ampm",
+        "appsscript",
+        "autodelete",
+        "brux",
+        "clasprc",
+        "MISCELANOUS",
+        "nocheck",
+        "smol",
+        "STACKDRIVER",
+        "tldr",
+        "trux"
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/node_modules": true,
+        "**.gitattribues": true,
+        ".gitattributes": true,
+        "package-lock.json": true
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }

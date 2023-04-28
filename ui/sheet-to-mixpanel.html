@@ -53,10 +53,13 @@
 			<ul id="event_mapping" class="mapping">
 				<li><select id="event_name_col" class="data dropdown required">
 						<option value="">--------</option>
-					</select> → <span class="field">event name</span> </li>
+					</select> → <span class="field">event name</span>&nbsp;&nbsp;&nbsp;<input type="text"
+						id="hardcode_event_name" class="data field optional hardcode hidden" placeholder="name for all events"
+						size="120"> </li>
 				<li><select id="distinct_id_col" class="data dropdown required">
 						<option value="">--------</option>
-					</select> → <span class="field">distinct_id</span></li>
+					</select> → <span class="field">distinct_id</span> <input type="text" id="hardcode_distinct_id"
+						class="data field optional hardcode hidden" placeholder="distinct_id for all events" size="120"></li>
 				<li><select id="time_col" class="data dropdown required">
 						<option value="">--------</option>
 					</select> → <span class="field">time</span><span class="optional note">(must be a <strong>valid date
@@ -72,16 +75,16 @@
 						<option value="">--------</option>
 					</select> → <span class="field">$distinct_id</span>
 				</li>
-				<li><select id="name_col" class="data dropdown required">
+				<li><select id="name_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field">$name</span> <span class="optional">(optional)</span></li>
 				<li><select id="email_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field">$email</span> <span class="optional">(optional)</span></li>
-				<li><select id="avatar_col" class="data dropdown optional">
+				<li class="hidden"><select id="avatar_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field">$avatar</span> <span class="optional">(optional)</span></li>
-				<li><select id="created_col" class="data dropdown optional">
+				<li class="hidden"><select id="created_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field">$created</span> <span class="optional">(optional)</span></li>
 				<li>
@@ -98,17 +101,17 @@
 				<li><select id="distinct_id_col" class="data dropdown">
 						<option value="">--------</option>
 					</select> → <span class="field required">$group_id</span></li>
-				<li><select id="name_col" class="data dropdown">
+				<li><select id="name_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field required">$name</span> <span class="optional">(optional)</span></li>
-				<li><select id="email_col" class="data dropdown">
+				<li><select id="email_col" class="data dropdown optional">
 						<option value="">--------</option>
 					</select> → <span class="field required">$email</span> <span class="optional">(optional)</span></li>
-				<li><select id="avatar_col" class="data dropdown">
+				<li class="hidden"><select id="avatar_col" class="data dropdown">
 						<option value="">--------</option>
 					</select> → <span class="field required">$avatar</span> <span class="optional">(optional)</span>
 				</li>
-				<li><select id="created_col" class="data dropdown">
+				<li class="hidden"><select id="created_col" class="data dropdown">
 						<option value="">--------</option>
 					</select> → <span class="field required">$created</span> <span class="optional">(optional)</span>
 				</li>
@@ -130,17 +133,17 @@
 	<section id="auth">
 		<div class="prompt">
 			<span class="title">🏠 What is your project's id<a target="_blank"
-					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id">?</a></span>
+					href="https://mixpanel.com/settings/project">?</a></span>
 			<input type="text" id="project_id" class="data" placeholder="123456789">
 		</div>
 		<div class="prompt">
 			<span class="title">🎟 What is your project's token<a target="_blank"
-					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-token">?</a></span>
+					href="https://mixpanel.com/settings/project">?</a></span>
 			<input type="text" id="token" class="data" placeholder="abcdefghijklmnop">
 		</div>
 		<div class="prompt">
 			<span class="title">🌍 What is your project's region<a target="_blank"
-					href="https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#data-residency">?</a></span>
+					href="https://mixpanel.com/settings/project">?</a></span>
 			<select id="region" class="data">
 				<option value="US">🇺🇸 United States</option>
 				<option value="EU">🇪🇺European Union</option>
@@ -378,6 +381,10 @@
 			padding-left: 2%;
 		}
 
+		.hardcode {
+			margin-left: 1% !important;
+		}
+
 		div {
 			padding: 6px;
 		}
@@ -574,7 +581,7 @@
 			const selectMenus = Array.from(qsa('select.data.dropdown')).filter(node => node.id !== 'profile_operation');
 
 			// columns fail to render; most likely a local test
-			if (JSON.stringify(columns) === '["\\n\\t\\t\\n\\t"]') {
+			if (JSON.stringify(columns) === '[""]') {
 				columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
 			}
 
@@ -590,8 +597,28 @@
 					opt.innerHTML = column;
 					select.appendChild(opt);
 				}
-			}
+				if (select.parentNode.parentElement.id === "event_mapping") {
+					if (["event_name_col", "distinct_id_col"].includes(select.id)) {
+						const hardcodeOpt = document.createElement('option');
+						hardcodeOpt.value = "hardcode";
+						hardcodeOpt.innerHTML = `Other (specify)`;
+						select.appendChild(hardcodeOpt);
+						select.addEventListener('change', (ev) => {
+							if (ev.currentTarget.value === 'hardcode') {
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.remove('hidden');
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.remove('optional');
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.add('required');
+							}
+							else {
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.add('hidden');
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.add('optional');
+								ev.currentTarget.nextElementSibling.nextElementSibling.classList.remove('required');
+							}
+						});
+					}
+				}
 
+			}
 		}
 
 		function bindEventsAndViews() {
@@ -860,7 +887,9 @@
 			const defaultConfig = {
 				record_type: "event",
 				event_name_col: "",
+				hardcode_event_name: "",
 				distinct_id_col: "",
+				hardcode_distinct_id: "",
 				time_col: "",
 				insert_id_col: "",
 				name_col: "",
@@ -991,10 +1020,12 @@
 			}
 
 			if (record_type === 'event') {
-				const { event_name_col, distinct_id_col, time_col, insert_id_col } = config;
+				const { event_name_col, distinct_id_col, time_col, insert_id_col, hardcode_event_name, hardcode_distinct_id } = config;
 				if (!event_name_col) return false;
 				if (!distinct_id_col) return false;
 				if (!time_col) return false;
+				if (event_name_col === 'hardcode' && !hardcode_event_name) return false;
+				if (distinct_id_col === 'hardcode' && !hardcode_distinct_id) return false;
 			}
 
 			if (record_type === 'user') {
