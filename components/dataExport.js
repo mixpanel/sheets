@@ -52,7 +52,11 @@ function exportData(config) {
                     CSVs.push({ error: e });
                 }
             }
-			//todo
+            //todo
+            //this feature is NOT ready and should not yet be included in the UI
+            //current this function is expected to return [csvString, {reportMeta}]
+            //allowing it to return MULTIPLE reports would require a refactor of Mixpanel → Sheet functions
+			//because we would have to build MULTIPLE sheets to store + sync the data
             return [CSVs, dashMeta];
         } catch (e) {
             throw e;
