@@ -64,11 +64,7 @@ function runTests() {
             brew: { one: 1, two: 2, three: 3 }
         };
         const cloned = Misc.clone(original);
-        return (
-            Misc.serial(original) === Misc.serial(cloned) &&
-            Misc.isDeepEqual(original, cloned) &&
-            cloned !== original
-        );
+        return Misc.serial(original) === Misc.serial(cloned) && Misc.isDeepEqual(original, cloned) && cloned !== original;
     });
 
     test.assert("serializes objects?", () => {
@@ -218,48 +214,32 @@ function runTests() {
         validateCreds(BAD_PROJECT_SERVICE_ACCOUNT);
     });
 
-    test.catchErr(
-        "THROWS: bad api secret?",
-        "Unauthorized, invalid project secret. See docs for more information: https://developer.mixpanel.com/reference/authentication#project-secret",
-        () => {
-            validateCreds(BAD_API_SECRET);
-        }
-    );
+    test.catchErr("THROWS: bad api secret?", "Unauthorized, invalid project secret. See docs for more information: https://developer.mixpanel.com/reference/authentication#project-secret", () => {
+        validateCreds(BAD_API_SECRET);
+    });
 
-    test.catchErr(
-        "THROWS: bad api project?",
-        `Mismatch between project secret's project ID and URL project ID`,
-        () => {
-            validateCreds(BAD_PROJECT_API_SECRET);
-        }
-    );
+    test.catchErr("THROWS: bad api project?", `Mismatch between project secret's project ID and URL project ID`, () => {
+        validateCreds(BAD_PROJECT_API_SECRET);
+    });
 
-    test.catchErr(
-        "THROWS: unsupported report?",
-        "flows report is not currently supported for CSV export",
-        () => {
-            createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
-        }
-    );
+    test.catchErr("THROWS: unsupported report?", "flows report is not currently supported for CSV export", () => {
+        createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
+    });
 
-    test.catchErr(
-        "THROWS: bad report / project / workspace id?",
-        "the report 123 could not be found; check your project, workspace, and report id's and try again",
-        () => {
-            /** @type {MpSheetConfig} */
-            const config = {
-                config_type: "mixpanel-to-sheet",
-                service_acct: SERVICE_ACCOUNT,
-                service_secret: SERVICE_SECRET,
-                report_id: 123,
-                project_id: PROJECT_ID,
-                workspace_id: WORKSPACE_ID,
-                region: "US",
-                entity_type: "report"
-            };
-            testSyncMpToSheets(config);
-        }
-    );
+    test.catchErr("THROWS: bad report / project / workspace id?", "the report 123 could not be found; check your project, workspace, and report id's and try again", () => {
+        /** @type {MpSheetConfig} */
+        const config = {
+            config_type: "mixpanel-to-sheet",
+            service_acct: SERVICE_ACCOUNT,
+            service_secret: SERVICE_SECRET,
+            report_id: 123,
+            project_id: PROJECT_ID,
+            workspace_id: WORKSPACE_ID,
+            region: "US",
+            entity_type: "report"
+        };
+        testSyncMpToSheets(config);
+    });
 
     test.assert("RECOVER: empty config (MP → Sheet)", () => {
         clearConfig(null, true);
@@ -300,32 +280,48 @@ function runTests() {
         return isDeepEqual(expected, imported);
     });
 
-	    test.assert("RUNS: events w/hardcode?", () => {
-            clearConfig(null, true);
-            const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
-            const expected = {
-                batches: 6,
-                total: 10395,
-                success: 10395,
-                failed: 0,
-                errors: [],
-                record_type: "event"
-            };
-			 const config = {
-                 ...TEST_CONFIG_EVENTS,
-                 event_name_col: "hardcode",
-                 distinct_id_col: "hardcode",
-                 hardcode_event_name: "foo",
-                 hardcode_distinct_id: "bar"
-             };
-            const [resp, imported] = testSyncSheetsToMp(config, sheet);
-            delete imported.seconds;
-            delete imported.startTime;
-            delete imported.endTime;
-            return isDeepEqual(expected, imported);
-        });
+    test.assert("RUNS: events w/hardcode?", () => {
+        clearConfig(null, true);
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
+        const expected = {
+            batches: 6,
+            total: 10395,
+            success: 10395,
+            failed: 0,
+            errors: [],
+            record_type: "event"
+        };
+        const config = {
+            ...TEST_CONFIG_EVENTS,
+            event_name_col: "hardcode",
+            distinct_id_col: "hardcode",
+            hardcode_event_name: "foo",
+            hardcode_distinct_id: "bar"
+        };
+        const [resp, imported] = testSyncSheetsToMp(config, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported);
+    });
 
-
+    test.assert("RUNS: ad spend?", () => {
+        clearConfig(null, true);
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("adspend"));
+        const expected = {
+            batches: 1,
+            total: 91,
+            success: 91,
+            failed: 0,
+            errors: [],
+            record_type: "event"
+        };
+        const [resp, imported] = testSyncSheetsToMp(TEST_CONFIG_AD_SPENT, sheet);
+        delete imported.seconds;
+        delete imported.startTime;
+        delete imported.endTime;
+        return isDeepEqual(expected, imported)
+    });
 
     test.assert("RUNS: users?", () => {
         clearConfig(null, true);
@@ -477,18 +473,18 @@ function runTests() {
         return isDeepEqual(expected, imported) && getTriggers().length === 1;
     });
 
-    test.assert("SYNCS: users?", () => {
+    test.assert("SYNCS: events?", () => {
         clearConfig(null, true);
-        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("users"));
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("events"));
         const expected = {
-            batches: 4,
-            total: 6999,
-            success: 6999,
+            batches: 6,
+            total: 10395,
+            success: 10395,
             failed: 0,
             errors: [],
-            record_type: "user"
+            record_type: "event"
         };
-        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_USERS, sheet);
+        const [resp, imported] = createSyncSheetsToMp(TEST_CONFIG_EVENTS, sheet);
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
@@ -723,7 +719,7 @@ function tearDown() {
     clearConfig(null, true);
     clearTriggers(null, true);
     const ss = SpreadsheetApp.getActive();
-    const goodSheets = ["events", "users", "groups", "tables", "smol"];
+    const goodSheets = ["events", "users", "groups", "tables", "smol", "adspend"];
     const badSheets = ss
         .getSheets()
         .map(getSheetInfo)
