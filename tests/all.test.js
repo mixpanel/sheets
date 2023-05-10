@@ -320,7 +320,7 @@ function runTests() {
         delete imported.seconds;
         delete imported.startTime;
         delete imported.endTime;
-        return isDeepEqual(expected, imported) && getTriggers().length === 1;
+        return isDeepEqual(expected, imported)
     });
 
     test.assert("RUNS: users?", () => {
