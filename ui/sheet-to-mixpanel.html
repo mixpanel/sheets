@@ -66,7 +66,7 @@
 							time</strong> in sheet)</span></li>
 				<li><select id="insert_id_col" class="data dropdown optional">
 						<option value="">--------</option>
-					</select> → <span class="field">$insert_id</span> <span class="optional">(optional)</span></li>
+					</select> → <span class="field">$insert_id</span> <span class="optional">(optional; used to deduplicate)</span></li>
 			</ul>
 			<span class="subtext">all unmapped columns will be sent as
 				properties</span>
@@ -585,10 +585,10 @@
 				columns = ['foo', 'bar', 'baz', 'qux', 'mux', 'dux', 'lux', 'trux', 'brux', ' crux'];
 			}
 
-			const existingCols = Object.values(filterObj(app.DOM.config, key => key.endsWith("_col"), "key"));
-			for (const col of existingCols) {
-				columns.push(col);
-			}
+			// const existingCols = Object.values(filterObj(app.DOM.config, key => key.endsWith("_col"), "key"));
+			// for (const col of existingCols) {
+			// 	columns.push(col);
+			// }
 
 			for (const select of selectMenus) {
 				for (const column of columns) {
@@ -819,7 +819,9 @@
 				auth_type,
 				service_acct,
 				service_secret,
-				api_secret
+				api_secret,
+				hardcode_event_name,
+				hardcode_distinct_id
 			} = config;
 
 			if (record_type || force) setValues('#record_type', record_type);
@@ -841,6 +843,8 @@
 			if (service_acct || force) setValues('#service_acct', service_acct);
 			if (service_secret || force) setValues('#service_secret', service_secret);
 			if (api_secret || force) setValues('#api_secret', api_secret);
+			if (hardcode_event_name || force) setValues('#hardcode_event_name', hardcode_event_name);
+			if (hardcode_distinct_id || force) setValues('#hardcode_distinct_id', hardcode_distinct_id);
 
 		}
 
@@ -905,7 +909,9 @@
 				auth_type: "service_account",
 				service_acct: "",
 				service_secret: "",
-				api_secret: ""
+				api_secret: "",
+				hardcode_event_name: "",
+				hardcode_distinct_id: ""
 			};
 
 
@@ -1022,7 +1028,8 @@
 			if (record_type === 'event') {
 				const { event_name_col, distinct_id_col, time_col, insert_id_col, hardcode_event_name, hardcode_distinct_id } = config;
 				if (!event_name_col) return false;
-				if (!distinct_id_col) return false;
+				// don't force distinct_id for ad spend data
+				// if (!distinct_id_col) return false;
 				if (!time_col) return false;
 				if (event_name_col === 'hardcode' && !hardcode_event_name) return false;
 				if (distinct_id_col === 'hardcode' && !hardcode_distinct_id) return false;

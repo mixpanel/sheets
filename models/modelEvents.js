@@ -13,7 +13,7 @@ https://developer.mixpanel.com/reference/import-events
  * @returns {mpEvent}
  */
 function modelMpEvents(row, mappings) {
-    const { distinct_id_col, event_name_col, time_col, insert_id_col, hardcode_distinct_id, hardcode_event_name } = mappings;
+    const { distinct_id_col = "", event_name_col = "", time_col = "", insert_id_col = "", hardcode_distinct_id = "", hardcode_event_name = "" } = mappings;
 
     // required fields
     if (!time_col) throw "time_col mapping is required!";
@@ -24,10 +24,14 @@ function modelMpEvents(row, mappings) {
     const mpEvent = {
         event: event_name_col === "hardcode" ? hardcode_event_name : row[event_name_col].toString(),
         properties: {
-            distinct_id: distinct_id_col === "hardcode" ? hardcode_distinct_id : row[distinct_id_col].toString(),
             $source: "sheets-mixpanel"
         }
     };
+
+    //distinct_id
+    if (distinct_id_col) {
+        mpEvent.properties.distinct_id = distinct_id_col === "hardcode" ? hardcode_distinct_id : row[distinct_id_col].toString();
+    }
 
     //time
     if (time_col) {
@@ -45,10 +49,11 @@ function modelMpEvents(row, mappings) {
     //insert_id
     if (insert_id_col) {
         mpEvent.properties.$insert_id = row[insert_id_col]?.toString(); //insert_ids are always strings
-    } else {
-        mpEvent.properties.$insert_id = MD5(
-            `${mpEvent.event} ${mpEvent.properties.distinct_id} ${mpEvent.properties.time}`
-        );
+    }
+
+    //derive insert_id from distinct_id and time
+    else if (mpEvent.properties.distinct_id && mpEvent.properties.time && !hardcode_distinct_id) {
+        mpEvent.properties.$insert_id = MD5(`${mpEvent.event} ${mpEvent.properties.distinct_id} ${mpEvent.properties.time}`);
     }
 
     delete row[distinct_id_col];
@@ -59,7 +64,7 @@ function modelMpEvents(row, mappings) {
     try {
         for (const key in row) {
             if (row[key]?.toISOString) {
-				// other fields that are dates
+                // other fields that are dates
                 mpEvent.properties[key] = row[key].toISOString();
             } else {
                 mpEvent.properties[key] = row[key];

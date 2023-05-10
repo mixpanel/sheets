@@ -723,7 +723,7 @@ function tearDown() {
     clearConfig(null, true);
     clearTriggers(null, true);
     const ss = SpreadsheetApp.getActive();
-    const goodSheets = ["events", "users", "groups", "tables", "smol"];
+    const goodSheets = ["events", "users", "groups", "tables", "smol", "adspend"];
     const badSheets = ss
         .getSheets()
         .map(getSheetInfo)
