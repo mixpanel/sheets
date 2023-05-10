@@ -74,8 +74,11 @@ function onOpen(sheetOpenEv) {
         // user has given app permissions
         menu.addItem("Sheet → Mixpanel", "SheetToMixpanelView");
         menu.addItem("Mixpanel → Sheet", "MixpanelToSheetView");
-        menu.addItem("Feedback", "ShowFeedbackForm");
-        if (authMode == ScriptApp.AuthMode.FULL || authMode == ScriptApp.AuthMode.LIMITED) {
+
+		// get rid of "feedback"
+        // menu.addItem("Feedback", "ShowFeedbackForm");
+        
+		if (authMode == ScriptApp.AuthMode.FULL || authMode == ScriptApp.AuthMode.LIMITED) {
             const activeSync = getConfig().active_sync || false;
             if (activeSync) {
                 menu.addItem("Sync Now!", "syncNow");

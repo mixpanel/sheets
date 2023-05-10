@@ -23,7 +23,7 @@ each UI has a simple user interface, and is essentially a form you fill out that
 
 ## 🍿 demo
 
-<a href="https://youtu.be/jaT_cO2Bz5g" target="_blank"><img src="https://aktunes.neocities.org/sheets-mixpanel/youtube.png" alt="youtube demo"/></a>
+<a href="https://youtu.be/45ZBaJg-oe4" target="_blank"><img src="https://aktunes.neocities.org/sheets-mixpanel/youtube.png" alt="youtube demo"/></a>
 
 <!-- <img src="https://aktunes.neocities.org/sheets-mixpanel/fastdemo.gif"> -->
 
