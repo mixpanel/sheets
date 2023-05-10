@@ -307,7 +307,7 @@ function runTests() {
 
     test.assert("RUNS: ad spend?", () => {
         clearConfig(null, true);
-        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("ad spend"));
+        const sheet = getSheetInfo(SpreadsheetApp.getActive().getSheetByName("adspend"));
         const expected = {
             batches: 1,
             total: 91,
