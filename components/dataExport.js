@@ -71,7 +71,7 @@ function exportData(config) {
  * @returns {DashMeta}
  */
 function enumDashboard(config) {
-    const { project_id, workspace_id, region, auth, dash_id } = config;
+    const { workspace_id, region, auth, dash_id } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
 
@@ -91,28 +91,7 @@ function enumDashboard(config) {
 
     const res = UrlFetchApp.fetch(URL, options);
     const statusCode = res.getResponseCode();
-    switch (statusCode) {
-        case 200:
-            //noop
-            break;
-        case 404:
-            throw `404: the board ${
-                dash_id || ""
-            } could not be found; check your project, workspace, and board id's and try again`;
-            break;
-        case 429:
-            throw `429: your project has been rate limited; this should resolve by itself`;
-            break;
-        case 410:
-            throw `410: unauthorized; your service account cannot access board ${dash_id}`;
-        case 500:
-            throw `500: mixpanel server error; board ${dash_id || ""} may no longer exist`;
-        case 504:
-            throw `504: mixpanel timed out when fetching board ${dash_id || ""}; this should resolve by itself`;
-        default:
-            throw `${statusCode}: an unknown error has occurred`;
-            break;
-    }
+    checkStatusCode(statusCode, `board`);
     const text = res.getContentText();
 
     const data = JSON.parse(text).results;
@@ -139,7 +118,7 @@ function enumDashboard(config) {
  * @returns {ReportParams}
  */
 function getParams(config) {
-    const { project_id, workspace_id, region, report_id, auth } = config;
+    const {workspace_id, region, report_id, auth } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
     const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(workspace_id)}/bookmarks/${Number(
@@ -158,30 +137,7 @@ function getParams(config) {
 
     const res = UrlFetchApp.fetch(URL, options);
     const statusCode = res.getResponseCode();
-    switch (statusCode) {
-        case 200:
-            //noop
-            break;
-        case 404:
-            throw `404: the report ${
-                report_id || ""
-            } could not be found; check your project, workspace, and report id's and try again`;
-            break;
-        case 429:
-            throw `429: your project has been rate limited; this should resolve by itself`;
-            break;
-        case 410:
-            throw `410: unauthorized; your service account cannot access report ${report_id}`;
-        case 500:
-            throw `500: mixpanel server error; report ${report_id || ""} may no longer exist`;
-        case 504:
-            throw `504: mixpanel timed out when fetching report ${
-                report_id || ""
-            }; this should resolve by itself`;
-        default:
-            throw `${statusCode}: an unknown error has occurred`;
-            break;
-    }
+    checkStatusCode(statusCode, `report`);
     const text = res.getContentText();
 
     const data = JSON.parse(text).results;
@@ -244,26 +200,7 @@ function getReportCSV(report_type, params, config) {
 
     const res = UrlFetchApp.fetch(URL, options);
     const statusCode = res.getResponseCode();
-    switch (statusCode) {
-        case 200:
-            //noop
-            break;
-        case 404:
-            throw `404: report could not be found; check your project, workspace, and report id's and try again`;
-            break;
-        case 429:
-            throw `429: your project has been rate limited; this should resolve by itself`;
-            break;
-        case 410:
-            throw `410: unauthorized; your service account cannot access report`;
-        case 500:
-            throw `500: mixpanel server error; report may no longer exist`;
-        case 504:
-            throw `504: mixpanel timed out when fetching report; this should resolve by itself`;
-        default:
-            throw `${statusCode}: an unknown error has occurred`;
-            break;
-    }
+    checkStatusCode(statusCode, `report`);
     const csv = res.getContentText();
     return csv;
 }
@@ -348,26 +285,7 @@ function getCohortMeta(config) {
 
     const res = UrlFetchApp.fetch(URL, options);
     const statusCode = res.getResponseCode();
-    switch (statusCode) {
-        case 200:
-            //noop
-            break;
-        case 404:
-            throw `404: cohort could not be found; check your project, workspace, and report id's and try again`;
-            break;
-        case 429:
-            throw `429: your project has been rate limited; this should resolve by itself`;
-            break;
-        case 410:
-            throw `410: unauthorized; your service account cannot access cohort`;
-        case 500:
-            throw `500: mixpanel server error; cohort may no longer exist`;
-        case 504:
-            throw `504: mixpanel timed out when fetching cohort; this should resolve by itself`;
-        default:
-            throw `${statusCode}: an unknown error has occurred`;
-            break;
-    }
+    checkStatusCode(statusCode, `cohort`);
     const data = JSON.parse(res.getContentText());
     const cohortInfos = data.find(cohort => cohort.id.toString() === cohort_id.toString()) || {};
 
@@ -396,4 +314,32 @@ if (typeof module !== "undefined") {
     const { getConfig } = require("../utilities/storage.js");
     const { validateCreds } = require("../utilities/validate.js");
     const { JSONtoCSV, profilesToCsvArray } = require("../utilities/misc.js");
+}
+
+/**
+ * Throw error if status code is not 200
+ *
+ * @param  {number} statusCode
+ * @param  {string} entityType
+ * @returns {null}
+ */
+const checkStatusCode = (statusCode, entityType) => {
+    switch (statusCode) {
+        case 200:
+            return;
+        case 402:
+            throw `Your plan does not allow formatted export API calls. Upgrade at mixpanel.com/pricing`
+        case 404:
+            throw `404: the ${entityType} could not be found; check your project, workspace, and ${entityType} id's and try again`;
+        case 410:
+            throw `410: unauthorized; your service account cannot access ${entityType}`;
+        case 429:
+            throw `429: your project has been rate limited; this should resolve by itself`;
+        case 500:
+            throw `500: mixpanel server error; ${entityType} may no longer exist`;
+        case 504:
+            throw `504: mixpanel timed out when fetching board ${entityType}; this should resolve by itself`;
+        default:
+            throw `${statusCode}: an unknown error has occurred`;
+    }
 }
