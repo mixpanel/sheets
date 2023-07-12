@@ -321,7 +321,7 @@ if (typeof module !== "undefined") {
  *
  * @param  {number} statusCode
  * @param  {string} entityType
- * @returns {null}
+ * @returns {undefined}
  */
 const checkStatusCode = (statusCode, entityType) => {
     switch (statusCode) {
