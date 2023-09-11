@@ -20,6 +20,31 @@ function JSONtoCSV(arr) {
         .join("\n");
 }
 
+function profilesToCsvArray(profiles) {
+    const headers = new Set();
+    
+    // Need to check all profile keys in case some are missing that prop
+    profiles.forEach(profile => {
+        Object.keys(profile).forEach(key => {
+            headers.add(key);
+        });
+    });
+
+    const headersArr = Array.from(headers);
+
+    const properties = [];
+
+    profiles.forEach(profile => {
+        const profileProps = headersArr.map(header => {
+            const prop = profile[header] !== undefined ? `${profile[header]}` : "";
+            return prop;
+        });
+        properties.push(profileProps);
+    })
+
+    return [headersArr, ...properties];
+}
+
 function sliceIntoChunks(arr, chunkSize = 2000) {
     const res = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
@@ -105,5 +130,5 @@ function isObject(object) {
 }
 
 if (typeof module !== "undefined") {
-    module.exports = { comma, JSONtoCSV, sliceIntoChunks, formatDate, serial, isDeepEqual, isObject, clone };
+    module.exports = { comma, JSONtoCSV, sliceIntoChunks, formatDate, serial, isDeepEqual, isObject, clone, profilesToCsvArray };
 }

@@ -9,3 +9,4 @@ creds.json
 !tmp/.gitkeep
 .env
 env.js
+env.gs

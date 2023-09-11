@@ -8,7 +8,7 @@ DATA OUT OF MP
  * export data; if not called with a config, uses last known
  *
  * @param  {MpSheetConfig} [config]
- * @returns {[string, ReportMeta | CohortMeta | DashMeta]} string + metadata `[csv, {}]`
+ * @returns {[string | string[][], ReportMeta | CohortMeta | DashMeta]} string + metadata `[csv, {}]`
  */
 function exportData(config) {
     //use last known config if unset
@@ -33,7 +33,7 @@ function exportData(config) {
         try {
             const meta = getCohortMeta(config);
             const profiles = getCohort(config);
-            const csv = JSONtoCSV(profiles);
+            const csv = profilesToCsvArray(profiles);
             return [csv, meta];
         } catch (e) {
             throw e;
@@ -65,6 +65,7 @@ function exportData(config) {
 
     throw `${type} is unsupported`;
 }
+
 /**
  * @param  {MpSheetConfig} config
  * @returns {DashMeta}
@@ -394,5 +395,5 @@ if (typeof module !== "undefined") {
     module.exports = { exportData };
     const { getConfig } = require("../utilities/storage.js");
     const { validateCreds } = require("../utilities/validate.js");
-    const { JSONtoCSV } = require("../utilities/misc.js");
+    const { JSONtoCSV, profilesToCsvArray } = require("../utilities/misc.js");
 }

@@ -52,6 +52,15 @@ function runTests() {
         return Misc.JSONtoCSV([{ foo: "bar", baz: "qux" }]) === expected;
     });
 
+    test.assert("turns profiles into string[][]", () => {
+        const expected = [
+            [`foo`, `baz`, `third`],
+            [`bar`, `qux`, ``],
+            [`bar`, ``, `exists`]
+        ];
+        return JSON.stringify(Misc.profilesToCsvArray([{ foo: "bar", baz: "qux" }, {foo: "bar", third: "exists"}])) === JSON.stringify(expected);
+    });
+
     test.assert("forms pretty dates?", () => {
         const expected = `3/3/1901 @ 4:20am`;
         return Misc.formatDate(new Date(1, 2, 3, 4, 20)) === expected;
@@ -218,7 +227,7 @@ function runTests() {
         validateCreds(BAD_API_SECRET);
     });
 
-    test.catchErr("THROWS: bad api project?", `Mismatch between project secret's project ID and URL project ID`, () => {
+    test.catchErr("THROWS: bad api project?", `Credentials in request did not match project_id URL parameter`, () => {
         validateCreds(BAD_PROJECT_API_SECRET);
     });
 
