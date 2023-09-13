@@ -55,10 +55,10 @@ function runTests() {
     test.assert("turns profiles into string[][]", () => {
         const expected = [
             [`foo`, `baz`, `third`],
-            [`bar`, `qux`, ``],
+            [`bar`, `qu,x`, ``],
             [`bar`, ``, `exists`]
         ];
-        return JSON.stringify(Misc.profilesToCsvArray([{ foo: "bar", baz: "qux" }, {foo: "bar", third: "exists"}])) === JSON.stringify(expected);
+        return JSON.stringify(Misc.profilesToCsvArray([{ foo: "bar", baz: "qu,x" }, {foo: "bar", third: "exists"}])) === JSON.stringify(expected);
     });
 
     test.assert("forms pretty dates?", () => {

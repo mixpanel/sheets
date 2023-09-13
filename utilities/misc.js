@@ -20,6 +20,12 @@ function JSONtoCSV(arr) {
         .join("\n");
 }
 
+/**
+ * export data; if not called with a config, uses last known
+ *
+ * @param  {ProfileData[]} profiles
+ * @returns {string[][]}
+ */
 function profilesToCsvArray(profiles) {
     const headers = new Set();
     

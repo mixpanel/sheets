@@ -3,6 +3,7 @@
 connect your google sheet with mixpanel! no coding required!
 
 [Install Now!](https://workspace.google.com/marketplace/app/sheets_%E2%87%94_mixpanel/1078767167468)
+See sample data [here](https://docs.google.com/spreadsheets/d/1-9ifFSMDk4DUrNHyUgl0L-aIxxVjno5dPkJReu0E-nk/edit?usp=sharing)
 
 <div id="tldr"></div>
 
