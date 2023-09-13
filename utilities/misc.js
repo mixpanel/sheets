@@ -21,8 +21,6 @@ function JSONtoCSV(arr) {
 }
 
 /**
- * export data; if not called with a config, uses last known
- *
  * @param  {ProfileData[]} profiles
  * @returns {string[][]}
  */
