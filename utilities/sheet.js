@@ -108,12 +108,12 @@ function getEmptyRow(sheet) {
 /**
  * overwrites the contents of a spreadsheet with new data
  *
- * @param  {string} csvString
+ * @param  {string | string[][]} csv
  * @param  {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @returns {SheetInfo}
  */
-function overwriteSheet(csvString, sheet) {
-    var csvData = Utilities.parseCsv(csvString);
+function overwriteSheet(csv, sheet) {
+    const csvData = typeof csv === `string` ? Utilities.parseCsv(csv) : csv;
     sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
     return getSheetInfo(sheet);
 }

@@ -11,7 +11,7 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.15";
+const APP_VERSION = "1.16";
 
 /**
  * some important things to know about google apps script

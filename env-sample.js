@@ -119,6 +119,23 @@ const TEST_CONFIG_GROUPS_DATA = [
     }
 ];
 
+/** @type {SheetMpConfigAlways & EventMappings} */
+const TEST_CONFIG_AD_SPENT = {
+    config_type: "sheet-to-mixpanel",
+    record_type: "event",
+    event_name_col: "hardcode",
+	hardcode_event_name: "ad spent",
+    distinct_id_col: "",
+    time_col: "timestamp",
+    insert_id_col: "campaign id",
+    project_id: PROJECT_ID,
+    token: TOKEN,
+    region: "US",
+    auth_type: "service_account",
+    service_acct: SERVICE_ACCOUNT,
+    service_secret: SERVICE_SECRET
+};
+
 /** @type {SheetMpConfigAlways & TableMappings} */
 const TEST_CONFIG_TABLES = {
     config_type: "sheet-to-mixpanel",
