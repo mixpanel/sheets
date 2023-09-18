@@ -235,7 +235,7 @@ function runTests() {
         createSyncMpToSheets(TEST_CONFIG_REPORTS_FLOWS);
     });
 
-    test.catchErr("THROWS: bad report / project / workspace id?", "the report 123 could not be found; check your project, workspace, and report id's and try again", () => {
+    test.catchErr("THROWS: bad report / project / workspace id?", "the report could not be found; check your project, workspace, and report id's and try again", () => {
         /** @type {MpSheetConfig} */
         const config = {
             config_type: "mixpanel-to-sheet",
