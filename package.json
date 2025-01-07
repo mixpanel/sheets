@@ -3,6 +3,7 @@
 	"version": "1.0.0",
 	"description": "integrate google sheets with mixpanel",
 	"main": "Code.gs",
+	"private": true,
 	"types": "./types/Types.d.ts",
 	"scripts": {
 		"login": "clasp login --creds creds.json",
