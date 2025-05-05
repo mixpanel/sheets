@@ -75,7 +75,7 @@ there are a number of parameters needed to fetch a CSV from mixpanel; the simple
 
 in case the URL does not contain all the values you need, the UI requires:
 - a [service account](https://developer.mixpanel.com/reference/service-accounts) (consumer or higher) 
-- a URL with either `mixpanel.com` or `eu.mixpanel.com` (to resolve data residency)
+- a URL with either `mixpanel.com` or `eu.mixpanel.com` or `in.mixpanel.com` (to resolve data residency)
 - [your project id](https://help.mixpanel.com/hc/en-us/articles/115004490503-Project-Settings#project-id)
 - [your workspace id](https://developer.mixpanel.com/reference/query-api-authentication#:~:text=Projects%20with%20Data,a%20request%20parameter.)
 

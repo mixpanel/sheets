@@ -1,5 +1,5 @@
 type RecordTypes = "event" | "user" | "group" | "table";
-type Regions = "US" | "EU";
+type Regions = "US" | "EU" | "IN";
 type ProfileOperation = "$set" | "$set_once" | string;
 type BatchSize = 200 | 2000 | number;
 type AuthModes = "service_account" | "api_secret";
@@ -31,7 +31,7 @@ type SheetMpConfigAlways = {
      */
     token?: string;
     /**
-     * US or EU residence
+     * US or EU or IN residence
      */
     region?: Regions;
     /**

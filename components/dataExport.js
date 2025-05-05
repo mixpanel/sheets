@@ -74,6 +74,8 @@ function enumDashboard(config) {
     const { workspace_id, region, auth, dash_id } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
+    if (region === "IN") subdomain = `in.`;
+
 
     const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(
         workspace_id
@@ -121,6 +123,7 @@ function getParams(config) {
     const {workspace_id, region, report_id, auth } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
+    if (region === "IN") subdomain = `in.`;
     const URL = `https://${subdomain}mixpanel.com/api/app/workspaces/${Number(workspace_id)}/bookmarks/${Number(
         report_id
     )}?v=2`;
@@ -169,6 +172,7 @@ function getReportCSV(report_type, params, config) {
     const { project_id, workspace_id, region, auth } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
+    if (region === "IN") subdomain = `in.`;
 
     if (!["insights", "funnels", "retention"].includes(report_type)) {
         throw `${report_type || "your supplied"} report is not currently supported for CSV export`;
@@ -215,6 +219,7 @@ function getCohort(config) {
     const { project_id, workspace_id, region, auth, cohort_id } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
+    if (region === "IN") subdomain = `in.`;
 
     let URL = `https://${subdomain}mixpanel.com/api/2.0/engage?workspace_id=${workspace_id}&project_id=${project_id}`;
 
@@ -270,6 +275,7 @@ function getCohortMeta(config) {
     const { project_id, workspace_id, region, auth, cohort_id } = config;
     let subdomain = ``;
     if (region === "EU") subdomain = `eu.`;
+    if (region === "IN") subdomain = `in.`;
 
     let URL = `https://${subdomain}mixpanel.com/api/2.0/cohorts/list?workspace_id=${workspace_id}&project_id=${project_id}`;
 
