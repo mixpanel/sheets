@@ -54,6 +54,7 @@
 			region:
 			<span id="US" class="hidden">🇺🇸 United States</span>
 			<span id="EU" class="hidden">🇪🇺European Union</span>
+			<span id="IN" class="hidden">India</span>
 		</div>
 		<div class="one_line">
 			<div class="prompt">
@@ -446,6 +447,7 @@
 				regionContainer: qs('#regions'),
 				US: qs('#US'),
 				EU: qs('#EU'),
+				IN: qs('#IN'),
 
 				//service
 				serviceUser: qs('#service_acct'),
@@ -515,18 +517,25 @@
 				if (urlData.region === 'US') {
 					this.DOM.US.classList.remove('hidden');
 					this.DOM.EU.classList.add('hidden');
+					this.DOM.IN.classList.add('hidden');
 				}
 				if (urlData.region === 'EU') {
 					this.DOM.US.classList.add('hidden');
 					this.DOM.EU.classList.remove('hidden');
+					this.DOM.IN.classList.add('hidden');
 				}
-
+				if (urlData.region === "IN") {
+					this.DOM.US.classList.add('hidden');
+					this.DOM.EU.classList.add('hidden');
+					this.DOM.IN.classList.remove('hidden');
+				}
 			}
 
 			else {
 				this.DOM.regionContainer.classList.add('hidden');
 				this.DOM.US.classList.add('hidden');
 				this.DOM.EU.classList.add('hidden');
+				this.DOM.IN.classList.add('hidden');
 			}
 
 			//re-enable all fields 
@@ -557,8 +566,9 @@
 				const normalize = decodeURI(inputUrl);
 				if (normalize.includes('eu.mixpanel.com')) {
 					region = 'EU';
-				}
-				else {
+				} else if (normalize.includes('in.mixpanel.com')) {
+					region = 'IN';
+				} else {
 					region = 'US';
 				}
 				const [url, hash] = normalize.split(/#(.*)/s);
@@ -710,13 +720,18 @@
 					this.DOM.regionContainer.classList.remove('hidden');
 					this.DOM.US.classList.remove('hidden');
 					this.DOM.EU.classList.add('hidden');
-
+					this.DOM.IN.classList.add('hidden');
 				}
 
 				else if (region === 'EU') {
 					this.DOM.regionContainer.classList.remove('hidden');
 					this.DOM.US.classList.add('hidden');
 					this.DOM.EU.classList.remove('hidden');
+					this.DOM.IN.classList.add('hidden')
+				} else if (region === 'IN') {
+					this.DOM.US.classList.add('hidden');
+					this.DOM.EU.classList.add('hidden');
+					this.DOM.IN.classList.remove('hidden');
 				}
 
 				else {

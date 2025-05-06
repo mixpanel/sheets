@@ -20,6 +20,7 @@ function flushToMixpanel(data, config, strict = 0) {
     const batches = sliceIntoChunks(data, config.batchSize);
     let sub = `api`;
     if (region === "EU") sub = `api-eu`;
+    if (region === "IN") sub = `api-in`;
     let URL;
     let projIdQs = `project_id=${Number(config.project_id)}`;
     if (record_type === "event") URL = `https://${sub}.mixpanel.com/import?strict=${strict}&${projIdQs}&verbose=1`;
