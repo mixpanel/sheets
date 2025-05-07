@@ -44,9 +44,7 @@ function validateCreds(config) {
         };
 
         const expected = {
-            code: 200,
-            error: "some data points in the request failed validation",
-            num_records_imported: 0,
+            error: "data, missing or empty",
             status: 0
         };
 
