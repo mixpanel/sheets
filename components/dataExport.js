@@ -178,12 +178,12 @@ function getReportCSV(report_type, params, config) {
         throw `${report_type || "your supplied"} report is not currently supported for CSV export`;
     }
 
-    let route = report_type;
-    if (report_type === "funnels") {
-        route = `arb_funnels`;
-    }
-
-    const URL = `https://${subdomain}mixpanel.com/api/query/${route}?workspace_id=${Number(
+	// Only multi-metric bookmarks are supported with the Sheets integration.
+	// Flows reports do not suppport CSV exports.
+	// Ancient non-migrated bookmarks will not work because we route all requests through insight
+	// for parity with the client experience. If a customer with a very old report runs into issues,
+	// make a small update in the UX and save it to migrate the bookmark.
+    const URL = `https://${subdomain}mixpanel.com/api/query/insights?workspace_id=${Number(
         workspace_id
     )}&project_id=${Number(project_id)}`;
     const payload = {
