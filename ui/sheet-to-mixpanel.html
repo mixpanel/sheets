@@ -625,7 +625,11 @@
 		function bindEventsAndViews() {
 			// DYNAMIC VALUES
 			if (this.DOM.sheet.sheet_name) {
-				this.DOM.sheetNameLabel.innerHTML = `current sheet: <b>${this.DOM.sheet.sheet_name}</b>`;
+				this.DOM.sheetNameLabel.textContent = '';
+				this.DOM.sheetNameLabel.appendChild(document.createTextNode('current sheet: '));
+				const b = document.createElement('b');
+				b.textContent = this.DOM.sheet.sheet_name;
+				this.DOM.sheetNameLabel.appendChild(b);
 
 			}
 
