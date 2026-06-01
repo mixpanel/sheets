@@ -189,6 +189,15 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
     });
     t("test: start");
 
+    // Security: Merge server-stored credentials if available (credentials never sent from client)
+    const storedConfig = getConfig();
+    if (storedConfig.service_secret || storedConfig.api_secret) {
+        config.service_secret = storedConfig.service_secret;
+        config.service_acct = storedConfig.service_acct;
+        config.api_secret = storedConfig.api_secret;
+        config.auth = storedConfig.auth;
+    }
+
     try {
         // @ts-ignore
         const auth = validateCreds(config);
@@ -222,7 +231,9 @@ function testSyncSheetsToMp(config, sheetInfo = getSheetInfo(SpreadsheetApp.getA
  */
 function createSyncSheetsToMp(config, sheetInfo) {
     //clear all triggers + stored data
-    clearConfig(getConfig());
+    const previousConfig = getConfig();
+    clearConfig(previousConfig);
+
     config.config_type = "sheet-to-mixpanel";
     const runId = Math.random();
     const t = tracker({
@@ -233,6 +244,15 @@ function createSyncSheetsToMp(config, sheetInfo) {
         manual: "first sync"
     });
     t("sync: create start");
+
+    // Security: Merge server-stored credentials if available (credentials never sent from client)
+    // This allows re-creating a sync after clearing it without re-entering credentials
+    if (previousConfig.service_secret || previousConfig.api_secret) {
+        config.service_secret = config.service_secret || previousConfig.service_secret;
+        config.service_acct = config.service_acct || previousConfig.service_acct;
+        config.api_secret = config.api_secret || previousConfig.api_secret;
+        config.auth = config.auth || previousConfig.auth;
+    }
 
     //validate credentials
     try {
@@ -422,6 +442,15 @@ function testSyncMpToSheets(config) {
     const runId = Math.random();
     const t = tracker({ runId, project_id: config.project_id, view: "mixpanel → sheet" });
     t("test: start");
+
+    // Security: Merge server-stored credentials if available (credentials never sent from client)
+    const storedConfig = getConfig();
+    if (storedConfig.service_secret) {
+        config.service_secret = storedConfig.service_secret;
+        config.service_acct = storedConfig.service_acct;
+        config.auth = storedConfig.auth;
+    }
+
     try {
         const auth = validateCreds(config);
         config.auth = auth;
@@ -469,7 +498,8 @@ function testSyncMpToSheets(config) {
  */
 function createSyncMpToSheets(config) {
     //clear all triggers + stored data
-    clearConfig(getConfig());
+    const previousConfig = getConfig();
+    clearConfig(previousConfig);
 
     config.config_type = "mixpanel-to-sheet";
     const startTime = new Date();
@@ -482,6 +512,14 @@ function createSyncMpToSheets(config) {
         manual: "first time"
     });
     t("sync: create start");
+
+    // Security: Merge server-stored credentials if available (credentials never sent from client)
+    // This allows re-creating a sync after clearing it without re-entering credentials
+    if (previousConfig.service_secret) {
+        config.service_secret = config.service_secret || previousConfig.service_secret;
+        config.service_acct = config.service_acct || previousConfig.service_acct;
+        config.auth = config.auth || previousConfig.auth;
+    }
 
     //validate credentials
     try {
