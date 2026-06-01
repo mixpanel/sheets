@@ -151,7 +151,7 @@ function SheetToMixpanelView() {
 
         // server-side data
         htmlTemplate.columns = getSheetHeaders();
-        htmlTemplate.config = getConfig();
+        htmlTemplate.config = getConfigForClient();
         htmlTemplate.sheet = getSheetInfo();
         htmlTemplate.syncs = getTriggers();
 
@@ -400,7 +400,7 @@ function MixpanelToSheetView() {
     const htmlTemplate = HtmlService.createTemplateFromFile("ui/mixpanel-to-sheet.html");
 
     // server-side data
-    htmlTemplate.config = getConfig();
+    htmlTemplate.config = getConfigForClient();
     htmlTemplate.sheet = getSheetInfo();
     htmlTemplate.syncs = getTriggers();
 
@@ -651,7 +651,7 @@ if (typeof module !== "undefined") {
         getEmptyRow
     } = require("./utilities/sheet");
 
-    const { getConfig, setConfig, clearConfig, getTriggers, clearTriggers } = require("./utilities/storage.js");
+    const { getConfig, getConfigForClient, setConfig, clearConfig, getTriggers, clearTriggers } = require("./utilities/storage.js");
 
     const { validateCreds } = require("./utilities/validate.js");
     const { importData } = require("./components/dataImport.js");

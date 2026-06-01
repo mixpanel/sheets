@@ -16,6 +16,18 @@ function getConfig() {
 }
 
 /**
+ * gets configuration with sensitive fields removed for client-side use
+ * NEVER send service_secret, service_acct, or api_secret to the client
+ *
+ * @returns {SheetMpConfig | MpSheetConfig | Object}
+ */
+function getConfigForClient() {
+    const config = getConfig();
+    const { service_secret, service_acct, api_secret, auth, ...safeConfig } = config;
+    return safeConfig;
+}
+
+/**
  * sets a new stored configuration
  *
  * @param  {SheetMpConfig | MpSheetConfig | Object } config
@@ -115,6 +127,7 @@ if (typeof module !== "undefined") {
     // const { tracker } = require("./tracker.js");
     module.exports = {
         getConfig,
+        getConfigForClient,
         setConfig,
         clearConfig,
         clearTriggers,
