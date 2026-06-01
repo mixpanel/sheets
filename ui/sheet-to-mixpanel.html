@@ -11,18 +11,10 @@
 
 <body>
 	<!-- DATA FROM SERVER -->
-	<div id="columns" class="hidden">
-		<?= columns.toString() ?>
-	</div>
-	<div id="config" class="hidden">
-		<?= JSON.stringify(config) ?>
-	</div>
-	<div id="sheet_info" class="hidden">
-		<?= JSON.stringify(sheet) ?>
-	</div>
-	<div id="sync_info" class="hidden">
-		<?= JSON.stringify(syncs) ?>
-	</div>
+	<script type="application/json" id="columns"><?= columns.toString() ?></script>
+	<script type="application/json" id="config"><?= JSON.stringify(config) ?></script>
+	<script type="application/json" id="sheet_info"><?= JSON.stringify(sheet) ?></script>
+	<script type="application/json" id="sync_info"><?= JSON.stringify(syncs) ?></script>
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
@@ -571,7 +563,7 @@
 				syncSheetLabel: qs('#sync_notification_sheet'),
 
 				//parsed server templates
-				columns: qs('#columns').innerText.split(',').map(str => str.trim()),
+				columns: qs('#columns').textContent.split(',').map(str => str.trim()),
 				config: this.parseServerTemplate(qs('#config')),
 				sheet: this.parseServerTemplate(qs('#sheet_info')),
 				syncInfo: this.parseServerTemplate(qs("#sync_info"))
@@ -595,14 +587,14 @@
 				for (const column of columns) {
 					const opt = document.createElement('option');
 					opt.value = column;
-					opt.innerHTML = column;
+					opt.textContent = column;
 					select.appendChild(opt);
 				}
 				if (select.parentNode.parentElement.id === "event_mapping") {
 					if (["event_name_col", "distinct_id_col"].includes(select.id)) {
 						const hardcodeOpt = document.createElement('option');
 						hardcodeOpt.value = "hardcode";
-						hardcodeOpt.innerHTML = `Other (specify)`;
+						hardcodeOpt.textContent = `Other (specify)`;
 						select.appendChild(hardcodeOpt);
 						select.addEventListener('change', (ev) => {
 							if (ev.currentTarget.value === 'hardcode') {
@@ -625,7 +617,7 @@
 		function bindEventsAndViews() {
 			// DYNAMIC VALUES
 			if (this.DOM.sheet.sheet_name) {
-				this.DOM.sheetNameLabel.innerHTML = `current sheet: <b>${this.DOM.sheet.sheet_name}</b>`;
+				this.DOM.sheetNameLabel.textContent = `current sheet: ${this.DOM.sheet.sheet_name}`;
 
 			}
 
@@ -784,7 +776,7 @@
 
 		function parseServerTemplate(node) {
 			try {
-				return JSON.parse(node.innerText);
+				return JSON.parse(node.textContent);
 			}
 			catch (e) {
 				return {};

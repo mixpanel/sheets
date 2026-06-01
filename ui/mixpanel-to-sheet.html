@@ -12,15 +12,9 @@
 
 <body>
 	<!-- DATA FROM SERVER -->
-	<div id="config" class="hidden">
-		<?= JSON.stringify(config) ?>
-	</div>
-	<div id="sheet_info" class="hidden">
-		<?= JSON.stringify(sheet) ?>
-	</div>
-	<div id="sync_info" class="hidden">
-		<?= JSON.stringify(syncs) ?>
-	</div>
+	<script type="application/json" id="config"><?= JSON.stringify(config) ?></script>
+	<script type="application/json" id="sheet_info"><?= JSON.stringify(sheet) ?></script>
+	<script type="application/json" id="sync_info"><?= JSON.stringify(syncs) ?></script>
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
@@ -681,7 +675,7 @@
 
 		function parseServerData(node) {
 			try {
-				return JSON.parse(node.innerText);
+				return JSON.parse(node.textContent);
 			}
 			catch (e) {
 				return {};
