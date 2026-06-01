@@ -18,12 +18,18 @@ function getConfig() {
 /**
  * gets configuration with sensitive fields removed for client-side use
  * NEVER send service_secret, service_acct, or api_secret to the client
+ * Adds a flag to indicate if credentials are stored (without revealing them)
  *
  * @returns {SheetMpConfig | MpSheetConfig | Object}
  */
 function getConfigForClient() {
     const config = getConfig();
     const { service_secret, service_acct, api_secret, auth, ...safeConfig } = config;
+
+    // Add flags to indicate credential presence (without revealing values)
+    safeConfig.has_service_account = !!(service_acct && service_secret);
+    safeConfig.has_api_secret = !!api_secret;
+
     return safeConfig;
 }
 

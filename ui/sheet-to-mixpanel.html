@@ -152,12 +152,19 @@
 		</div>
 		<div class="prompt">
 			<span class="title">Provide your authentication details: </span>
+			<div id="saved_credentials_notice" class="hidden" style="background: #e8f5e9; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+				<span style="color: #2e7d32;">✓ Credentials saved</span>
+				<button id="change_credentials" style="margin-left: 10px; font-size: 12px; padding: 2px 8px;">Change</button>
+			</div>
 			<span id="service_acct_form">
 				<input type="text" id="service_acct" placeholder="service account user" class="data">
 				<input type="text" id="service_secret" placeholder="service account secret" class="data">
 			</span>
 			<span id="api_secret_form" class="hidden">
 				<input type="text" id="api_secret" placeholder="api secret" class="data">
+			</span>
+			<span id="credential_help" class="optional note" style="display: block; margin-top: 4px;">
+				💡 Leave blank to use saved credentials, or enter new ones to update
 			</span>
 		</div>
 
@@ -487,6 +494,7 @@
 			buildDropdowns,
 			loader,
 			freezeView,
+			showCredentialStatus,
 
 			//validation
 			getFields,
@@ -512,6 +520,7 @@
 			this.buildDropdowns(this.DOM.columns);
 			this.bindEventsAndViews();
 			this.loadConfig(this.DOM.config);
+			this.showCredentialStatus();
 			this.freezeView();
 		}
 
@@ -532,6 +541,9 @@
 				howAuth: qs('#auth_type'),
 				serviceAcctForm: qs('#service_acct_form'),
 				apiSecretForm: qs('#api_secret_form'),
+				savedCredentialsNotice: qs('#saved_credentials_notice'),
+				changeCredentialsBtn: qs('#change_credentials'),
+				credentialHelp: qs('#credential_help'),
 
 				//fields
 				projectId: qs('#project_id'),
@@ -1005,6 +1017,41 @@
 				this.DOM.allUserInputFields.forEach(n => n.disabled = true);
 				this.DOM.clearButton.disabled = false;
 			}
+		}
+
+		function showCredentialStatus() {
+			const hasServiceAccount = this.DOM.config?.has_service_account;
+			const hasApiSecret = this.DOM.config?.has_api_secret;
+			const hasAnyCreds = hasServiceAccount || hasApiSecret;
+
+			if (hasAnyCreds) {
+				// Show "credentials saved" notice
+				this.DOM.savedCredentialsNotice.classList.remove('hidden');
+				this.DOM.credentialHelp.style.display = 'block';
+
+				// Make credential fields optional visually
+				this.DOM.serviceUser.placeholder = "(saved)";
+				this.DOM.serviceSecret.placeholder = "(saved)";
+				this.DOM.apiSecret.placeholder = "(saved)";
+			} else {
+				// No saved credentials - make it clear fields are required
+				this.DOM.savedCredentialsNotice.classList.add('hidden');
+				this.DOM.credentialHelp.style.display = 'none';
+				this.DOM.serviceUser.placeholder = "service account user";
+				this.DOM.serviceSecret.placeholder = "service account secret";
+				this.DOM.apiSecret.placeholder = "api secret";
+			}
+
+			// "Change" button to clear fields and allow entry
+			this.DOM.changeCredentialsBtn?.addEventListener('click', () => {
+				this.DOM.serviceUser.value = '';
+				this.DOM.serviceSecret.value = '';
+				this.DOM.apiSecret.value = '';
+				this.DOM.serviceUser.placeholder = "service account user";
+				this.DOM.serviceSecret.placeholder = "service account secret";
+				this.DOM.apiSecret.placeholder = "api secret";
+				this.DOM.serviceUser.focus();
+			});
 		}
 
 		function isValid(config) {

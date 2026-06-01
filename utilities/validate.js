@@ -16,7 +16,7 @@ VALIDATE CREDENTIALS
  */
 function validateCreds(config) {
     const { api_secret = null, service_acct = null, service_secret = null, project_id = null } = config;
-    if (!project_id) throw "missing project id";
+    if (!project_id) throw "Project ID is required. You can find it in your Mixpanel project settings at https://mixpanel.com/settings/project";
 
     if (config.config_type === "sheet-to-mixpanel") {
         let userPassStr;
@@ -25,7 +25,7 @@ function validateCreds(config) {
         } else if (api_secret) {
             userPassStr = `${api_secret}:`;
         } else {
-            throw "missing credentials";
+            throw "Please enter your Mixpanel service account credentials or API secret. If you previously saved credentials, they may have been cleared.";
         }
 
         const auth = Utilities.base64Encode(userPassStr);
@@ -55,10 +55,14 @@ function validateCreds(config) {
             if (isDeepEqual(res, expected)) {
                 return auth; //this value can now be used to authenticate
             } else {
-                const msg = res.error || "could not validate credentials";
+                const msg = res.error || "Unable to validate credentials. Please check your service account or API secret.";
                 throw msg;
             }
         } catch (e) {
+            // Network or connection errors
+            if (e.toString().includes("Exception")) {
+                throw "Unable to connect to Mixpanel. Please check your internet connection and try again.";
+            }
             throw e;
         }
     }
@@ -83,7 +87,7 @@ function validateCreds(config) {
             const res = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
             //check project
             if (!res.results.projects[project_id.toString()]) {
-                throw `access: ${service_acct} does not have access to ${project_id.toString()}`;
+                throw `Service account "${service_acct}" doesn't have access to project ${project_id}. Please verify the project ID and ensure your service account is added to this project.`;
             }
 
             const permissionNeeded = "view_base_reports";
@@ -93,15 +97,23 @@ function validateCreds(config) {
             if (permissionsGranted.includes(permissionNeeded)) {
                 return auth;
             } else {
-                throw `permissions: ${service_acct} does not have permission to view reports on project ${project_id.toString()}`;
+                throw `Service account "${service_acct}" needs "view_base_reports" permission to export data. Please ask your project admin to grant Consumer role or higher.`;
             }
         } catch (e) {
-            throw `401 Unauthorized: invalid service account credentials`;
+            // If we already threw a helpful error above, re-throw it
+            if (e.toString().includes("Service account") || e.toString().includes("permission")) {
+                throw e;
+            }
+            // Network or auth errors
+            if (e.toString().includes("Exception")) {
+                throw "Unable to connect to Mixpanel. Please check your internet connection and try again.";
+            }
+            throw `Your service account credentials are invalid or have been revoked. Please check your username and secret.`;
         }
     }
 
     //otherwise blow up
-    throw "cloud not figure out how to validate credentials";
+    throw "Unable to validate credentials. Please ensure you've selected the correct data import/export type.";
 }
 
 if (typeof module !== "undefined") {
