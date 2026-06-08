@@ -10,7 +10,9 @@ STORAGE + TRIGGERS
  * @returns {SheetMpConfig | MpSheetConfig | Object}
  */
 function getConfig() {
-    const scriptProperties = PropertiesService.getDocumentProperties();
+    // user-scoped store: credentials are private to the user who saved them, so an
+    // editor opening the add-on never reads the owner's service-account secret (SECOPS-1366)
+    const scriptProperties = PropertiesService.getUserProperties();
     const props = scriptProperties.getProperties();
     return props;
 }
@@ -22,7 +24,7 @@ function getConfig() {
  * @returns {SheetMpConfig | MpSheetConfig | Object}
  */
 function setConfig(config) {
-    const scriptProperties = PropertiesService.getDocumentProperties();
+    const scriptProperties = PropertiesService.getUserProperties();
     scriptProperties.setProperties(config);
 
     // @ts-ignore
@@ -37,7 +39,7 @@ function setConfig(config) {
  * @param  {string} value
  */
 function updateConfig(key, value) {
-    const scriptProperties = PropertiesService.getDocumentProperties();
+    const scriptProperties = PropertiesService.getUserProperties();
     scriptProperties.setProperty(key, value);
     return scriptProperties.getProperties();
 }
@@ -49,7 +51,7 @@ function updateConfig(key, value) {
  * @param  {number} [limit] max # of values to store @ key
  */
 function appendConfig(key, value, limit = 50) {
-    const scriptProperties = PropertiesService.getDocumentProperties();
+    const scriptProperties = PropertiesService.getUserProperties();
     const config = scriptProperties.getProperties();
     if (config[key]) {
         const currentList = JSON.parse(config[key]);
@@ -78,7 +80,7 @@ function appendConfig(key, value, limit = 50) {
  * @returns {{}}
  */
 function clearConfig(config, deleteAll = false) {
-    const scriptProperties = PropertiesService.getDocumentProperties();
+    const scriptProperties = PropertiesService.getUserProperties();
     scriptProperties.deleteAllProperties();
     clearTriggers(config?.trigger, deleteAll);
 

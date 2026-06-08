@@ -12,15 +12,12 @@
 
 <body>
 	<!-- DATA FROM SERVER -->
-	<div id="config" class="hidden">
-		<?= JSON.stringify(config) ?>
-	</div>
-	<div id="sheet_info" class="hidden">
-		<?= JSON.stringify(sheet) ?>
-	</div>
-	<div id="sync_info" class="hidden">
-		<?= JSON.stringify(syncs) ?>
-	</div>
+	<!-- Carried in <script type="application/json"> read via .textContent (SECOPS-1366).
+	     Force-print scriptlet <?!= ?> emits raw JSON; '<' -> < keeps a '</script>'
+	     breakout impossible and JSON.parse decodes it back to '<'. -->
+	<script type="application/json" id="config" class="hidden"><?!= JSON.stringify(config).replace(/</g, "\\u003c") ?></script>
+	<script type="application/json" id="sheet_info" class="hidden"><?!= JSON.stringify(sheet).replace(/</g, "\\u003c") ?></script>
+	<script type="application/json" id="sync_info" class="hidden"><?!= JSON.stringify(syncs).replace(/</g, "\\u003c") ?></script>
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
@@ -681,7 +678,7 @@
 
 		function parseServerData(node) {
 			try {
-				return JSON.parse(node.innerText);
+				return JSON.parse(node.textContent);
 			}
 			catch (e) {
 				return {};
