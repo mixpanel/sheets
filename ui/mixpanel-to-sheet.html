@@ -12,12 +12,17 @@
 
 <body>
 	<!-- DATA FROM SERVER -->
-	<!-- Carried in <script type="application/json"> read via .textContent (SECOPS-1366).
-	     Force-print scriptlet <?!= ?> emits raw JSON; '<' -> < keeps a '</script>'
-	     breakout impossible and JSON.parse decodes it back to '<'. -->
-	<script type="application/json" id="config" class="hidden"><?!= JSON.stringify(config).replace(/</g, "\\u003c") ?></script>
-	<script type="application/json" id="sheet_info" class="hidden"><?!= JSON.stringify(sheet).replace(/</g, "\\u003c") ?></script>
-	<script type="application/json" id="sync_info" class="hidden"><?!= JSON.stringify(syncs).replace(/</g, "\\u003c") ?></script>
+	<!-- Inert <div> carriers read via .textContent (SECOPS-1366). XSS is closed at the sinks
+	     (this view has no innerHTML sink for server data), so these values stay inert. -->
+	<div id="config" class="hidden">
+		<?= JSON.stringify(config) ?>
+	</div>
+	<div id="sheet_info" class="hidden">
+		<?= JSON.stringify(sheet) ?>
+	</div>
+	<div id="sync_info" class="hidden">
+		<?= JSON.stringify(syncs) ?>
+	</div>
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">

@@ -11,15 +11,21 @@
 
 <body>
 	<!-- DATA FROM SERVER -->
-	<!-- Carried in <script type="application/json"> read via .textContent (SECOPS-1366).
-	     Use the force-print scriptlet <?!= ?> (NOT <?= ?>): inside a raw-text <script> element
-	     the HTML parser does not decode entities, so HTML-escaped output would not JSON.parse.
-	     We instead emit raw JSON and escape '<' -> <, which JSON.parse decodes back to '<'
-	     while making a '</script>' breakout impossible. -->
-	<script type="application/json" id="columns" class="hidden"><?!= columns.toString().replace(/</g, "\\u003c") ?></script>
-	<script type="application/json" id="config" class="hidden"><?!= JSON.stringify(config).replace(/</g, "\\u003c") ?></script>
-	<script type="application/json" id="sheet_info" class="hidden"><?!= JSON.stringify(sheet).replace(/</g, "\\u003c") ?></script>
-	<script type="application/json" id="sync_info" class="hidden"><?!= JSON.stringify(syncs).replace(/</g, "\\u003c") ?></script>
+	<!-- Inert <div> carriers read via .textContent (SECOPS-1366). The XSS is closed at the
+	     sinks (textContent, never innerHTML), so the values here can never reach a markup
+	     context regardless of any HTML-entity round-trip. -->
+	<div id="columns" class="hidden">
+		<?= columns.toString() ?>
+	</div>
+	<div id="config" class="hidden">
+		<?= JSON.stringify(config) ?>
+	</div>
+	<div id="sheet_info" class="hidden">
+		<?= JSON.stringify(sheet) ?>
+	</div>
+	<div id="sync_info" class="hidden">
+		<?= JSON.stringify(syncs) ?>
+	</div>
 
 	<!-- ACTUAL UI -->
 	<div id="sync_notification" class="hidden">
