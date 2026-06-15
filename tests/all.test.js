@@ -193,6 +193,53 @@ function runTests() {
         return isDeepEqual(expected, results);
     });
 
+    test.assert("STORAGE: multi-sheet isolation with prefixing?", () => {
+        // Issue #45: Configs should be scoped per-spreadsheet using spreadsheet ID prefix
+        // This test verifies that clearConfig() only clears the current sheet's properties
+        // and doesn't affect properties from other sheets (simulated with different prefixes)
+
+        const scriptProperties = PropertiesService.getUserProperties();
+
+        // Clean slate
+        scriptProperties.deleteAllProperties();
+
+        // Simulate another sheet's config by manually setting properties with a different prefix
+        const otherSheetId = "SIMULATED_OTHER_SHEET_ID_";
+        scriptProperties.setProperty(otherSheetId + "project_id", "otherProject");
+        scriptProperties.setProperty(otherSheetId + "token", "otherToken");
+
+        // Now save config for the current sheet
+        const currentSheetConfig = {
+            project_id: "currentProject",
+            token: "currentToken",
+            record_type: "event"
+        };
+        setConfig(currentSheetConfig);
+
+        // Verify current sheet's config was saved
+        const retrieved = getConfig();
+        const currentConfigSaved = isDeepEqual(retrieved.project_id, "currentProject");
+
+        // Clear the current sheet's config
+        clearConfig(null, true);
+
+        // Verify current sheet's config is cleared
+        const currentAfterClear = getConfig();
+        const currentCleared = Object.keys(currentAfterClear).length === 0;
+
+        // Verify the OTHER sheet's properties are still intact (not deleted)
+        const otherSheetProjectId = scriptProperties.getProperty(otherSheetId + "project_id");
+        const otherSheetToken = scriptProperties.getProperty(otherSheetId + "token");
+        const otherSheetIntact = otherSheetProjectId === "otherProject" &&
+                                  otherSheetToken === "otherToken";
+
+        // Clean up
+        scriptProperties.deleteProperty(otherSheetId + "project_id");
+        scriptProperties.deleteProperty(otherSheetId + "token");
+
+        return currentConfigSaved && currentCleared && otherSheetIntact;
+    });
+
     /*
 	----
 	VALIDATE CREDS
