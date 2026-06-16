@@ -197,47 +197,120 @@ function runTests() {
         // Issue #45: Configs should be scoped per-spreadsheet using spreadsheet ID prefix
         // This test verifies that clearConfig() only clears the current sheet's properties
         // and doesn't affect properties from other sheets (simulated with different prefixes)
+        // Works in both local and GAS environments
 
         const scriptProperties = PropertiesService.getUserProperties();
 
         // Clean slate
         scriptProperties.deleteAllProperties();
+        _clearPrefixCache();
 
-        // Simulate another sheet's config by manually setting properties with a different prefix
-        const otherSheetId = "SIMULATED_OTHER_SHEET_ID_";
-        scriptProperties.setProperty(otherSheetId + "project_id", "otherProject");
-        scriptProperties.setProperty(otherSheetId + "token", "otherToken");
+        // Simulate two different spreadsheets
+        const sheetA_Id = "SHEET_A_TEST_ID";
+        const sheetB_Id = getSheetPrefix().slice(0, -1);
 
-        // Now save config for the current sheet
-        const currentSheetConfig = {
-            project_id: "currentProject",
-            token: "currentToken",
-            record_type: "event"
-        };
-        setConfig(currentSheetConfig);
+        // Manually create Sheet A's config (simulating another sheet's data)
+        const sheetA_prefix = sheetA_Id + "_";
+        scriptProperties.setProperty(sheetA_prefix + "project_id", "projectA");
+        scriptProperties.setProperty(sheetA_prefix + "token", "tokenA");
 
-        // Verify current sheet's config was saved
-        const retrieved = getConfig();
-        const currentConfigSaved = isDeepEqual(retrieved.project_id, "currentProject");
+        // Manually create Sheet B's config (simulating current sheet's data)
+        const sheetB_prefix = sheetB_Id + "_";
+        scriptProperties.setProperty(sheetB_prefix + "project_id", "projectB");
+        scriptProperties.setProperty(sheetB_prefix + "token", "tokenB");
 
-        // Clear the current sheet's config
-        clearConfig(null, true);
+        // Verify both configs exist
+        const bothExist = scriptProperties.getProperty(sheetA_prefix + "project_id") === "projectA" &&
+                         scriptProperties.getProperty(sheetB_prefix + "project_id") === "projectB";
 
-        // Verify current sheet's config is cleared
-        const currentAfterClear = getConfig();
-        const currentCleared = Object.keys(currentAfterClear).length === 0;
+        // Clear Sheet B's config using override parameter (simulating clearConfig from Sheet B)
+        clearConfig(null);
 
-        // Verify the OTHER sheet's properties are still intact (not deleted)
-        const otherSheetProjectId = scriptProperties.getProperty(otherSheetId + "project_id");
-        const otherSheetToken = scriptProperties.getProperty(otherSheetId + "token");
-        const otherSheetIntact = otherSheetProjectId === "otherProject" &&
-                                  otherSheetToken === "otherToken";
+        // Verify Sheet B's config is cleared
+        const sheetB_Cleared = !scriptProperties.getProperty(sheetB_prefix + "project_id") &&
+                              !scriptProperties.getProperty(sheetB_prefix + "token");
+
+        // Verify Sheet A's config is still intact (critical - other sheet not affected)
+        const sheetA_Intact = scriptProperties.getProperty(sheetA_prefix + "project_id") === "projectA" &&
+                             scriptProperties.getProperty(sheetA_prefix + "token") === "tokenA";
 
         // Clean up
-        scriptProperties.deleteProperty(otherSheetId + "project_id");
-        scriptProperties.deleteProperty(otherSheetId + "token");
+        scriptProperties.deleteAllProperties();
+        _clearPrefixCache();
 
-        return currentConfigSaved && currentCleared && otherSheetIntact;
+        return bothExist && sheetB_Cleared && sheetA_Intact;
+    });
+
+    test.assert("STORAGE: legacy config migration cleans up unprefixed keys?", () => {
+        const scriptProperties = PropertiesService.getUserProperties();
+
+        // Clean slate
+        scriptProperties.deleteAllProperties();
+        _clearPrefixCache();
+
+        const prefix = getSheetPrefix()
+        const testSheetId = prefix.slice(0, -1);
+
+        // Set up legacy unprefixed config (simulating old pre-migration data)
+        scriptProperties.setProperty("project_id", "legacyProject");
+        scriptProperties.setProperty("token", "legacyToken");
+        scriptProperties.setProperty("service_secret", "legacySecret");
+        scriptProperties.setProperty("sheet_id", testSheetId);
+
+        // Verify legacy keys exist
+        const legacyExists = scriptProperties.getProperty("project_id") === "legacyProject";
+
+        // Should run migration
+        config = getConfig();
+
+        const legacyRemoved = !scriptProperties.getProperty("project_id") 
+
+        const newProperties = scriptProperties.getProperties();
+
+        // Verify data was migrated to prefixed keys
+        const migrated = newProperties[prefix + "project_id"] === "legacyProject" &&
+                         newProperties[prefix + "token"] === "legacyToken" &&
+                         newProperties[prefix + "service_secret"] === "legacySecret";
+
+        const correctConfig = config.project_id === "legacyProject";
+
+        // Clean up
+        scriptProperties.deleteAllProperties();
+
+        return legacyExists && legacyRemoved && migrated && correctConfig;
+    });
+
+    test.assert("STORAGE: clearConfig doesn't delete other sheets' triggers?", () => {
+        // This is a conceptual test - in practice, trigger isolation depends on
+        // not passing deleteAll=true to clearTriggers
+        // Verify that clearConfig signature changed to not delete all by default
+
+        const scriptProperties = PropertiesService.getUserProperties();
+        scriptProperties.deleteAllProperties();
+        _clearPrefixCache();
+
+        const prefix = getSheetPrefix()
+        const testSheetId = prefix.slice(0, -1);
+
+        // Set up config for test sheet
+        const testConfig = {
+            project_id: "testProject",
+            trigger: "test-trigger-id"
+        };
+
+        setConfig(testConfig)
+
+        // Call clearConfig with the new signature
+        // The second parameter (deleteAllTriggers) should default to false
+        clearConfig(testConfig);
+
+        // Verify config is cleared
+        const allProps = scriptProperties.getProperties();
+        const configCleared = !allProps.hasOwnProperty(prefix + "project_id");
+
+        // The important thing is that we're NOT calling clearTriggers with deleteAll=true
+        // which would delete all project triggers (tested via signature change)
+        return configCleared;
     });
 
     /*

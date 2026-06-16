@@ -4,20 +4,112 @@ STORAGE + TRIGGERS
 ----
 */
 
+// Cached spreadsheet prefix to avoid repeated SpreadsheetApp calls
+/** @type {string | null} */
+let _cachedPrefix = null;
 /**
  * gets the current spreadsheet ID to use as a prefix for scoped config
+ * Caches the result to avoid repeated SpreadsheetApp service calls
  *
+ * @param {string} [overrideSheetId] - Optional spreadsheet ID for testing
  * @returns {string}
+ * @throws {Error} if not in a spreadsheet context (production)
  */
-function getSheetPrefix() {
+function getSheetPrefix(overrideSheetId) {
+    // Allow explicit override for testing
+    if (overrideSheetId) {
+        return overrideSheetId + "_";
+    }
+
+    // Return cached prefix if available
+    if (_cachedPrefix !== null) {
+        return _cachedPrefix;
+    }
+
+    // Try to get the active spreadsheet ID
     try {
         const sheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
-        return sheetId + "_";
+        _cachedPrefix = sheetId + "_";
+        return _cachedPrefix;
     } catch (e) {
-        // If we're not in a spreadsheet context (e.g., running tests locally)
-        // return empty prefix to maintain backward compatibility
-        return "";
+        // In production, we should never proceed without a valid prefix
+        // Only return test prefix in test environments (no SpreadsheetApp available)
+        // @ts-ignore - SpreadsheetApp is a global in GAS runtime
+        if (typeof SpreadsheetApp === 'undefined' || typeof module !== "undefined") {
+            // Test environment - return test prefix for backward compatibility
+            _cachedPrefix = "test_sheet_id_";
+            return _cachedPrefix;
+        }
+        // Production environment - this is a real error, don't silently proceed
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        throw new Error("Cannot determine spreadsheet ID: " + errorMessage);
     }
+}
+
+/**
+ * Clears the cached spreadsheet prefix (used in tests)
+ */
+function _clearPrefixCache() {
+    _cachedPrefix = null;
+}
+
+/**
+ * Known config keys that may exist from before the prefix migration
+ */
+const KNOWN_CONFIG_KEYS = [
+    'project_id', 'token', 'service_secret', 'service_account', 'auth',
+    'record_type', 'entity_type', 'sheet_id', 'dest_sheet', 'receipt_sheet',
+    'trigger', 'config_type', 'jql', 'cols', 'mappings', 'recent_projects'
+];
+
+/**
+ * Migrates legacy unprefixed config to the current spreadsheet's prefixed namespace
+ * and cleans up the old unprefixed keys to free quota and remove stale secrets
+ *
+ * @returns {boolean} true if migration occurred
+ */
+function migrateLegacyConfig() {
+    const scriptProperties = PropertiesService.getUserProperties();
+    const allProps = scriptProperties.getProperties();
+
+    if(allProps?.has_migrated) {
+        return true;
+    }
+    const prefix = getSheetPrefix();
+
+    // Check if there are any unprefixed config keys (legacy data)
+    let foundLegacy = false;
+    /** @type {Object<string, string>} */
+    const legacyProps = {};
+    for (const key of KNOWN_CONFIG_KEYS) {
+        if (allProps.hasOwnProperty(key)) {
+            foundLegacy = true;
+            legacyProps[key] = allProps[key];
+        }
+    }
+
+    // If no legacy data found, nothing to do
+    if (!foundLegacy) {
+        scriptProperties.setProperty("has_migrated", "true");
+        return false;
+    }
+    // If the current sheet is the same sheet_id, migrate the legacy config to it
+    if (legacyProps.sheet_id && legacyProps.sheet_id ===  prefix.slice(0, -1)) {
+        scriptProperties.setProperty("has_migrated", "true");
+        setConfig(legacyProps);
+    } else {
+        return false; // Legacy config exists but doesn't match this sheet
+    }
+
+    // Clean up the unprefixed legacy keys (including stale secrets)
+    for (const key of KNOWN_CONFIG_KEYS) {
+        if (allProps.hasOwnProperty(key)) {
+            scriptProperties.deleteProperty(key);
+        }
+    }
+
+    scriptProperties.setProperty("has_migrated", "true");
+    return true;
 }
 
 /**
@@ -29,14 +121,13 @@ function getConfig() {
     // user-scoped store: credentials are private to the user who saved them, so an
     // editor opening the add-on never reads the owner's service-account secret (SECOPS-1366)
     // sheet-scoped keys: each spreadsheet gets its own config namespace (issue #45)
+
+    // One-time migration of legacy unprefixed config
+    migrateLegacyConfig();
+
     const scriptProperties = PropertiesService.getUserProperties();
     const allProps = scriptProperties.getProperties();
     const prefix = getSheetPrefix();
-
-    // If no prefix (local tests), return all properties for backward compatibility
-    if (!prefix) {
-        return allProps;
-    }
 
     // Filter to only properties for this spreadsheet and strip the prefix
     const scopedProps = {};
@@ -59,12 +150,6 @@ function getConfig() {
 function setConfig(config) {
     const scriptProperties = PropertiesService.getUserProperties();
     const prefix = getSheetPrefix();
-
-    // If no prefix (local tests), set properties directly for backward compatibility
-    if (!prefix) {
-        scriptProperties.setProperties(config);
-        return scriptProperties.getProperties();
-    }
 
     // Prefix each key with the spreadsheet ID
     const prefixedConfig = {};
@@ -127,19 +212,11 @@ function appendConfig(key, value, limit = 50) {
  * clears all stored data & scheduled triggers
  *
  * @param  {SheetMpConfig & MpSheetConfig} [config]
- * @param {boolean} [deleteAll] clears all triggers too
  * @returns {{}}
  */
-function clearConfig(config, deleteAll = false) {
+function clearConfig(config, deleteAllSheetTriggers = false) {
     const scriptProperties = PropertiesService.getUserProperties();
     const prefix = getSheetPrefix();
-
-    // If no prefix (local tests), delete all properties for backward compatibility
-    if (!prefix) {
-        scriptProperties.deleteAllProperties();
-        clearTriggers(config?.trigger, deleteAll);
-        return {};
-    }
 
     // Delete only properties for this spreadsheet
     const allProps = scriptProperties.getProperties();
@@ -149,7 +226,7 @@ function clearConfig(config, deleteAll = false) {
         }
     }
 
-    clearTriggers(config?.trigger, deleteAll);
+    clearTriggers(config?.trigger, deleteAllSheetTriggers);
 
     // @ts-ignore
     // track("clear", { record_type: config?.record_type, project_id: config?.project_id });
@@ -157,14 +234,29 @@ function clearConfig(config, deleteAll = false) {
     return {};
 }
 
-function clearTriggers(triggerId = "", deleteAll = false) {
+/**
+ * Clears triggers for the current sheet or a specific trigger
+ *
+ * @param {string} [triggerId] - specific trigger ID to delete. If not provided, reads from current sheet's config
+ * @param {boolean} [deleteAllNotInConfig] - if true, deletes ALL triggers that do not have a matching ID in the config. 
+ * @returns {{}}
+ */
+function clearTriggers(triggerId = "", deleteAllNotInConfig = false) {
+    let configValues = new Set();
+    if (deleteAllNotInConfig) {
+        configValues = new Set(Object.values(getConfig()));
+    }
+
     const syncs = ScriptApp.getProjectTriggers();
     for (const sync of syncs) {
-        if (sync.getUniqueId() === triggerId || deleteAll) {
+        if (triggerId && sync.getUniqueId() === triggerId) {
+            ScriptApp.deleteTrigger(sync);
+        } else if (deleteAllNotInConfig && !configValues.has(sync.getUniqueId())) { 
+            // DeleteAll is a GOOT if config for a sheet isn't found.
+            // The trigger for this sheet might still exist and only one can exist per sheet. So all triggers without a matching config need to be deleted.
             ScriptApp.deleteTrigger(sync);
         }
     }
-    return {};
 }
 
 function getTriggers() {
@@ -190,6 +282,9 @@ if (typeof module !== "undefined") {
         getTriggers,
         updateConfig,
         appendConfig,
-        getSheetPrefix
+        getSheetPrefix,
+        migrateLegacyConfig,
+        _clearPrefixCache,
+        KNOWN_CONFIG_KEYS
     };
 }
