@@ -103,6 +103,76 @@ function runTests() {
 	----
 	*/
 
+    /*
+	----
+	STORAGE (sheet-scoped config; hermetic via mocked PropertiesService)
+	----
+	*/
+
+    test.assert("STORAGE: save + get round-trips this sheet's config?", () => {
+        _clearPrefixCache();
+        PropertiesService.getUserProperties().deleteAllProperties();
+        const expected = { project_id: "123", token: "abc" };
+        setConfig(expected);
+        return isDeepEqual(getConfig(), expected);
+    });
+
+    test.assert("STORAGE: clear empties this sheet's config?", () => {
+        _clearPrefixCache();
+        PropertiesService.getUserProperties().deleteAllProperties();
+        setConfig({ project_id: "123" });
+        clearConfig(null);
+        return Object.keys(getConfig()).length === 0;
+    });
+
+    test.assert("STORAGE: multi-sheet isolation — clearing one sheet leaves the other intact?", () => {
+        const store = PropertiesService.getUserProperties();
+        store.deleteAllProperties();
+        _clearPrefixCache();
+
+        // current sheet ("B") prefix comes from getSheetPrefix(); a second sheet ("A")
+        // is written directly under a different prefix
+        const aPrefix = "OTHER_SHEET_ID_";
+        store.setProperty(aPrefix + "project_id", "A");
+        store.setProperty(aPrefix + "token", "tokA");
+        setConfig({ project_id: "B", token: "tokB" });
+
+        const before = getConfig().project_id === "B" && store.getProperty(aPrefix + "project_id") === "A";
+        clearConfig(null); // clears the current sheet only
+        const bGone = Object.keys(getConfig()).length === 0;
+        const aIntact = store.getProperty(aPrefix + "project_id") === "A" && store.getProperty(aPrefix + "token") === "tokA";
+
+        store.deleteAllProperties();
+        _clearPrefixCache();
+        return before && bGone && aIntact;
+    });
+
+    test.assert("STORAGE: legacy unprefixed config is purged, not migrated?", () => {
+        const store = PropertiesService.getUserProperties();
+        store.deleteAllProperties();
+        _clearPrefixCache();
+
+        store.setProperty("project_id", "legacy"); // pre-#45 flat keys
+        store.setProperty("service_secret", "stale"); // stale plaintext secret
+        const before = store.getProperty("project_id") === "legacy";
+
+        getConfig(); // triggers the one-time purge
+
+        const purged = !store.getProperty("project_id") && !store.getProperty("service_secret");
+        const flagged = store.getProperty("has_purged_legacy") === "true";
+        const scopedEmpty = Object.keys(getConfig()).length === 0;
+
+        store.deleteAllProperties();
+        _clearPrefixCache();
+        return before && purged && flagged && scopedEmpty;
+    });
+
+    test.assert("STORAGE: clearTriggers is safe (no-op) off-GAS?", () => {
+        let threw = false;
+        try { clearTriggers("x", true); } catch (e) { threw = true; }
+        return !threw;
+    });
+
     test.runInGas(true);
     if (test.isInGas) tearDown();
     if (test.isInGas) test.printHeader(`SERVER SIDE TESTS START\n${formatDate()}`, false);
@@ -172,146 +242,7 @@ function runTests() {
 	----
 	*/
 
-    test.assert("STORAGE: save?", () => {
-        clearConfig(null, true);
-        const expected = { foo: "bar", baz: "qux", mux: "dux" };
-        const results = setConfig(expected);
-        return isDeepEqual(expected, results);
-    });
-
-    test.assert("STORAGE: get?", () => {
-        clearConfig(null, true);
-        const expected = { foo: "bar", baz: "qux", mux: "dux" };
-        setConfig(expected);
-        const results = getConfig();
-        return isDeepEqual(expected, results);
-    });
-
-    test.assert("STORAGE: clear?", () => {
-        const expected = {};
-        const results = clearConfig(null, true);
-        return isDeepEqual(expected, results);
-    });
-
-    test.assert("STORAGE: multi-sheet isolation with prefixing?", () => {
-        // Issue #45: Configs should be scoped per-spreadsheet using spreadsheet ID prefix
-        // This test verifies that clearConfig() only clears the current sheet's properties
-        // and doesn't affect properties from other sheets (simulated with different prefixes)
-        // Works in both local and GAS environments
-
-        const scriptProperties = PropertiesService.getUserProperties();
-
-        // Clean slate
-        scriptProperties.deleteAllProperties();
-        _clearPrefixCache();
-
-        // Simulate two different spreadsheets
-        const sheetA_Id = "SHEET_A_TEST_ID";
-        const sheetB_Id = getSheetPrefix().slice(0, -1);
-
-        // Manually create Sheet A's config (simulating another sheet's data)
-        const sheetA_prefix = sheetA_Id + "_";
-        scriptProperties.setProperty(sheetA_prefix + "project_id", "projectA");
-        scriptProperties.setProperty(sheetA_prefix + "token", "tokenA");
-
-        // Manually create Sheet B's config (simulating current sheet's data)
-        const sheetB_prefix = sheetB_Id + "_";
-        scriptProperties.setProperty(sheetB_prefix + "project_id", "projectB");
-        scriptProperties.setProperty(sheetB_prefix + "token", "tokenB");
-
-        // Verify both configs exist
-        const bothExist = scriptProperties.getProperty(sheetA_prefix + "project_id") === "projectA" &&
-                         scriptProperties.getProperty(sheetB_prefix + "project_id") === "projectB";
-
-        // Clear Sheet B's config using override parameter (simulating clearConfig from Sheet B)
-        clearConfig(null);
-
-        // Verify Sheet B's config is cleared
-        const sheetB_Cleared = !scriptProperties.getProperty(sheetB_prefix + "project_id") &&
-                              !scriptProperties.getProperty(sheetB_prefix + "token");
-
-        // Verify Sheet A's config is still intact (critical - other sheet not affected)
-        const sheetA_Intact = scriptProperties.getProperty(sheetA_prefix + "project_id") === "projectA" &&
-                             scriptProperties.getProperty(sheetA_prefix + "token") === "tokenA";
-
-        // Clean up
-        scriptProperties.deleteAllProperties();
-        _clearPrefixCache();
-
-        return bothExist && sheetB_Cleared && sheetA_Intact;
-    });
-
-    test.assert("STORAGE: legacy config migration cleans up unprefixed keys?", () => {
-        const scriptProperties = PropertiesService.getUserProperties();
-
-        // Clean slate
-        scriptProperties.deleteAllProperties();
-        _clearPrefixCache();
-
-        const prefix = getSheetPrefix()
-        const testSheetId = prefix.slice(0, -1);
-
-        // Set up legacy unprefixed config (simulating old pre-migration data)
-        scriptProperties.setProperty("project_id", "legacyProject");
-        scriptProperties.setProperty("token", "legacyToken");
-        scriptProperties.setProperty("service_secret", "legacySecret");
-        scriptProperties.setProperty("sheet_id", testSheetId);
-
-        // Verify legacy keys exist
-        const legacyExists = scriptProperties.getProperty("project_id") === "legacyProject";
-
-        // Should run migration
-        config = getConfig();
-
-        const legacyRemoved = !scriptProperties.getProperty("project_id") 
-
-        const newProperties = scriptProperties.getProperties();
-
-        // Verify data was migrated to prefixed keys
-        const migrated = newProperties[prefix + "project_id"] === "legacyProject" &&
-                         newProperties[prefix + "token"] === "legacyToken" &&
-                         newProperties[prefix + "service_secret"] === "legacySecret";
-
-        const correctConfig = config.project_id === "legacyProject";
-
-        // Clean up
-        scriptProperties.deleteAllProperties();
-
-        return legacyExists && legacyRemoved && migrated && correctConfig;
-    });
-
-    test.assert("STORAGE: clearConfig doesn't delete other sheets' triggers?", () => {
-        // This is a conceptual test - in practice, trigger isolation depends on
-        // not passing deleteAll=true to clearTriggers
-        // Verify that clearConfig signature changed to not delete all by default
-
-        const scriptProperties = PropertiesService.getUserProperties();
-        scriptProperties.deleteAllProperties();
-        _clearPrefixCache();
-
-        const prefix = getSheetPrefix()
-        const testSheetId = prefix.slice(0, -1);
-
-        // Set up config for test sheet
-        const testConfig = {
-            project_id: "testProject",
-            trigger: "test-trigger-id"
-        };
-
-        setConfig(testConfig)
-
-        // Call clearConfig with the new signature
-        // The second parameter (deleteAllTriggers) should default to false
-        clearConfig(testConfig);
-
-        // Verify config is cleared
-        const allProps = scriptProperties.getProperties();
-        const configCleared = !allProps.hasOwnProperty(prefix + "project_id");
-
-        // The important thing is that we're NOT calling clearTriggers with deleteAll=true
-        // which would delete all project triggers (tested via signature change)
-        return configCleared;
-    });
+    // STORAGE tests now run hermetically in the LOCAL block above (test-local).
 
     /*
 	----
@@ -807,6 +738,35 @@ if (typeof require !== "undefined") {
     global.UnitTestingApp = UnitTestingApp;
     const Misc = require("../utilities/misc.js");
     global.Misc = Misc;
+    global.isDeepEqual = Misc.isDeepEqual;
+
+    // GAS PropertiesService isn't available off-platform; provide an in-memory stand-in
+    // so the sheet-scoped storage tests run under node. Do NOT define ScriptApp or
+    // SpreadsheetApp here — UnitTestingApp keys `isInGas` off `typeof ScriptApp`, and
+    // storage.js falls back to a stable test prefix when SpreadsheetApp is absent.
+    if (typeof PropertiesService === "undefined") {
+        const _stores = {};
+        const makeStore = name => {
+            if (!_stores[name]) _stores[name] = {};
+            const s = _stores[name];
+            return {
+                getProperties: () => Object.assign({}, s),
+                getProperty: k => (Object.prototype.hasOwnProperty.call(s, k) ? s[k] : null),
+                setProperty: (k, v) => { s[k] = String(v); },
+                setProperties: o => { for (const k in o) s[k] = String(o[k]); },
+                deleteProperty: k => { delete s[k]; },
+                deleteAllProperties: () => { for (const k in s) delete s[k]; }
+            };
+        };
+        global.PropertiesService = {
+            getUserProperties: () => makeStore("user"),
+            getDocumentProperties: () => makeStore("document"),
+            getScriptProperties: () => makeStore("script")
+        };
+    }
+
+    // sheet-scoped storage under test
+    Object.assign(global, require("../utilities/storage.js"));
 
     //see .env-sample for an example configuration
     //right now these are not used
