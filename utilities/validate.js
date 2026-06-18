@@ -37,7 +37,9 @@ function validateCreds(config) {
             contentType: "application/json",
             headers: {
                 Authorization: `Basic ${auth}`,
-                Accept: "application/json"
+                Accept: "application/json",
+                // @ts-ignore
+                ...MP_SOURCE_HEADER
             },
             muteHttpExceptions: true,
             payload: JSON.stringify([{}]) //sending an empty event to /import will validate the credentials + project_id
@@ -74,7 +76,9 @@ function validateCreds(config) {
             method: "get",
             headers: {
                 Authorization: `Basic ${auth}`,
-                Accept: "application/json"
+                Accept: "application/json",
+                // @ts-ignore
+                ...MP_SOURCE_HEADER
             },
             muteHttpExceptions: false
         };

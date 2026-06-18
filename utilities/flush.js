@@ -35,7 +35,9 @@ function flushToMixpanel(data, config, strict = 0) {
         contentType: "application/json",
         headers: {
             Authorization: `Basic ${config.auth}`,
-            Accept: "application/json"
+            Accept: "application/json",
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true
     };
