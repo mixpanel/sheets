@@ -86,7 +86,9 @@ function enumDashboard(config) {
         method: "get",
         headers: {
             Authorization: `Basic ${auth}`,
-            Accept: "application/json"
+            Accept: "application/json",
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true
     };
@@ -133,7 +135,9 @@ function getParams(config) {
         method: "get",
         headers: {
             Authorization: `Basic ${auth}`,
-            Accept: "application/json"
+            Accept: "application/json",
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true
     };
@@ -188,7 +192,6 @@ function getReportCSV(report_type, params, config) {
     )}&project_id=${Number(project_id)}`;
     const payload = {
         bookmark: params,
-        use_query_cache: false,
         format: "csv"
     };
 
@@ -196,7 +199,9 @@ function getReportCSV(report_type, params, config) {
     const options = {
         method: "post",
         headers: {
-            Authorization: `Basic ${auth}`
+            Authorization: `Basic ${auth}`,
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true,
         payload: JSON.stringify(payload)
@@ -234,7 +239,9 @@ function getCohort(config) {
         method: "post",
         headers: {
             Authorization: `Basic ${auth}`,
-            "Content-Type": `application/x-www-form-urlencoded`
+            "Content-Type": `application/x-www-form-urlencoded`,
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true,
         payload: JSON.stringify(payload)
@@ -284,7 +291,9 @@ function getCohortMeta(config) {
         method: "post",
         headers: {
             Authorization: `Basic ${auth}`,
-            Accept: `application/json`
+            Accept: `application/json`,
+            // @ts-ignore
+            ...MP_SOURCE_HEADER
         },
         muteHttpExceptions: true
     };

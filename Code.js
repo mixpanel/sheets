@@ -11,7 +11,10 @@
 -----------------------------
 */
 
-const APP_VERSION = "1.23";
+const APP_VERSION = "1.24";
+
+// added to every data-plane request so Mixpanel can attribute traffic to this add-on
+const MP_SOURCE_HEADER = { baggage: "mp.source.name=sheets-mixpanel" };
 
 /**
  * some important things to know about google apps script
